@@ -12,9 +12,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class SolvedWorkbook {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @EmbeddedId
+    private SolvedWorkbookId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
