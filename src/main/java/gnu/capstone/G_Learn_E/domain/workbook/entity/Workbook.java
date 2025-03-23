@@ -1,6 +1,6 @@
 package gnu.capstone.G_Learn_E.domain.workbook.entity;
 
-import gnu.capstone.G_Learn_E.domain.curriculm.entity.SubjectWorkbookMap;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.SubjectWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.ExamType;
