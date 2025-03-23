@@ -1,0 +1,116 @@
+package gnu.capstone.G_Learn_E.global.jwt;
+
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.util.Date;
+import java.util.Map;
+
+
+@Slf4j
+@Component
+public class JwtUtils {
+
+    private final SecretKey key;
+    private final long emailAuthTokenExpiration; // 이메일 인증코드용 토큰
+    private final long accessTokenExpiration;
+    private final long refreshTokenExpiration;
+
+    public JwtUtils(
+            @Value("${jwt.secret}") String secretKey,
+            @Value("${jwt.expiration-time.authentication-token}") long emailAuthTokenExpiration,
+            @Value("${jwt.expiration-time.access-token}") long accessTokenExpiration,
+            @Value("${jwt.expiration-time.refresh-token}") long refreshTokenExpiration
+    ) {
+        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+        this.emailAuthTokenExpiration = emailAuthTokenExpiration;
+        this.accessTokenExpiration = accessTokenExpiration;
+        this.refreshTokenExpiration = refreshTokenExpiration;
+    }
+
+    public String generateAccessToken(User user) {
+        return generateToken(user, accessTokenExpiration, "access");
+    }
+
+    public String generateRefreshToken(User user) {
+        return generateToken(user, refreshTokenExpiration, "refresh");
+    }
+
+    public String generateAuthenticationToken(User user) {
+        return generateToken(user, emailAuthTokenExpiration, "email-auth");
+    }
+
+    private String generateToken(User user, long expirationTime, String tokenType) {
+        return Jwts.builder()
+                .subject(String.valueOf(user.getId()))
+                .claim("tokenType", tokenType)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expirationTime))
+                .signWith(key)
+                .compact();
+    }
+
+
+    public String extractToken(String authorizationHeader) {
+        return authorizationHeader.substring(7);
+    }
+
+    public String extractToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        return (header != null && header.startsWith("Bearer ")) ? header.substring(7) : null;
+    }
+
+
+    public String getIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getSubject();
+    }
+
+
+    public String getTokenType(String token) {
+        return parseClaims(token).get("tokenType", String.class);
+    }
+
+
+    public Map<String, Object> extractAllClaimsAsMap(String token) {
+        return parseClaims(token);
+    }
+
+    public Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException e) {
+            log.error("JWT expired.");
+//            throw InvalidTokenException.expired();
+            return false;
+        } catch (JwtException | IllegalArgumentException e) {
+            // 토큰 만료 이외의 JWT 오류는 보안상 유효하지 않은 토큰 예외로 통일
+            log.error("Invalid JWT format.");
+//            throw InvalidTokenException.invalidToken();
+            return false;
+        }
+        return true;
+    }
+}
