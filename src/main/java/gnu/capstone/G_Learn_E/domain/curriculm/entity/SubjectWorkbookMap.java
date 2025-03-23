@@ -14,10 +14,12 @@ public class SubjectWorkbookMap {
     private SubjectWorkbookId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("subjectId")
     @JoinColumn(name = "subject_id")
     private Subject subject;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("workbookId")
     @JoinColumn(name = "workbook_id")
     private Workbook workbook;
 }

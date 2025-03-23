@@ -14,10 +14,12 @@ public class FolderWorkbookMap {
     private FolderWorkbookId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("folderId")
     @JoinColumn(name = "folder_id")
     private Folder folder;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("workbookId")
     @JoinColumn(name = "workbook_id")
     private Workbook workbook;
 

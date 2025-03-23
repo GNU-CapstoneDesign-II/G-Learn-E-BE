@@ -14,6 +14,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class FolderWorkbookId implements Serializable {
-    private Long subjectId;
+    private Long folderId;
     private Long workbookId;
 }
