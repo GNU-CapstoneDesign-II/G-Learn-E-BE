@@ -1,9 +1,11 @@
 package gnu.capstone.G_Learn_E.domain.problem.entity;
 
-import gnu.capstone.G_Learn_E.domain.problem.serialization.converter.AnswerListConverter;
-import gnu.capstone.G_Learn_E.domain.problem.serialization.converter.OptionListConverter;
+import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
+import gnu.capstone.G_Learn_E.global.common.serialization.converter.AnswerListConverter;
+import gnu.capstone.G_Learn_E.global.common.serialization.converter.OptionListConverter;
 import gnu.capstone.G_Learn_E.domain.problem.enums.ProblemType;
-import gnu.capstone.G_Learn_E.domain.problem.serialization.Option;
+import gnu.capstone.G_Learn_E.global.common.serialization.Option;
+import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,4 +39,12 @@ public class Problem {
 
     @Enumerated(EnumType.STRING)
     private ProblemType type;    // 문제 유형 (객관식, OX, 주관식 등)
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "workbook_id")
+    private Workbook workbook;    // 문제가 속한 문제집
+
+    @OneToMany(mappedBy = "problem", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SolveLog> solveLogs; // 문제를 푼 사용자들의 풀이 기록
 }

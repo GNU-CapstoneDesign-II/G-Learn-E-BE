@@ -1,9 +1,9 @@
-package gnu.capstone.G_Learn_E.domain.problem.serialization.converter;
+package gnu.capstone.G_Learn_E.global.common.serialization.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gnu.capstone.G_Learn_E.domain.problem.serialization.Option;
+import gnu.capstone.G_Learn_E.global.common.serialization.Option;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
