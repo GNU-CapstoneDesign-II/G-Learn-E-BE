@@ -1,5 +1,6 @@
 package gnu.capstone.G_Learn_E.domain.folder.entity;
 
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,14 @@ public class Folder {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Folder> children = new ArrayList<>();
 
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+
+    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FolderWorkbookMap> folderWorkbookMaps = new ArrayList<>();
 
     @PrePersist
     public void prePersist(){

@@ -1,5 +1,6 @@
 package gnu.capstone.G_Learn_E.domain.notification.entity;
 
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,10 @@ public class Notification {
     private boolean isRead;
 
     private LocalDateTime createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @PrePersist
     public void prePersist(){

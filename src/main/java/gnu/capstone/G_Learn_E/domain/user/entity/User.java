@@ -1,10 +1,16 @@
 package gnu.capstone.G_Learn_E.domain.user.entity;
 
+import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
+import gnu.capstone.G_Learn_E.domain.notification.entity.Notification;
+import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
 import gnu.capstone.G_Learn_E.global.common.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -32,6 +38,15 @@ public class User {
     @Column
     private UserStatus status;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Folder> folders = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SolvedWorkbook> solvedWorkbooks = new ArrayList<>();
+
     @Builder
     public User(String nickname, String email){
         this.nickname = nickname;
@@ -40,6 +55,7 @@ public class User {
         this.level = 1;
         this.exp = 0;
         this.status = UserStatus.ACTIVE;
+        // TODO : 개인 폴더에 루트 디렉터리를 추가해줘야 됨
     }
 
     public void updateProfileImage(Integer profileImage){

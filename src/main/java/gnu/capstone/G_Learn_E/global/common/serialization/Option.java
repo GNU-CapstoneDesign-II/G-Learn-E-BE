@@ -1,4 +1,4 @@
-package gnu.capstone.G_Learn_E.domain.problem.serialization;
+package gnu.capstone.G_Learn_E.global.common.serialization;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
