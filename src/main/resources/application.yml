@@ -44,6 +44,9 @@ jwt:
 
 
 mail-auth:
+  code:
+    expiration-time: ${mail-auth.code.expiration-time}
+    length: ${mail-auth.code.length}
   allowed-domain:
     - gnu.ac.kr
 

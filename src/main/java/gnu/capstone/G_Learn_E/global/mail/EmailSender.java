@@ -15,10 +15,12 @@ public class EmailSender {
     private final JavaMailSender mailSender;
     private final String expirationTimeMessage;
 
-    public EmailSender(JavaMailSender mailSender,
-                       @Value("${auth.email-auth-code-expiration-time}") long expirationTime) {
+    public EmailSender(
+            JavaMailSender mailSender,
+            @Value("${mail-auth.code.expiration-time}") long expirationTime // 분 단위
+    ) {
         this.mailSender = mailSender;
-        this.expirationTimeMessage = String.valueOf(expirationTime / 1000 / 60);
+        this.expirationTimeMessage = String.valueOf(expirationTime);
     }
 
     public void sendAuthCode(String toEmail, String authCode) {

@@ -6,6 +6,7 @@ import gnu.capstone.G_Learn_E.global.auth.repository.email.EmailAuthCodeReposito
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -19,6 +20,9 @@ public class AuthService {
     private final EmailAuthCodeRepository emailAuthCodeRepository;
 
     private final UserRepository userRepository;
+
+    @Value("${mail-auth.code.length}")
+    private int emailAuthCodeLength;
 
     private final Random random = new Random();
 
@@ -47,6 +51,6 @@ public class AuthService {
 
     private String generateEmailAuthCode() {
         // 6자리 숫자로 구성된 인증 코드 생성
-        return String.format("%06d", random.nextInt(1000000));
+        return String.valueOf(random.nextInt((int) Math.pow(10, emailAuthCodeLength)));
     }
 }

@@ -15,9 +15,9 @@ public class InMemoryEmailAuthCodeRepository implements EmailAuthCodeRepository 
     private final Map<String, EmailAuthInfo> emailAuthCodeMap = new ConcurrentHashMap<>();
 
     public InMemoryEmailAuthCodeRepository(
-            @Value("${auth.email-auth-code-expiration-time}") long expirationTime
+            @Value("${mail-auth.code.expiration-time}") long expirationTime
     ) {
-        this.expirationTime = expirationTime;
+        this.expirationTime = expirationTime * 60 * 1000; // 분을 밀리초로 변환
     }
 
     @Override
