@@ -1,6 +1,7 @@
 package gnu.capstone.G_Learn_E.global.auth.controller;
 
-import gnu.capstone.G_Learn_E.global.auth.dto.response.EmailAuthCode;
+import gnu.capstone.G_Learn_E.global.auth.dto.request.EmailAuthCodeVerify;
+import gnu.capstone.G_Learn_E.global.auth.dto.response.EmailAuthToken;
 import gnu.capstone.G_Learn_E.global.auth.service.AuthService;
 import gnu.capstone.G_Learn_E.global.auth.util.EmailValidator;
 import gnu.capstone.G_Learn_E.global.jwt.JwtUtils;
@@ -9,10 +10,7 @@ import gnu.capstone.G_Learn_E.global.template.RestTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -34,5 +32,18 @@ public class AuthController {
         emailSender.sendAuthCode(email, authCode);
 
         return new RestTemplate<>(HttpStatus.NO_CONTENT, "이메일 인증 코드 발급 성공", null);
+    }
+
+    @PostMapping("/email-code/verify")
+    public RestTemplate<EmailAuthToken> verifyEmailAuthCode(@RequestBody EmailAuthCodeVerify request) {
+        // TODO : 이메일 인증 코드 검증
+        authService.verifyEmailAuthCode(request.email(), request.authCode());
+
+        String emailAuthToken = jwtUtils.generateEmailAuthToken(request.email());
+        log.info("이메일 인증 코드 검증 성공 [email: {}]", request.email());
+        log.info("이메일 인증 토큰 발급 [email: {}, token: {}]", request.email(), emailAuthToken);
+
+        String responseMsg = String.format("이메일 인증 코드 검증 성공. 유효 시간: %d분", jwtUtils.getEmailAuthTokenExpiration() / 1000 / 60);
+        return new RestTemplate<>(HttpStatus.OK, responseMsg, new EmailAuthToken(emailAuthToken));
     }
 }

@@ -48,6 +48,15 @@ public class AuthService {
         return authCode;
     }
 
+    public void verifyEmailAuthCode(String email, String authCode) {
+        if(!emailAuthCodeRepository.exists(email, authCode)) {
+            log.info("이메일 인증 코드 검증 실패 [email: {}, authCode: {}]", email, authCode);
+            throw AuthInvalidException.invalidEmailAuthCode();
+        }
+        emailAuthCodeRepository.deleteByEmail(email);
+        log.info("이메일 인증 코드 검증 성공 [email: {}, authCode: {}]", email, authCode);
+    }
+
 
     private String generateEmailAuthCode() {
         // 6자리 숫자로 구성된 인증 코드 생성

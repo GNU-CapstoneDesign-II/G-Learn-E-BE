@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Setter
 @Component
 @ConfigurationProperties(prefix = "mail-auth")
 public class EmailValidator {
-    @Setter
     private List<String> allowedDomain;
 
     public void validate(String email) {
