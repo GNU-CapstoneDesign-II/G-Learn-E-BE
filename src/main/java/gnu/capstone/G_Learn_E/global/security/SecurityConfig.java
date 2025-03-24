@@ -1,5 +1,8 @@
 package gnu.capstone.G_Learn_E.global.security;
 
+import gnu.capstone.G_Learn_E.global.jwt.JwtAuthenticationFilter;
+import gnu.capstone.G_Learn_E.global.security.exception.handler.CustomAccessDeniedHandler;
+import gnu.capstone.G_Learn_E.global.security.exception.handler.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +24,11 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final SecurityPathProperties securityPathProperties;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomAuthenticationEntryPoint authenticationExceptionHandler;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     // CORS 설정
     CorsConfigurationSource corsConfigurationSource() {
@@ -53,34 +61,17 @@ public class SecurityConfig {
                 httpBasic(HttpBasicConfigurer::disable)
                 .cors(corsConfigurer -> corsConfigurer.configurationSource(corsConfigurationSource())) // CORS 설정 추가
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(authorize -> {
-                    authorize
-                            .anyRequest().permitAll()
-                    ;
-                })
-//                .exceptionHandling(ex -> ex
-//                        .authenticationEntryPoint(customAuthenticationEntryPoint)
-//                )
-//                .authorizeHttpRequests(authorize -> {
-//                    authorize
-//                            .requestMatchers(securityPathProperties.getPermitAll().toArray(new String[0])).permitAll()
-//                            .requestMatchers(securityPathProperties.getAuthenticated().toArray(new String[0])).authenticated()
-//                            .requestMatchers(securityPathProperties.getAnonymous().toArray(new String[0])).anonymous()
-//                    ;
-//
-//                    switch (securityPathProperties.getAnyRequest()) {
-//                        case "permit-all":
-//                            authorize.anyRequest().permitAll();
-//                            break;
-//                        case "anonymous":
-//                            authorize.anyRequest().anonymous();
-//                            break;
-//                        case "authenticated":
-//                        default:
-//                            authorize.anyRequest().authenticated();
-//                            break;
-//                    }
-//                })
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authenticationExceptionHandler)
+                        .accessDeniedHandler(accessDeniedHandler)
+                )
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(securityPathProperties.getPermitAll().toArray(new String[0])).permitAll()
+                        .requestMatchers(securityPathProperties.getAuthenticated().toArray(new String[0])).authenticated()
+                        .requestMatchers(securityPathProperties.getAnonymous().toArray(new String[0])).anonymous()
+                        .requestMatchers(securityPathProperties.getEmailAuth().toArray(new String[0])).permitAll()
+                        .anyRequest().permitAll())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 //                .addFilterBefore(verificationStatusFilter, UsernamePasswordAuthenticationFilter.class)
 //                .addFilterBefore(pendingUserFilter, VerificationStatusFilter.class)
 //                .addFilterBefore(jwtAuthenticationFilter, PendingUserFilter.class)

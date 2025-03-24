@@ -48,8 +48,6 @@ security:
     #      - "/api/user/**"
     #      - "/api/map/**"
     authenticated:
-      - "/api/auth/emailCode"
-      - "/api/auth/emailCode/verify"
       - "/api/auth/tokenRefresh"
       - "/api/auth/logout"
     #      - "/api/user"
