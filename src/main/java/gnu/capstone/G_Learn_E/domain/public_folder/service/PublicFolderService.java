@@ -1,5 +1,6 @@
 package gnu.capstone.G_Learn_E.domain.public_folder.service;
 
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.CollegeRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.DepartmentRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectRepository;
@@ -7,6 +8,8 @@ import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectWorkbookMap
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -19,4 +22,7 @@ public class PublicFolderService {
     private final SubjectWorkbookMapRepository subjectWorkbookMapRepository;
 
     // TODO : 커리큘럼 폴더 서비스 구현
+    public List<College> getColleges() {
+        return collegeRepository.findAll();
+    }
 }
