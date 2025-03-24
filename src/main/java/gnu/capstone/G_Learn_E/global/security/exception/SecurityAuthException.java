@@ -1,6 +1,6 @@
 package gnu.capstone.G_Learn_E.global.security.exception;
 
-import gnu.capstone.G_Learn_E.global.error.exception.AuthGroupException;
+import gnu.capstone.G_Learn_E.global.error.exception.client.AuthGroupException;
 
 public class SecurityAuthException extends AuthGroupException {
     public SecurityAuthException(String message) {

@@ -1,6 +1,7 @@
 package gnu.capstone.G_Learn_E.domain.user.service;
 
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
+import gnu.capstone.G_Learn_E.domain.user.exception.UserNotFoundException;
 import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,7 @@ public class UserService {
     public User findById(Long id) {
         // TODO: 예외처리 변경
         return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
+                .orElseThrow(UserNotFoundException::userNotFound);
     }
     public User findById(String id) {
         long lid;
