@@ -30,9 +30,37 @@ jwt:
     access-token: ${jwt.expiration-time.access-token}
     refresh-token: ${jwt.expiration-time.refresh-token}
 
-
-
-
-#  @Value("${jwt.secret}") String secretKey,
-#  @Value("${jwt.expiration-time.access-token}") long accessTokenExpiration,
-#  @Value("${jwt.expiration-time.refresh-token}") long refreshTokenExpiration
+#  @Getter
+#  @Setter
+#  @Configuration
+#  @ConfigurationProperties(prefix = "security.path")
+#  public class SecurityPathProperties {
+#  private List<String> permitAll;
+#  private List<String> authenticated;
+#  private List<String> anonymous;
+#  private String anyRequest;
+#}
+security:
+  path:
+    permit-all:
+      - "/swagger-ui/**"
+      - "/v3/api-docs/**"
+    #      - "/api/user/**"
+    #      - "/api/map/**"
+    authenticated:
+      - "/api/auth/emailCode"
+      - "/api/auth/emailCode/verify"
+      - "/api/auth/tokenRefresh"
+      - "/api/auth/logout"
+    #      - "/api/user"
+    #      - "/api/certificates/**"
+    #      - "/api/user/**"
+    #      - "/api/building/**"
+    #      - "/api/review/**"
+    #      - "/api/notification/**"
+    anonymous:
+      - "/api/auth"
+    email-auth:
+        - "/api/auth/emailCode"
+        - "/api/auth/emailCode/verify"
+    any-request: "permit-all"  # 'authenticated', 'permit-all', 'anonymous' 중 하나
