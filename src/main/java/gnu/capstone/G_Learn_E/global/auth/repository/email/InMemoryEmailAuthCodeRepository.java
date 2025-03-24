@@ -42,7 +42,13 @@ public class InMemoryEmailAuthCodeRepository implements EmailAuthCodeRepository 
             emailAuthCodeMap.remove(email); // 만료되었으면 제거
             return false;
         }
-        return info.code.equals(authCode);
+        if(!info.code.equals(authCode)){
+            // 인증 코드가 일치하지 않는 경우
+            // 인증 코드를 삭제하고 false 반환
+            deleteByEmail(email);
+            return false;
+        }
+        return true;
     }
 
     @Override
