@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.global.error.exception.NotFoundGroupException;
+import gnu.capstone.G_Learn_E.global.jwt.dto.SubjectAndType;
 import gnu.capstone.G_Learn_E.global.jwt.exception.JwtAuthException;
 import gnu.capstone.G_Learn_E.global.security.SecurityPathProperties;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,15 +42,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = jwtUtils.extractToken(request);
 
             // 2. 토큰 존재 및 검증
-            if (token != null && jwtUtils.validateToken(token)) {
-                // 3. 토큰에서 클레임 추출
-                Claims claims = jwtUtils.parseClaims(token);
+            if (token != null) {
+                if(!jwtUtils.validateToken(token)) throw JwtAuthException.invalidToken();
+                if(jwtUtils.isExpired(token)) throw JwtAuthException.expired();
 
-                // subject : PK(access or refresh) or email(email-auth)
-                String subject = claims.getSubject();
-
-                // tokenType : access, refresh, email-auth
-                String tokenType = claims.get("tokenType", String.class);
+                // 3. 토큰에서 subject, tokenType 추출
+                SubjectAndType subjectAndType = jwtUtils.getSubjectAndType(token);
+                String subject = subjectAndType.subject(); // subject : PK(access or refresh) or email(email-auth)
+                String tokenType = subjectAndType.type(); // tokenType : access, refresh, email-auth
 
                 String requestURI = request.getRequestURI();
 

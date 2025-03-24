@@ -1,9 +1,9 @@
 package gnu.capstone.G_Learn_E.global.jwt;
 
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
+import gnu.capstone.G_Learn_E.global.jwt.dto.SubjectAndType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -28,7 +28,7 @@ public class JwtUtils {
 
     public JwtUtils(
             @Value("${jwt.secret}") String secretKey,
-            @Value("${jwt.expiration-time.authentication-token}") long emailAuthTokenExpiration,
+            @Value("${jwt.expiration-time.email-auth-token}") long emailAuthTokenExpiration,
             @Value("${jwt.expiration-time.access-token}") long accessTokenExpiration,
             @Value("${jwt.expiration-time.refresh-token}") long refreshTokenExpiration
     ) {
@@ -70,32 +70,36 @@ public class JwtUtils {
     }
 
 
+    // 헤더에서 토큰 추출
     public String extractToken(String authorizationHeader) {
         return authorizationHeader.substring(7);
     }
-
     public String extractToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         return (header != null && header.startsWith("Bearer ")) ? header.substring(7) : null;
     }
 
 
-    public String getSubjectFromToken(String token) {
+    public String getSubject(String token) {
         Claims claims = parseClaims(token);
         return claims.getSubject();
     }
-
 
     public String getTokenType(String token) {
         return parseClaims(token).get("tokenType", String.class);
     }
 
+    public SubjectAndType getSubjectAndType(String token) {
+        Claims claims = parseClaims(token);
+        return new SubjectAndType(claims.getSubject(), claims.get("tokenType", String.class));
+    }
 
-    public Map<String, Object> extractAllClaimsAsMap(String token) {
+
+    public Map<String, Object> extractClaims(String token) {
         return parseClaims(token);
     }
 
-    public Claims parseClaims(String token) {
+    private Claims parseClaims(String token) {
         return Jwts.parser()
                 .verifyWith(key)
                 .build()
@@ -108,18 +112,26 @@ public class JwtUtils {
             Jwts.parser()
                     .verifyWith(key)
                     .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+                    .parseSignedClaims(token);
+            return true;
         } catch (ExpiredJwtException e) {
-            log.error("JWT expired.");
-//            throw InvalidTokenException.expired();
-            return false;
-        } catch (JwtException | IllegalArgumentException e) {
+            return true;
+        } catch (Exception e){
             // 토큰 만료 이외의 JWT 오류는 보안상 유효하지 않은 토큰 예외로 통일
             log.error("Invalid JWT format.");
-//            throw InvalidTokenException.invalidToken();
             return false;
         }
-        return true;
+    }
+
+    public boolean isExpired(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            return claims.getExpiration().before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true;
+        } catch (Exception e){
+            log.error("Invalid JWT format.");
+            return true;
+        }
     }
 }
