@@ -1,6 +1,6 @@
 package gnu.capstone.G_Learn_E.global.jwt.exception;
 
-import gnu.capstone.G_Learn_E.global.error.exception.AuthGroupException;
+import gnu.capstone.G_Learn_E.global.error.exception.client.AuthGroupException;
 
 public class JwtAuthException extends AuthGroupException {
     public JwtAuthException(String message) {

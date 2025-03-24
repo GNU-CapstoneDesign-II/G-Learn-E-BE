@@ -3,7 +3,7 @@ package gnu.capstone.G_Learn_E.global.jwt;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
-import gnu.capstone.G_Learn_E.global.error.exception.NotFoundGroupException;
+import gnu.capstone.G_Learn_E.global.error.exception.client.NotFoundGroupException;
 import gnu.capstone.G_Learn_E.global.jwt.dto.SubjectAndType;
 import gnu.capstone.G_Learn_E.global.jwt.exception.JwtAuthException;
 import gnu.capstone.G_Learn_E.global.security.SecurityPathProperties;

@@ -22,6 +22,18 @@ spring:
       format_sql: true
     open-in-view: false
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${spring.mail.username}
+    password: ${spring.mail.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 
 jwt:
   secret: ${jwt.secret}
@@ -30,16 +42,12 @@ jwt:
     access-token: ${jwt.expiration-time.access-token}
     refresh-token: ${jwt.expiration-time.refresh-token}
 
-#  @Getter
-#  @Setter
-#  @Configuration
-#  @ConfigurationProperties(prefix = "security.path")
-#  public class SecurityPathProperties {
-#  private List<String> permitAll;
-#  private List<String> authenticated;
-#  private List<String> anonymous;
-#  private String anyRequest;
-#}
+
+mail-auth:
+  allowed-domain:
+    - gnu.ac.kr
+
+
 security:
   path:
     permit-all:

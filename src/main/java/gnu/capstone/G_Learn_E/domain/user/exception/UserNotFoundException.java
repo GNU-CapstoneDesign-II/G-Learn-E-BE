@@ -1,6 +1,6 @@
 package gnu.capstone.G_Learn_E.domain.user.exception;
 
-import gnu.capstone.G_Learn_E.global.error.exception.NotFoundGroupException;
+import gnu.capstone.G_Learn_E.global.error.exception.client.NotFoundGroupException;
 
 public class UserNotFoundException extends NotFoundGroupException {
     public UserNotFoundException(String message) {

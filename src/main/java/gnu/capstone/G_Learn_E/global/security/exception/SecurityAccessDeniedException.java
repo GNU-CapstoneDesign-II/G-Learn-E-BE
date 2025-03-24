@@ -1,6 +1,6 @@
 package gnu.capstone.G_Learn_E.global.security.exception;
 
-import gnu.capstone.G_Learn_E.global.error.exception.AccessDeniedGroupException;
+import gnu.capstone.G_Learn_E.global.error.exception.client.AccessDeniedGroupException;
 
 public class SecurityAccessDeniedException extends AccessDeniedGroupException {
     public SecurityAccessDeniedException(String message) {

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Repository
+@Repository("inMemoryEmailAuthCodeRepository")
 public class InMemoryEmailAuthCodeRepository implements EmailAuthCodeRepository {
 
     private final long expirationTime; // 밀리초 단위 (ex. 5분: 5 * 60 * 1000)

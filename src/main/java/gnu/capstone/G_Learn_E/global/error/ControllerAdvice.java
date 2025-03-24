@@ -1,10 +1,11 @@
 package gnu.capstone.G_Learn_E.global.error;
 
 import gnu.capstone.G_Learn_E.global.error.dto.ErrorResponse;
-import gnu.capstone.G_Learn_E.global.error.exception.AccessDeniedGroupException;
-import gnu.capstone.G_Learn_E.global.error.exception.AuthGroupException;
-import gnu.capstone.G_Learn_E.global.error.exception.InvalidGroupException;
-import gnu.capstone.G_Learn_E.global.error.exception.NotFoundGroupException;
+import gnu.capstone.G_Learn_E.global.error.exception.client.AccessDeniedGroupException;
+import gnu.capstone.G_Learn_E.global.error.exception.client.AuthGroupException;
+import gnu.capstone.G_Learn_E.global.error.exception.client.InvalidGroupException;
+import gnu.capstone.G_Learn_E.global.error.exception.client.NotFoundGroupException;
+import gnu.capstone.G_Learn_E.global.error.exception.server.InternalServerErrorGroupException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +56,18 @@ public class ControllerAdvice {
 
 
     // 429, ManyRequestsGroupException
+
+
+    // 500, InternalServerError
+    @ExceptionHandler({InternalServerErrorGroupException.class})
+    public ResponseEntity<ErrorResponse> handleInternalServerDate(RuntimeException e) {
+        return createErrorResponse(e, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    // 502, BadGatewayGroupException
+
+
 
 
     // 메서드 인자 문제 생겼을 때
