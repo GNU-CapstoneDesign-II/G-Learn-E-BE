@@ -28,7 +28,10 @@ public class SolveLog {
 
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "solved_workbook_id")
+    @JoinColumns({
+            @JoinColumn(name = "user_id", referencedColumnName = "user_id"),
+            @JoinColumn(name = "workbook_id", referencedColumnName = "workbook_id")
+    })
     private SolvedWorkbook solvedWorkbook; // 푼 문제집
 
     @ManyToOne(fetch = FetchType.LAZY)
