@@ -21,3 +21,44 @@ spring:
       show_sql: true
       format_sql: true
     open-in-view: false
+
+
+jwt:
+  secret: ${jwt.secret}
+  expiration-time:
+    email-auth-token: ${jwt.expiration-time.email-auth-token}
+    access-token: ${jwt.expiration-time.access-token}
+    refresh-token: ${jwt.expiration-time.refresh-token}
+
+#  @Getter
+#  @Setter
+#  @Configuration
+#  @ConfigurationProperties(prefix = "security.path")
+#  public class SecurityPathProperties {
+#  private List<String> permitAll;
+#  private List<String> authenticated;
+#  private List<String> anonymous;
+#  private String anyRequest;
+#}
+security:
+  path:
+    permit-all:
+      - "/swagger-ui/**"
+      - "/v3/api-docs/**"
+    #      - "/api/user/**"
+    #      - "/api/map/**"
+    authenticated:
+      - "/api/auth/tokenRefresh"
+      - "/api/auth/logout"
+    #      - "/api/user"
+    #      - "/api/certificates/**"
+    #      - "/api/user/**"
+    #      - "/api/building/**"
+    #      - "/api/review/**"
+    #      - "/api/notification/**"
+    anonymous:
+      - "/api/auth"
+    email-auth:
+        - "/api/auth/emailCode"
+        - "/api/auth/emailCode/verify"
+    any-request: "permit-all"  # 'authenticated', 'permit-all', 'anonymous' 중 하나
