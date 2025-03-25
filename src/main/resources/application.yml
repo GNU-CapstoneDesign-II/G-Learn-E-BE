@@ -69,7 +69,8 @@ security:
     #      - "/api/notification/**"
     anonymous:
       - "/api/auth"
+      - "/api/auth/login"
+      - "/api/auth/email-auth/**"
     email-auth:
-        - "/api/auth/emailCode"
-        - "/api/auth/emailCode/verify"
+        - "/api/auth/signup"
     any-request: "permit-all"  # 'authenticated', 'permit-all', 'anonymous' 중 하나

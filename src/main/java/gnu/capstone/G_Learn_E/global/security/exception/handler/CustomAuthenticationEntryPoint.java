@@ -15,6 +15,7 @@ import java.util.Map;
 
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
+    // 인증되지 않은 사용자가 접근할 때 401 Unauthorized 에러를 반환
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException {

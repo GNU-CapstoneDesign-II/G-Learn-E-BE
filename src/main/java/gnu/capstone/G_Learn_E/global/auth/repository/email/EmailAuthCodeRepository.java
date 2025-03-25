@@ -1,10 +1,11 @@
 package gnu.capstone.G_Learn_E.global.auth.repository.email;
 
 public interface EmailAuthCodeRepository {
-    void save(String email, String authCode);
-    String findByEmail(String email);
+    void saveAuthCode(String email, String authCode);
 
-    boolean exists(String email, String authCode);
+    boolean isIssuedEmail(String email);
+
+    String findAuthCodeByEmail(String email);
 
     void deleteByEmail(String email);
 

@@ -2,6 +2,7 @@ package gnu.capstone.G_Learn_E.global.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
+import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.global.error.exception.client.NotFoundGroupException;
 import gnu.capstone.G_Learn_E.global.jwt.dto.SubjectAndType;
@@ -30,7 +31,7 @@ import java.util.Map;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final SecurityPathProperties securityPathProperties;
     private final AntPathMatcher pathMatcher = new AntPathMatcher(); // Ant 패턴 매칭 객체
 
@@ -41,6 +42,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 1. 토큰 추출
             String token = jwtUtils.extractToken(request);
 
+            String requestURI = request.getRequestURI();
+
+            boolean isEmailAuthPath = securityPathProperties.getEmailAuth().stream()
+                    .anyMatch(pattern -> pathMatcher.match(pattern, requestURI)); // AntPathMatcher 사용
+
             // 2. 토큰 존재 및 검증
             if (token != null) {
                 if(!jwtUtils.validateToken(token)) throw JwtAuthException.invalidToken();
@@ -50,11 +56,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SubjectAndType subjectAndType = jwtUtils.getSubjectAndType(token);
                 String subject = subjectAndType.subject(); // subject : PK(access or refresh) or email(email-auth)
                 String tokenType = subjectAndType.type(); // tokenType : access, refresh, email-auth
-
-                String requestURI = request.getRequestURI();
-
-                boolean isEmailAuthPath = securityPathProperties.getEmailAuth().stream()
-                        .anyMatch(pattern -> pathMatcher.match(pattern, requestURI)); // AntPathMatcher 사용
 
                 if(tokenType.equals("email-auth")){
                     // 회원가입용 토큰인 경우
@@ -69,7 +70,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     }
 
                     // 4. DB에서 유저 정보 조회
-                    User user = userService.findById(subject);
+                    User user = userRepository.findById(Long.parseLong(subject))
+                            .orElseThrow(JwtAuthException::userNotFound);
 
                     // 5. SecurityContextHolder에 인증 정보 저장
                     var authentication = new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
@@ -77,6 +79,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
                 else {
                     throw JwtAuthException.invalidToken();
+                }
+            } else {
+                // 토큰이 없는 경우
+                if (isEmailAuthPath) {
+                    throw JwtAuthException.emailAuthTokenRequired();
                 }
             }
             // 6. 필터 체인 진행

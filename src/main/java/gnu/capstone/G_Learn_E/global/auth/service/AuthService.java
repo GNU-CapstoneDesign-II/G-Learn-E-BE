@@ -1,12 +1,15 @@
 package gnu.capstone.G_Learn_E.global.auth.service;
 
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
 import gnu.capstone.G_Learn_E.global.auth.exception.AuthInvalidException;
+import gnu.capstone.G_Learn_E.global.auth.exception.AuthNotFoundException;
 import gnu.capstone.G_Learn_E.global.auth.repository.email.EmailAuthCodeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -20,11 +23,31 @@ public class AuthService {
     private final EmailAuthCodeRepository emailAuthCodeRepository;
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${mail-auth.code.length}")
     private int emailAuthCodeLength;
 
     private final Random random = new Random();
+
+
+    /**
+     * 로그인
+     * @param email 이메일
+     * @param password 비밀번호
+     * @return 로그인한 유저
+     */
+    public User login(String email, String password) {
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(AuthNotFoundException::userNotFound);
+        if(!passwordEncoder.matches(password, user.getPassword())) {
+            log.info("비밀번호가 일치하지 않습니다. [email: {}]", email);
+            throw AuthInvalidException.passwordNotMatch();
+        }
+
+        return user;
+    }
+
 
     /**
      * 이메일 인증 코드 발급
@@ -37,19 +60,19 @@ public class AuthService {
             log.info("이미 가입된 이메일입니다. [email: {}]", email);
             throw AuthInvalidException.existsUser();
         }
-        if(emailAuthCodeRepository.findByEmail(email) != null) {
-            // 이미 인증 코드가 발급된 이메일인 경우
-            log.info("이미 인증 코드가 발급된 이메일입니다. [email: {}]", email);
-            throw AuthInvalidException.existsEmailAuthCode();
-        }
         String authCode = generateEmailAuthCode();
-        emailAuthCodeRepository.save(email, authCode);
+        emailAuthCodeRepository.saveAuthCode(email, authCode);
         log.info("이메일 인증 코드 발급 성공 [email: {}, authCode: {}]", email, authCode);
         return authCode;
     }
 
     public void verifyEmailAuthCode(String email, String authCode) {
-        if(!emailAuthCodeRepository.exists(email, authCode)) {
+        if(!emailAuthCodeRepository.isIssuedEmail(email)) {
+            log.info("발급된 인증코드가 없습니다. [email: {}]", email);
+            throw AuthNotFoundException.emailAuthCodeNotFound();
+        }
+        String savedAuthCode = emailAuthCodeRepository.findAuthCodeByEmail(email);
+        if(!savedAuthCode.equals(authCode)) {
             log.info("이메일 인증 코드 검증 실패 [email: {}, authCode: {}]", email, authCode);
             throw AuthInvalidException.invalidEmailAuthCode();
         }
