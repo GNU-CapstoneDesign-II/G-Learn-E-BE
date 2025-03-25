@@ -2,6 +2,7 @@ package gnu.capstone.G_Learn_E.global.auth.service;
 
 import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
 import gnu.capstone.G_Learn_E.global.auth.exception.AuthInvalidException;
+import gnu.capstone.G_Learn_E.global.auth.exception.AuthNotFoundException;
 import gnu.capstone.G_Learn_E.global.auth.repository.email.EmailAuthCodeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,19 +38,19 @@ public class AuthService {
             log.info("이미 가입된 이메일입니다. [email: {}]", email);
             throw AuthInvalidException.existsUser();
         }
-        if(emailAuthCodeRepository.findByEmail(email) != null) {
-            // 이미 인증 코드가 발급된 이메일인 경우
-            log.info("이미 인증 코드가 발급된 이메일입니다. [email: {}]", email);
-            throw AuthInvalidException.existsEmailAuthCode();
-        }
         String authCode = generateEmailAuthCode();
-        emailAuthCodeRepository.save(email, authCode);
+        emailAuthCodeRepository.saveAuthCode(email, authCode);
         log.info("이메일 인증 코드 발급 성공 [email: {}, authCode: {}]", email, authCode);
         return authCode;
     }
 
     public void verifyEmailAuthCode(String email, String authCode) {
-        if(!emailAuthCodeRepository.exists(email, authCode)) {
+        if(!emailAuthCodeRepository.isIssuedEmail(email)) {
+            log.info("발급된 인증코드가 없습니다. [email: {}]", email);
+            throw AuthNotFoundException.emailAuthCodeNotFound();
+        }
+        String savedAuthCode = emailAuthCodeRepository.findAuthCodeByEmail(email);
+        if(!savedAuthCode.equals(authCode)) {
             log.info("이메일 인증 코드 검증 실패 [email: {}, authCode: {}]", email, authCode);
             throw AuthInvalidException.invalidEmailAuthCode();
         }

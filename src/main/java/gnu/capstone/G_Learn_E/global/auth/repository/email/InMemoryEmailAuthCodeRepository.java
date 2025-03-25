@@ -1,5 +1,8 @@
 package gnu.capstone.G_Learn_E.global.auth.repository.email;
 
+import gnu.capstone.G_Learn_E.global.auth.exception.AuthInvalidException;
+import gnu.capstone.G_Learn_E.global.auth.exception.AuthNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
@@ -7,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Repository("inMemoryEmailAuthCodeRepository")
 public class InMemoryEmailAuthCodeRepository implements EmailAuthCodeRepository {
 
@@ -21,40 +25,44 @@ public class InMemoryEmailAuthCodeRepository implements EmailAuthCodeRepository 
     }
 
     @Override
-    public void save(String email, String authCode) {
+    public void saveAuthCode(String email, String authCode) {
+        if(isIssuedEmail(email)) {
+            // 이미 인증 코드가 발급된 이메일인 경우
+            log.info("이미 인증 코드가 발급된 이메일입니다. [email: {}]. 기존 인증 코드를 삭제합니다.", email);
+            deleteByEmail(email);
+        }
         emailAuthCodeMap.put(email, new EmailAuthInfo(authCode, System.currentTimeMillis()));
     }
 
     @Override
-    public String findByEmail(String email) {
+    public boolean isIssuedEmail(String email) {
+        // 존재 여부만 확인
         EmailAuthInfo info = emailAuthCodeMap.get(email);
-        if (info == null || isExpired(info.timestamp)) {
-            emailAuthCodeMap.remove(email); // 만료되었으면 제거
-            return null;
+        return info != null;
+    }
+
+    @Override
+    public String findAuthCodeByEmail(String email) {
+        EmailAuthInfo info = emailAuthCodeMap.get(email);
+        if(info == null) {
+            log.info("인증 코드가 존재하지 않습니다. [email: {}]", email);
+            throw AuthNotFoundException.emailAuthCodeNotFound();
+        }
+        if(isExpired(info.timestamp)) {
+            log.info("인증 코드가 만료되었습니다. [email: {}]", email);
+            deleteByEmail(email);
+            throw AuthNotFoundException.expiredEmailAuthCode();
         }
         return info.code;
     }
 
-    @Override
-    public boolean exists(String email, String authCode) {
-        EmailAuthInfo info = emailAuthCodeMap.get(email);
-        if (info == null || isExpired(info.timestamp)) {
-            emailAuthCodeMap.remove(email); // 만료되었으면 제거
-            return false;
-        }
-        if(!info.code.equals(authCode)){
-            // 인증 코드가 일치하지 않는 경우
-            // 인증 코드를 삭제하고 false 반환
-            deleteByEmail(email);
-            return false;
-        }
-        return true;
-    }
 
     @Override
     public void deleteByEmail(String email) {
         emailAuthCodeMap.remove(email);
     }
+
+
 
     private boolean isExpired(long timestamp) {
         return System.currentTimeMillis() - timestamp >= expirationTime;
