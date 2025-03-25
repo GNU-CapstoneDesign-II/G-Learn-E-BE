@@ -7,12 +7,20 @@ public class JwtAuthException extends AuthGroupException {
         super(message);
     }
 
+    public static JwtAuthException userNotFound(){
+        return new JwtAuthException("유저를 찾을 수 없습니다.");
+    }
+
     public static JwtAuthException expired(){
         return new JwtAuthException("JWT 토큰이 만료되었습니다.");
     }
 
     public static JwtAuthException invalidToken(){
         return new JwtAuthException("유효하지 않은 JWT 토큰입니다.");
+    }
+
+    public static JwtAuthException emailAuthTokenRequired(){
+        return new JwtAuthException("이메일 인증 완료 토큰이 필요합니다.");
     }
 
     public static JwtAuthException signupTokenNotAllowed(){
