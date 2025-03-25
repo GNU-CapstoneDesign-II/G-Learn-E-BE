@@ -3,6 +3,7 @@ package gnu.capstone.G_Learn_E.global.auth.controller;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.global.auth.dto.request.EmailAuthCodeVerify;
+import gnu.capstone.G_Learn_E.global.auth.dto.request.LoginRequest;
 import gnu.capstone.G_Learn_E.global.auth.dto.request.SignupRequest;
 import gnu.capstone.G_Learn_E.global.auth.dto.response.EmailAuthToken;
 import gnu.capstone.G_Learn_E.global.auth.dto.response.TokenResponse;
@@ -30,6 +31,25 @@ public class AuthController {
     private final EmailValidator emailValidator;
     private final EmailSender emailSender;
     private final JwtUtils jwtUtils;
+
+
+    @PostMapping("/login")
+    public RestTemplate<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+        String email = request.email();
+        String password = request.password();
+
+        User user = authService.login(email, password);
+
+        // TODO : 리프레시 토큰 저장 로직 추가
+        String accessToken = jwtUtils.generateAccessToken(user);
+        String refreshToken = jwtUtils.generateRefreshToken(user);
+
+        log.info("로그인 성공 [accessToken : {}, refreshToken : {}]", accessToken, refreshToken);
+        log.info("[email: {}]", email);
+
+        TokenResponse tokenResponse = new TokenResponse(accessToken, refreshToken);
+        return new RestTemplate<>(HttpStatus.OK, "로그인 성공", tokenResponse);
+    }
 
     @PostMapping("/signup")
     public RestTemplate<TokenResponse> signUp(HttpServletRequest request, @Valid @RequestBody SignupRequest dto) {

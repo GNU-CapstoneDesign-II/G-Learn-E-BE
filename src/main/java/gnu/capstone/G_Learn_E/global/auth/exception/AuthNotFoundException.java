@@ -7,6 +7,10 @@ public class AuthNotFoundException extends NotFoundGroupException {
         super(message);
     }
 
+    public static AuthNotFoundException userNotFound() {
+        return new AuthNotFoundException("유저를 찾을 수 없습니다.");
+    }
+
     public static AuthNotFoundException emailAuthCodeNotFound() {
         return new AuthNotFoundException("발급된 인증 코드가 존재하지 않습니다.");
     }

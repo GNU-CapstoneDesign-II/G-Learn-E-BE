@@ -7,10 +7,18 @@ public class AuthInvalidException extends InvalidGroupException {
         super(message);
     }
 
+    // 로그인
     public static AuthInvalidException existsUser() {
         return new AuthInvalidException("이미 존재하는 유저입니다.");
     }
 
+    public static AuthInvalidException passwordNotMatch() {
+        return new AuthInvalidException("비밀번호가 일치하지 않습니다.");
+    }
+
+
+
+    // 이메일 인증
     public static AuthInvalidException existsEmailAuthCode() {
         return new AuthInvalidException("이미 인증 코드가 발급된 이메일입니다.");
     }

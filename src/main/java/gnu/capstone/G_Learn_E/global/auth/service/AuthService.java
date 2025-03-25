@@ -1,5 +1,6 @@
 package gnu.capstone.G_Learn_E.global.auth.service;
 
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
 import gnu.capstone.G_Learn_E.global.auth.exception.AuthInvalidException;
 import gnu.capstone.G_Learn_E.global.auth.exception.AuthNotFoundException;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -21,11 +23,31 @@ public class AuthService {
     private final EmailAuthCodeRepository emailAuthCodeRepository;
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${mail-auth.code.length}")
     private int emailAuthCodeLength;
 
     private final Random random = new Random();
+
+
+    /**
+     * 로그인
+     * @param email 이메일
+     * @param password 비밀번호
+     * @return 로그인한 유저
+     */
+    public User login(String email, String password) {
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(AuthNotFoundException::userNotFound);
+        if(!passwordEncoder.matches(password, user.getPassword())) {
+            log.info("비밀번호가 일치하지 않습니다. [email: {}]", email);
+            throw AuthInvalidException.passwordNotMatch();
+        }
+
+        return user;
+    }
+
 
     /**
      * 이메일 인증 코드 발급
