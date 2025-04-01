@@ -22,6 +22,18 @@ spring:
       format_sql: true
     open-in-view: false
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${spring.mail.username}
+    password: ${spring.mail.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 
 jwt:
   secret: ${jwt.secret}
@@ -30,16 +42,15 @@ jwt:
     access-token: ${jwt.expiration-time.access-token}
     refresh-token: ${jwt.expiration-time.refresh-token}
 
-#  @Getter
-#  @Setter
-#  @Configuration
-#  @ConfigurationProperties(prefix = "security.path")
-#  public class SecurityPathProperties {
-#  private List<String> permitAll;
-#  private List<String> authenticated;
-#  private List<String> anonymous;
-#  private String anyRequest;
-#}
+
+mail-auth:
+  code:
+    expiration-time: ${mail-auth.code.expiration-time}
+    length: ${mail-auth.code.length}
+  allowed-domain:
+    - gnu.ac.kr
+
+
 security:
   path:
     permit-all:
@@ -58,7 +69,8 @@ security:
     #      - "/api/notification/**"
     anonymous:
       - "/api/auth"
+      - "/api/auth/login"
+      - "/api/auth/email-auth/**"
     email-auth:
-        - "/api/auth/emailCode"
-        - "/api/auth/emailCode/verify"
+        - "/api/auth/signup"
     any-request: "permit-all"  # 'authenticated', 'permit-all', 'anonymous' 중 하나

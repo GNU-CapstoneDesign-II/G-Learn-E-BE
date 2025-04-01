@@ -20,22 +20,24 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private String name;
+
     @Column(unique = true, nullable = false)
     private String nickname;
 
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column
+    @Column(nullable = false)
+    private String password;
+
     private Integer profileImage;
 
-    @Column
     private Short level;
 
-    @Column
     private Integer exp;
 
-    @Column
     private UserStatus status;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -48,9 +50,11 @@ public class User {
     private List<SolvedWorkbook> solvedWorkbooks = new ArrayList<>();
 
     @Builder
-    public User(String nickname, String email){
+    public User(String name, String nickname, String email, String password) {
+        this.name = name;
         this.nickname = nickname;
         this.email = email;
+        this.password = password;
         this.profileImage = 0;
         this.level = 1;
         this.exp = 0;

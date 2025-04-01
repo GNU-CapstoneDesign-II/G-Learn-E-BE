@@ -8,6 +8,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -22,8 +23,11 @@ import java.util.Map;
 public class JwtUtils {
 
     private final SecretKey key;
+    @Getter
     private final long emailAuthTokenExpiration; // 이메일 인증코드용 토큰
+    @Getter
     private final long accessTokenExpiration;
+    @Getter
     private final long refreshTokenExpiration;
 
     public JwtUtils(
@@ -37,6 +41,7 @@ public class JwtUtils {
         this.accessTokenExpiration = accessTokenExpiration;
         this.refreshTokenExpiration = refreshTokenExpiration;
     }
+
 
     public String generateAccessToken(User user) {
         return generateToken(user, accessTokenExpiration, "access");
