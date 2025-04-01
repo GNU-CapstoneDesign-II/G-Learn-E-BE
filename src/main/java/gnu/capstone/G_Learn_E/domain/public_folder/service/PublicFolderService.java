@@ -9,6 +9,7 @@ import gnu.capstone.G_Learn_E.domain.public_folder.repository.DepartmentReposito
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
+import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ public class PublicFolderService {
     private final DepartmentRepository departmentRepository;
     private final SubjectRepository subjectRepository;
     private final SubjectWorkbookMapRepository subjectWorkbookMapRepository;
+    private final WorkbookRepository workbookRepository;
 
     // TODO : 커리큘럼 폴더 서비스 구현
     public List<College> getColleges() {
@@ -41,13 +43,9 @@ public class PublicFolderService {
     public List<Subject> getSubjectsByDepartmentId(Long departmentId) {
         return subjectRepository.findByDepartmentId(departmentId);
     }
-    @Transactional
-    public List<Workbook> getWorkbooksBySubjectId(Long subjectId) {
-        List<SubjectWorkbookMap> maps = subjectWorkbookMapRepository.findAllBySubject_Id(subjectId);
 
-        return maps.stream()
-                .map(SubjectWorkbookMap::getWorkbook)
-                .collect(Collectors.toList());
+    public List<Workbook> getWorkbooksBySubjectId(Long subjectId) {
+        return workbookRepository.findAllBySubjectId(subjectId);
     }
 
 }
