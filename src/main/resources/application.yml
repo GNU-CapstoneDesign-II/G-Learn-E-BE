@@ -33,6 +33,11 @@ spring:
           auth: true
           starttls:
             enable: true
+          ssl:
+            trust:
+              smtp.gmail.com
+            protocols:
+              TLSv1.2
 
 
 jwt:
@@ -49,6 +54,7 @@ mail-auth:
     length: ${mail-auth.code.length}
   allowed-domain:
     - gnu.ac.kr
+    - gmail.com
 
 
 security:
