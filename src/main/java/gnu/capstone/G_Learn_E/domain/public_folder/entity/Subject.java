@@ -1,6 +1,7 @@
 package gnu.capstone.G_Learn_E.domain.public_folder.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,4 +24,10 @@ public class Subject {
 
     @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubjectWorkbookMap> subjectWorkbookMaps = new ArrayList<>();
+
+    @Builder
+    public Subject(String name, Department department) {
+        this.name = name;
+        this.department = department;
+    }
 }
