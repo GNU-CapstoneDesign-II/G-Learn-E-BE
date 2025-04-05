@@ -1,6 +1,10 @@
 package gnu.capstone.G_Learn_E.global.fastapi.service;
 
+import gnu.capstone.G_Learn_E.global.fastapi.dto.request.GradeBlankRequest;
+import gnu.capstone.G_Learn_E.global.fastapi.dto.request.GradeDescriptiveRequest;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.request.ProblemGenerateRequest;
+import gnu.capstone.G_Learn_E.global.fastapi.dto.response.GradeBlankResponse;
+import gnu.capstone.G_Learn_E.global.fastapi.dto.response.GradeDescriptiveResponse;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.response.ProblemGenerateResponse;
 import gnu.capstone.G_Learn_E.global.fastapi.entity.FastApiProperties;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +24,47 @@ public class FastApiService {
     private final FastApiProperties fastApiProperties;
 
 
-    public ProblemGenerateResponse generateProblems(ProblemGenerateRequest requestDto) {
+    private FastApiProperties.Endpoint getEndpoint(String endpointName) {
+        return fastApiProperties.endpoints().get(endpointName);
+    }
+
+
+    public ProblemGenerateResponse generateProblems(ProblemGenerateRequest request) {
         FastApiProperties.Endpoint endpoint = getEndpoint("create-problem");
         String url = fastApiProperties.baseUrl() + endpoint.path();
 
         // FastAPI 서버로 POST 요청
-        ResponseEntity<ProblemGenerateResponse> response = restTemplate.postForEntity(url, requestDto, ProblemGenerateResponse.class);
+        ResponseEntity<ProblemGenerateResponse> response = restTemplate.postForEntity(url, request, ProblemGenerateResponse.class);
+        if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("FastAPI response: {}", response.getBody());
+            return response.getBody();
+        } else {
+            log.error("Failed to call FastAPI: {}", response.getStatusCode());
+            throw new RuntimeException("Failed to call FastAPI");
+        }
+    }
+
+    public GradeDescriptiveResponse gradeDescriptive(GradeDescriptiveRequest request) {
+        FastApiProperties.Endpoint endpoint = getEndpoint("grade-descriptive");
+        String url = fastApiProperties.baseUrl() + endpoint.path();
+
+        // FastAPI 서버로 POST 요청
+        ResponseEntity<GradeDescriptiveResponse> response = restTemplate.postForEntity(url, request, GradeDescriptiveResponse.class);
+        if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("FastAPI response: {}", response.getBody());
+            return response.getBody();
+        } else {
+            log.error("Failed to call FastAPI: {}", response.getStatusCode());
+            throw new RuntimeException("Failed to call FastAPI");
+        }
+    }
+
+    public GradeBlankResponse gradeBlank(GradeBlankRequest request) {
+        FastApiProperties.Endpoint endpoint = getEndpoint("grade-blank");
+        String url = fastApiProperties.baseUrl() + endpoint.path();
+
+        // FastAPI 서버로 POST 요청
+        ResponseEntity<GradeBlankResponse> response = restTemplate.postForEntity(url, request, GradeBlankResponse.class);
         if (response.getStatusCode().is2xxSuccessful()) {
             log.info("FastAPI response: {}", response.getBody());
             return response.getBody();
@@ -37,9 +76,7 @@ public class FastApiService {
 
 
 
-    private FastApiProperties.Endpoint getEndpoint(String endpointName) {
-        return fastApiProperties.endpoints().get(endpointName);
-    }
+
 
 
     private ProblemGenerateResponse makeDummyResponse() {
