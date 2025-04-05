@@ -80,3 +80,22 @@ security:
     email-auth:
         - "/api/auth/signup"
     any-request: "permit-all"  # 'authenticated', 'permit-all', 'anonymous' 중 하나
+
+fast-api:
+  base-url: ${fast-api.base-url}
+  endpoints:
+    create-problem:
+      method: ${fastapi.endpoints.create-problem.method}
+      path: ${fastapi.endpoints.create-problem.path}
+    grade:
+      method: ${fastapi.endpoints.grade.method}
+      path: ${fastapi.endpoints.grade.path}
+    blank:
+      method: ${fastapi.endpoints.blank.method}
+      path: ${fastapi.endpoints.blank.path}
+    daily-usage:
+      method: ${fastapi.endpoints.daily-usage.method}
+      path: ${fastapi.endpoints.daily-usage.path}
+    daily-stats:
+      method: ${fastapi.endpoints.daily-stats.method}
+      path: ${fastapi.endpoints.daily-stats.path}
