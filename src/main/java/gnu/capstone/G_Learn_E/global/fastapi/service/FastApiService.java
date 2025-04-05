@@ -3,16 +3,17 @@ package gnu.capstone.G_Learn_E.global.fastapi.service;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.request.GradeBlankRequest;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.request.GradeDescriptiveRequest;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.request.ProblemGenerateRequest;
-import gnu.capstone.G_Learn_E.global.fastapi.dto.response.GradeBlankResponse;
-import gnu.capstone.G_Learn_E.global.fastapi.dto.response.GradeDescriptiveResponse;
-import gnu.capstone.G_Learn_E.global.fastapi.dto.response.ProblemGenerateResponse;
+import gnu.capstone.G_Learn_E.global.fastapi.dto.response.*;
 import gnu.capstone.G_Learn_E.global.fastapi.entity.FastApiProperties;
+import gnu.capstone.G_Learn_E.global.fastapi.enums.PeriodType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
@@ -22,6 +23,7 @@ public class FastApiService {
 
     private final RestTemplate restTemplate;
     private final FastApiProperties fastApiProperties;
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 
     private FastApiProperties.Endpoint getEndpoint(String endpointName) {
@@ -75,7 +77,62 @@ public class FastApiService {
     }
 
 
+    public TokenUsageResponse getTokenUsage(PeriodType periodType) {
 
+        FastApiProperties.Endpoint endpoint = null;
+
+        if(periodType == PeriodType.DAILY) {
+            endpoint = getEndpoint("daily-usage");
+        } else if(periodType == PeriodType.WEEKLY) {
+            endpoint = getEndpoint("weekly-usage");
+        } else if(periodType == PeriodType.MONTHLY) {
+            endpoint = getEndpoint("monthly-usage");
+        } else {
+            // TODO: 예외 처리
+            throw new IllegalArgumentException("Invalid period type: " + periodType);
+        }
+
+        String date = LocalDateTime.now().format(dateTimeFormatter);
+        String url = fastApiProperties.baseUrl() + endpoint.path() + "?date=" + date;
+
+        // FastAPI 서버로 GET 요청
+        ResponseEntity<TokenUsageResponse> response = restTemplate.getForEntity(url, TokenUsageResponse.class);
+        if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("FastAPI response: {}", response.getBody());
+            return response.getBody();
+        } else {
+            log.error("Failed to call FastAPI: {}", response.getStatusCode());
+            throw new RuntimeException("Failed to call FastAPI");
+        }
+    }
+
+    public ApiLogResponse getApiLogs(PeriodType periodType) {
+
+        FastApiProperties.Endpoint endpoint = null;
+        if(periodType == PeriodType.DAILY) {
+            endpoint = getEndpoint("daily-logs");
+        } else if(periodType == PeriodType.WEEKLY) {
+            endpoint = getEndpoint("weekly-logs");
+        } else if(periodType == PeriodType.MONTHLY) {
+            endpoint = getEndpoint("monthly-logs");
+        } else {
+            // TODO: 예외 처리
+            throw new IllegalArgumentException("Invalid period type: " + periodType);
+        }
+
+        String date = LocalDateTime.now().format(dateTimeFormatter);
+        String url = fastApiProperties.baseUrl() + endpoint.path() + "?date=" + date;
+
+        // FastAPI 서버로 GET 요청
+        ResponseEntity<ApiLogResponse> response = restTemplate.getForEntity(url, ApiLogResponse.class);
+        if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("FastAPI response: {}", response.getBody());
+            return response.getBody();
+        } else {
+            log.error("Failed to call FastAPI: {}", response.getStatusCode());
+            throw new RuntimeException("Failed to call FastAPI");
+        }
+    }
 
 
 

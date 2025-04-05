@@ -93,21 +93,21 @@ fast-api:
     grade-blank:
       method: ${fast-api.endpoints.grade-blank.method}
       path: ${fast-api.endpoints.grade-blank.path}
-    daily-stats: # 사용량 조회
-      method: ${fast-api.endpoints.daily-stats.method}
-      path: ${fast-api.endpoints.daily-stats.path}
-    daily-usage: # 로그 조회
+    daily-usage: # 사용량 조회
       method: ${fast-api.endpoints.daily-usage.method}
       path: ${fast-api.endpoints.daily-usage.path}
-    weekly-stats:
-      method: ${fast-api.endpoints.weekly-stats.method}
-      path: ${fast-api.endpoints.weekly-stats.path}
+    daily-logs: # 로그 조회
+      method: ${fast-api.endpoints.daily-logs.method}
+      path: ${fast-api.endpoints.daily-logs.path}
     weekly-usage:
       method: ${fast-api.endpoints.weekly-usage.method}
       path: ${fast-api.endpoints.weekly-usage.path}
-    monthly-stats:
-      method: ${fast-api.endpoints.monthly-stats.method}
-      path: ${fast-api.endpoints.monthly-stats.path}
+    weekly-logs:
+      method: ${fast-api.endpoints.weekly-logs.method}
+      path: ${fast-api.endpoints.weekly-logs.path}
     monthly-usage:
       method: ${fast-api.endpoints.monthly-usage.method}
       path: ${fast-api.endpoints.monthly-usage.path}
+    monthly-logs:
+      method: ${fast-api.endpoints.monthly-logs.method}
+      path: ${fast-api.endpoints.monthly-logs.path}

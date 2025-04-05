@@ -3,15 +3,16 @@ package gnu.capstone.G_Learn_E.global.fastapi.controller;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.request.GradeBlankRequest;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.request.GradeDescriptiveRequest;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.request.ProblemGenerateRequest;
-import gnu.capstone.G_Learn_E.global.fastapi.dto.response.GradeBlankResponse;
-import gnu.capstone.G_Learn_E.global.fastapi.dto.response.GradeDescriptiveResponse;
-import gnu.capstone.G_Learn_E.global.fastapi.dto.response.ProblemGenerateResponse;
+import gnu.capstone.G_Learn_E.global.fastapi.dto.response.*;
+import gnu.capstone.G_Learn_E.global.fastapi.enums.PeriodType;
 import gnu.capstone.G_Learn_E.global.fastapi.service.FastApiService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -101,5 +102,20 @@ public class FastApiController {
         GradeBlankResponse result = fastApiService.gradeBlank(requestDto);
         log.info("FastAPI Request success");
         return new ApiResponse<>(HttpStatus.OK, "문제 생성에 성공하였습니다.", result);
+    }
+
+
+    @GetMapping("/log/token-usage/{periodType}")
+    public ApiResponse<TokenUsageResponse> getTokenStatus(@PathVariable(name = "periodType") String periodType) {
+        PeriodType period = PeriodType.valueOf(periodType.toUpperCase());
+        TokenUsageResponse response = fastApiService.getTokenUsage(period);
+        return new ApiResponse<>(HttpStatus.OK, "토큰 사용량 조회에 성공하였습니다.", response);
+    }
+
+    @GetMapping("/log/api-logs/{periodType}")
+    public ApiResponse<ApiLogResponse> getApiLogs(@PathVariable(name = "periodType") String periodType) {
+        PeriodType period = PeriodType.valueOf(periodType.toUpperCase());
+        ApiLogResponse response = fastApiService.getApiLogs(period);
+        return new ApiResponse<>(HttpStatus.OK, "API 로그 조회에 성공하였습니다.", response);
     }
 }
