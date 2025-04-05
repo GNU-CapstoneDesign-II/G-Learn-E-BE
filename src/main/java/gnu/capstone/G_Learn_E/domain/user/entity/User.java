@@ -76,4 +76,9 @@ public class User {
             this.exp = UserLevelPolicy.getRequiredExp(this.level);
         }
     }
+
+    public void changeNickname(String newNickname) {
+        this.nickname = newNickname;
+    }
+
 }
