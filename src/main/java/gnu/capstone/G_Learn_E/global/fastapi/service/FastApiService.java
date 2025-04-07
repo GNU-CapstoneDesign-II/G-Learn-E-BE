@@ -213,8 +213,29 @@ public class FastApiService {
     }
 
 
+    static class MultipartInputStreamFileResource extends InputStreamResource {
 
-    private ProblemGenerateResponse makeDummyResponse() {
+        private final String filename;
+
+        public MultipartInputStreamFileResource(InputStream inputStream, String filename) {
+            super(inputStream);
+            this.filename = filename;
+        }
+
+        @Override
+        public String getFilename() {
+            return this.filename;
+        }
+
+        @Override
+        public long contentLength() throws IOException {
+            return -1; // 파일 크기를 모를 경우 -1 반환
+        }
+    }
+
+
+
+    public ProblemGenerateResponse makeDummyResponse(ProblemGenerateRequest request) {
         // Dummy Data
         return ProblemGenerateResponse.of(
                 ProblemGenerateResponse.Result.of(
@@ -235,7 +256,7 @@ public class FastApiService {
                         ),
                         List.of(
                                 ProblemGenerateResponse.FillInTheBlank.of(
-                                        "스프링부트는 _____ 프레임워크이다.",
+                                        "스프링부트는 [[$BLANK$]] 프레임워크이다.",
                                         List.of("경량화된"),
                                         "스프링부트는 경량화된 프레임워크입니다."
                                 )
@@ -250,24 +271,63 @@ public class FastApiService {
         );
     }
 
-
-    static class MultipartInputStreamFileResource extends InputStreamResource {
-
-        private final String filename;
-
-        public MultipartInputStreamFileResource(InputStream inputStream, String filename) {
-            super(inputStream);
-            this.filename = filename;
-        }
-
-        @Override
-        public String getFilename() {
-            return this.filename;
-        }
-
-        @Override
-        public long contentLength() throws IOException {
-            return -1; // 파일 크기를 모를 경우 -1 반환
-        }
+    public ProblemGenerateResponse makeDummyResponse1(ProblemGenerateRequest request) {
+        return ProblemGenerateResponse.of(
+                ProblemGenerateResponse.Result.of(
+                        // 객관식 문제 (MultipleChoice)
+                        List.of(
+                                ProblemGenerateResponse.MultipleChoice.of(
+                                        "변환(Transform)의 종류가 아닌 것은 무엇인가?",
+                                        List.of("이동(Translation)", "축소확대(Scaling)", "회전(Rotation)", "왜곡(Deformation)"),
+                                        "4",
+                                        "변환의 세 가지 주요 종류는 이동(Translation), 축소확대(Scaling), 회전(Rotation)입니다. 왜곡(Deformation)은 제시된 변환의 종류에 해당하지 않습니다."
+                                ),
+                                ProblemGenerateResponse.MultipleChoice.of(
+                                        "Affine 변환의 정의에 포함되지 않는 것은 무엇인가?",
+                                        List.of("Linear transform", "Translation", "Rotation", "스케일링(Skew)"),
+                                        "4",
+                                        "Affine 변환은 선형 변환(Linear transform)과 평행 이동(Translation)을 포함하지만, 스케일링(Skew)은 여기에 포함되지 않습니다."
+                                )
+                        ),
+                        // OX 문제 (Ox)
+                        List.of(
+                                ProblemGenerateResponse.Ox.of(
+                                        "모든 물체는Affine Transform을 통해 선형 변환과 평행 이동을 동시에 수행할 수 있다.",
+                                        "O",
+                                        "Affine Transform은 선형 변환(Linear transform)과 평행 이동(Translation)을 포함하여 변환을 수행할 수 있습니다."
+                                ),
+                                ProblemGenerateResponse.Ox.of(
+                                        "3D 회전에서 z축을 중심으로 회전할 때, y좌표는 변화하지 않을 것이다.",
+                                        "O",
+                                        "z축을 중심으로 회전할 때, x와 y좌표는 2차원 회전의 결과와 같고 z좌표는 변화하지 않습니다."
+                                )
+                        ),
+                        // 빈칸 채우기 문제 (FillInTheBlank)
+                        List.of(
+                                ProblemGenerateResponse.FillInTheBlank.of(
+                                        "변환의 범주에는 [[$BLANK$]], [[$BLANK$]], [[$BLANK$]]이 포함됩니다.",
+                                        List.of("Translation", "Rotation", "Scaling"),
+                                        "변환에는 이동(Translation), 회전(Rotation), 축소확대(Scaling)의 세 가지 주요 종류가 있습니다."
+                                ),
+                                ProblemGenerateResponse.FillInTheBlank.of(
+                                        "역변환을 통해 물체의 방향을 복원하기 위해서는 [[$BLANK$]] 행렬을 적용해야 합니다.",
+                                        List.of("역행렬"),
+                                        "물체의 특정 방향으로 회전되었을 때 원래의 방향으로 돌아가기 위해서는 역행렬을 적용해야 합니다."
+                                )
+                        ),
+                        // 서술형 문제 (Descriptive)
+                        List.of(
+                                ProblemGenerateResponse.Descriptive.of(
+                                        "Affine Transform의 개념을 설명하시오.",
+                                        "Affine Transform은 선형 변환(Linear transform)과 평행 이동(Translation)을 포함한 변환으로, 이들은 행렬 형태로 표현되어 여러 변환을 동시에 수행할 수 있습니다."
+                                ),
+                                ProblemGenerateResponse.Descriptive.of(
+                                        "3D Scaling의 정의와 이를 어떻게 적용하는지 설명하시오.",
+                                        "3D Scaling은 물체의 크기를 조정하는 변환으로, 각 정점에 동일한 Scaling Matrix를 적용하여 이루어집니다. 유니폼 Scaling은 모든 방향에 동일한 Scaling Factor를 사용하고, Non-uniform Scaling은 각 방향에 따라 다른 Scaling Factor를 적용합니다."
+                                )
+                        )
+                )
+        );
     }
+
 }
