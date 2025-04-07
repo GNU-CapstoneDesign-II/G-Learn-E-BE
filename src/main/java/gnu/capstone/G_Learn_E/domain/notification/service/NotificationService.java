@@ -2,6 +2,7 @@ package gnu.capstone.G_Learn_E.domain.notification.service;
 
 import gnu.capstone.G_Learn_E.domain.notification.dto.response.NotificationResponse;
 import gnu.capstone.G_Learn_E.domain.notification.repository.NotificationRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -22,5 +23,11 @@ public class NotificationService {
         return notificationRepository.findAllByUserId(userId, pageable)
                 .map(NotificationResponse::from)
                 .toList(); // ✅ Page<Notification>이므로 map 사용 가능
+    }
+    public void deleteNotification(Long notificationId) {
+        if (!notificationRepository.existsById(notificationId)) {
+            throw new EntityNotFoundException("해당 알림이 존재하지 않습니다. id=" + notificationId);
+        }
+        notificationRepository.deleteById(notificationId);
     }
 }

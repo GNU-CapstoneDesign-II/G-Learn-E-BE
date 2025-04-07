@@ -1,11 +1,13 @@
 package gnu.capstone.G_Learn_E.domain.notification.controller;
 
+import gnu.capstone.G_Learn_E.domain.notification.dto.response.NotificationDeleteResponse;
 import gnu.capstone.G_Learn_E.domain.notification.dto.response.NotificationResponse;
 import gnu.capstone.G_Learn_E.domain.notification.service.NotificationService;
 import gnu.capstone.G_Learn_E.global.template.RestTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -33,4 +35,13 @@ public class NotificationController {
 
         return new RestTemplate<>(HttpStatus.OK, "알림 조회에 성공했습니다.", data);
     }
+
+    @DeleteMapping("/{notificationId}")
+    public ResponseEntity<NotificationDeleteResponse> deleteNotification(
+            @PathVariable Long notificationId) {
+
+        notificationService.deleteNotification(notificationId);
+        return ResponseEntity.ok(NotificationDeleteResponse.success());
+    }
+
 }
