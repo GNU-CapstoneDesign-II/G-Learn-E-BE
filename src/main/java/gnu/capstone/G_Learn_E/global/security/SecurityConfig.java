@@ -74,16 +74,17 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler)
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(securityPathProperties.getPermitAll().toArray(new String[0])).permitAll()
-                        .requestMatchers(securityPathProperties.getAuthenticated().toArray(new String[0])).authenticated()
-                        .requestMatchers(securityPathProperties.getAnonymous().toArray(new String[0])).anonymous()
-                        .requestMatchers(securityPathProperties.getEmailAuth().toArray(new String[0])).permitAll()
+                        .requestMatchers(securityPathProperties.permitAll().toArray(new String[0])).permitAll()
+                        .requestMatchers(securityPathProperties.authenticated().toArray(new String[0])).authenticated()
+                        .requestMatchers(securityPathProperties.anonymous().toArray(new String[0])).anonymous()
+                        .requestMatchers(securityPathProperties.emailAuth().toArray(new String[0])).permitAll()
                         .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 //                .addFilterBefore(verificationStatusFilter, UsernamePasswordAuthenticationFilter.class)
 //                .addFilterBefore(pendingUserFilter, VerificationStatusFilter.class)
 //                .addFilterBefore(jwtAuthenticationFilter, PendingUserFilter.class)
         ;
+
         return httpSecurity.build();
     }
 }
