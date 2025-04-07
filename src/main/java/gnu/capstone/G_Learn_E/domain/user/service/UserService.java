@@ -102,7 +102,6 @@ public class UserService {
 
         return NicknameUpdateResponse.from(user);
     }
-
 }
 
 

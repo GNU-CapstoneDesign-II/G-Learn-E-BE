@@ -47,13 +47,12 @@ public class UserController {
     }
     @PatchMapping("/nickname")
     public RestTemplate<NicknameUpdateResponse> updateNickname(
-            @RequestParam Long userId,    // ✅ Query Parameter에서 userId 가져오기
-            @RequestParam String nickname // ✅ Query Parameter에서 nickname 가져오기
+            @RequestParam Long userId,
+            @RequestParam String nickname
     ) {
         NicknameUpdateResponse response = userService.updateNickname(userId, nickname);
         return new RestTemplate<>(HttpStatus.OK, "닉네임이 변경되었습니다.", response);
     }
-
 
 }
     // TODO : 유저 컨트롤러 구현
