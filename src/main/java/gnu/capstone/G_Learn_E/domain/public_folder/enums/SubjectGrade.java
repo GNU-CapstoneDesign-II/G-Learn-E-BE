@@ -9,6 +9,7 @@ public enum SubjectGrade {
     THIRD_YEAR("3학년", 3),
     FOURTH_YEAR("4학년", 4),
     FIFTH_YEAR("5학년", 5),
+    SIXTH_YEAR("6학년", 6),
     ;
 
     @Getter

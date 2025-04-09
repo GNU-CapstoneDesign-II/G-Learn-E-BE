@@ -109,17 +109,10 @@ public class FileUploadService {
                 if (deptDto.getSubjects() != null) {
                     for (SubjectDTO subjDto : deptDto.getSubjects()) {
                         // 이미 존재하면 스킵
-                        if (subjectRepository.existsByNameAndDepartmentId(subjDto.getName(), department.getId())) {
+                        if (subjectRepository.existsByNameAndGradeAndDepartmentId(subjDto.getName(), getSubjectGrade(subjDto), department.getId())) {
                             continue;
                         }
-                        SubjectGrade grade = SubjectGrade.NO_GRADE_DISTINCT;
-                        switch (subjDto.getGrade()) {
-                            case 1 -> grade = SubjectGrade.FIRST_YEAR;
-                            case 2 -> grade = SubjectGrade.SECOND_YEAR;
-                            case 3 -> grade = SubjectGrade.THIRD_YEAR;
-                            case 4 -> grade = SubjectGrade.FOURTH_YEAR;
-                            case 5 -> grade = SubjectGrade.FIFTH_YEAR;
-                        }
+                        SubjectGrade grade = getSubjectGrade(subjDto);
                         Subject subject = Subject.builder()
                                 .name(subjDto.getName())
                                 .department(department)
@@ -140,6 +133,19 @@ public class FileUploadService {
         // 최종 저장
         collegeRepository.save(college);
         // Cascade.ALL 설정에 따라 Department / Subject도 함께 반영 가능
+    }
+
+    private static SubjectGrade getSubjectGrade(SubjectDTO subjDto) {
+        SubjectGrade grade = SubjectGrade.NO_GRADE_DISTINCT;
+        switch (subjDto.getGrade()) {
+            case 1 -> grade = SubjectGrade.FIRST_YEAR;
+            case 2 -> grade = SubjectGrade.SECOND_YEAR;
+            case 3 -> grade = SubjectGrade.THIRD_YEAR;
+            case 4 -> grade = SubjectGrade.FOURTH_YEAR;
+            case 5 -> grade = SubjectGrade.FIFTH_YEAR;
+            case 6 -> grade = SubjectGrade.SIXTH_YEAR;
+        }
+        return grade;
     }
 
 
