@@ -1,0 +1,41 @@
+# -----------------------------------------
+# 1) Gradle 빌드 단계
+# -----------------------------------------
+FROM gradle:8.3-jdk21 AS builder
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 현재 디렉토리(backend-spring) 내부 모든 파일을 컨테이너로 복사
+COPY . .
+
+# Gradle을 통해 Spring Boot Jar 빌드 (bootJar 태스크)
+RUN gradle bootJar
+
+# -----------------------------------------
+# 2) 실제 실행 단계
+# -----------------------------------------
+# Amazon Corretto 21 이미지를 쓰고 싶다면:
+# FROM amazoncorretto:21
+FROM openjdk:21-slim
+
+WORKDIR /app
+
+# netcat 설치 (Debian/Ubuntu 계열 apt)
+RUN apt-get update && apt-get install -y netcat
+
+# wait-for-it.sh 복사 및 실행권한 부여
+COPY wait-for-it.sh /app/wait-for-it.sh
+RUN chmod +x /app/wait-for-it.sh
+
+# 빌드 단계에서 만든 Jar를 복사 (build/libs/*.jar 경로)
+COPY --from=builder /app/build/libs/*.jar /app/app.jar
+
+# 프로필 지정 (기본 prod 사용)
+ENV SPRING_PROFILES_ACTIVE=prod
+
+# 실행 시 Port (내부 8080)
+EXPOSE 8080
+
+# 컨테이너 실행 시 실행할 명령어
+CMD ["/app/wait-for-it.sh", "fastapi_backend:8000", "--", "java", "-jar", "/app/app.jar"]
