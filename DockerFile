@@ -29,7 +29,7 @@ WORKDIR /app
 COPY . .
 
 # Gradle 빌드 수행 (bootJar 태스크 실행, no-daemon 옵션 사용, 클린 빌드)
-RUN gradle clean bootJar --no-daemon
+RUN gradle clean bootJar --no-daemon --stacktrace --info
 
 # 2. 실행 단계: 빌드된 Jar 파일을 실행할 JDK21 런타임
 FROM openjdk:21-slim
