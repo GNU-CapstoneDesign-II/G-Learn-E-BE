@@ -4,6 +4,9 @@ FROM openjdk:21-slim AS builder
 # Gradle 캐시 경로 재설정
 ENV GRADLE_USER_HOME=/app/.gradle
 
+# /app/.gradle 디렉터리 생성 및 권한 부여
+RUN mkdir -p /app/.gradle && chmod -R 777 /app/.gradle
+
 # 필요한 패키지 설치: wget, unzip
 RUN apt-get update && apt-get install -y wget unzip
 
