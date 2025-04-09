@@ -3,7 +3,6 @@ package gnu.capstone.G_Learn_E.domain.public_folder.service;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
-import gnu.capstone.G_Learn_E.domain.public_folder.entity.SubjectWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.CollegeRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.DepartmentRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectRepository;
@@ -12,14 +11,10 @@ import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
-import java.io.FileWriter;
+import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,7 +36,14 @@ public class PublicFolderService {
         return departmentRepository.findByCollegeId(collegeId);
     }
     public List<Subject> getSubjectsByDepartmentId(Long departmentId) {
-        return subjectRepository.findByDepartmentId(departmentId);
+        List<Subject> subjects = subjectRepository.findByDepartmentId(departmentId);
+
+        // 학년 -> 교과목명 순으로 정렬
+        subjects.sort(Comparator
+                .comparingInt((Subject s) -> s.getGrade().getOrder())
+                .thenComparing(Subject::getName)
+        );
+        return subjects;
     }
 
     public List<Workbook> getWorkbooksBySubjectId(Long subjectId) {
