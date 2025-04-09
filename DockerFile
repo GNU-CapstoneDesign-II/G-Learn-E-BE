@@ -1,7 +1,7 @@
 # -----------------------------------------
 # 1) Gradle 빌드 단계
 # -----------------------------------------
-FROM gradle:8.3-jdk21 AS builder
+FROM openjdk:21 AS builder
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -17,7 +17,7 @@ RUN gradle bootJar
 # -----------------------------------------
 # Amazon Corretto 21 이미지를 쓰고 싶다면:
 # FROM amazoncorretto:21
-FROM openjdk:21-slim
+FROM openjdk:21
 
 WORKDIR /app
 
