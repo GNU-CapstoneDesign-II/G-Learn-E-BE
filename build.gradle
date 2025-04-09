@@ -42,6 +42,8 @@ dependencies {
 
 	// Mail
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2' // JSON 파싱 명시적 추가
 }
 
 tasks.named('test') {
