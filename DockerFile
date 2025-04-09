@@ -1,41 +1,43 @@
-# -----------------------------------------
-# 1) Gradle 빌드 단계
-# -----------------------------------------
+# 1. 빌드 단계: OpenJDK 21 기반 이미지에서 Gradle 설치 후 빌드 수행
 FROM openjdk:21-slim AS builder
+
+# 필요한 패키지 설치: wget, unzip
+RUN apt-get update && apt-get install -y wget unzip
+
+# Gradle 버전 설정
+ENV GRADLE_VERSION=8.3
+
+# Gradle 설치: 공식 배포 ZIP 파일 다운로드 후 압축 해제
+RUN wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -P /tmp \
+    && unzip /tmp/gradle-${GRADLE_VERSION}-bin.zip -d /opt/gradle \
+    && rm /tmp/gradle-${GRADLE_VERSION}-bin.zip
+
+# Gradle 환경 변수 설정
+ENV GRADLE_HOME=/opt/gradle/gradle-${GRADLE_VERSION}
+ENV PATH=$GRADLE_HOME/bin:$PATH
 
 # 작업 디렉토리 설정
 WORKDIR /app
 
-# 현재 디렉토리(backend-spring) 내부 모든 파일을 컨테이너로 복사
+# 프로젝트 소스 복사
 COPY . .
 
-# Gradle을 통해 Spring Boot Jar 빌드 (bootJar 태스크)
-RUN gradle bootJar
+# Gradle 빌드 수행 (bootJar 태스크 실행, no-daemon 옵션 사용)
+RUN gradle bootJar --no-daemon
 
-# -----------------------------------------
-# 2) 실제 실행 단계
-# -----------------------------------------
-# Amazon Corretto 21 이미지를 쓰고 싶다면:
-# FROM amazoncorretto:21
+# 2. 실행 단계: 빌드된 Jar 파일을 실행할 JDK21 런타임
 FROM openjdk:21-slim
 
 WORKDIR /app
 
-# netcat 설치 (Debian/Ubuntu 계열 apt)
-RUN apt-get update && apt-get install -y netcat-openbsd
+# 빌드 단계에서 생성된 Jar 복사 (빌드 결과물의 경로는 프로젝트에 따라 다를 수 있음)
+COPY --from=builder /app/build/libs/*.jar /app/app.jar
 
-# wait-for-it.sh 복사 및 실행권한 부여
+# wait-for-it.sh 등 필요한 스크립트 복사 (이미 준비되었다고 가정)
 COPY wait-for-it.sh /app/wait-for-it.sh
 RUN chmod +x /app/wait-for-it.sh
 
-# 빌드 단계에서 만든 Jar를 복사 (build/libs/*.jar 경로)
-COPY --from=builder /app/build/libs/*.jar /app/app.jar
-
-# 프로필 지정 (기본 prod 사용)
-ENV SPRING_PROFILES_ACTIVE=prod
-
-# 실행 시 Port (내부 8080)
 EXPOSE 8080
 
-# 컨테이너 실행 시 실행할 명령어
+# FastAPI 컨테이너의 8000 포트가 열릴 때까지 대기 후 실행 (예시)
 CMD ["/app/wait-for-it.sh", "fastapi_backend:8000", "--", "java", "-jar", "/app/app.jar"]
