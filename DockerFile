@@ -22,7 +22,7 @@ FROM openjdk:21-slim
 WORKDIR /app
 
 # netcat 설치 (Debian/Ubuntu 계열 apt)
-RUN apt-get update && apt-get install -y netcat
+RUN apt-get update && apt-get install -y netcat-openbsd
 
 # wait-for-it.sh 복사 및 실행권한 부여
 COPY wait-for-it.sh /app/wait-for-it.sh
