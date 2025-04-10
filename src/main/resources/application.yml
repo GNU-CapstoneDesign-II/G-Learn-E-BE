@@ -81,3 +81,34 @@ security:
     email-auth:
         - "/api/auth/signup"
     any-request: "permit-all"  # 'authenticated', 'permit-all', 'anonymous' 중 하나
+
+fast-api:
+  base-url: ${fast-api.base-url}
+  endpoints:
+    create-problem:
+      method: ${fast-api.endpoints.create-problem.method}
+      path: ${fast-api.endpoints.create-problem.path}
+    grade-descriptive:
+      method: ${fast-api.endpoints.grade-descriptive.method}
+      path: ${fast-api.endpoints.grade-descriptive.path}
+    grade-blank:
+      method: ${fast-api.endpoints.grade-blank.method}
+      path: ${fast-api.endpoints.grade-blank.path}
+    daily-usage: # 사용량 조회
+      method: ${fast-api.endpoints.daily-usage.method}
+      path: ${fast-api.endpoints.daily-usage.path}
+    daily-logs: # 로그 조회
+      method: ${fast-api.endpoints.daily-logs.method}
+      path: ${fast-api.endpoints.daily-logs.path}
+    weekly-usage:
+      method: ${fast-api.endpoints.weekly-usage.method}
+      path: ${fast-api.endpoints.weekly-usage.path}
+    weekly-logs:
+      method: ${fast-api.endpoints.weekly-logs.method}
+      path: ${fast-api.endpoints.weekly-logs.path}
+    monthly-usage:
+      method: ${fast-api.endpoints.monthly-usage.method}
+      path: ${fast-api.endpoints.monthly-usage.path}
+    monthly-logs:
+      method: ${fast-api.endpoints.monthly-logs.method}
+      path: ${fast-api.endpoints.monthly-logs.path}

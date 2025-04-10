@@ -3,7 +3,6 @@ package gnu.capstone.G_Learn_E.global.jwt;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
-import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.global.error.exception.client.NotFoundGroupException;
 import gnu.capstone.G_Learn_E.global.jwt.dto.SubjectAndType;
 import gnu.capstone.G_Learn_E.global.jwt.exception.JwtAuthException;
@@ -44,7 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String requestURI = request.getRequestURI();
 
-            boolean isEmailAuthPath = securityPathProperties.getEmailAuth().stream()
+            boolean isEmailAuthPath = securityPathProperties.emailAuth().stream()
                     .anyMatch(pattern -> pathMatcher.match(pattern, requestURI)); // AntPathMatcher 사용
 
             // 2. 토큰 존재 및 검증

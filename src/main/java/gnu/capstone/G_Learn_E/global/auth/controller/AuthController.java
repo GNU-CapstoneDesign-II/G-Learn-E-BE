@@ -12,7 +12,7 @@ import gnu.capstone.G_Learn_E.global.auth.service.AuthService;
 import gnu.capstone.G_Learn_E.global.auth.util.EmailValidator;
 import gnu.capstone.G_Learn_E.global.jwt.JwtUtils;
 import gnu.capstone.G_Learn_E.global.mail.EmailSender;
-import gnu.capstone.G_Learn_E.global.template.RestTemplate;
+import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public RestTemplate<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         String email = request.email();
         String password = request.password();
 
@@ -48,11 +48,11 @@ public class AuthController {
         log.info("[email: {}]", email);
 
         TokenResponse tokenResponse = new TokenResponse(accessToken, refreshToken);
-        return new RestTemplate<>(HttpStatus.OK, "로그인 성공", tokenResponse);
+        return new ApiResponse<>(HttpStatus.OK, "로그인 성공", tokenResponse);
     }
 
     @PostMapping("/signup")
-    public RestTemplate<TokenResponse> signUp(HttpServletRequest request, @Valid @RequestBody SignupRequest dto) {
+    public ApiResponse<TokenResponse> signUp(HttpServletRequest request, @Valid @RequestBody SignupRequest dto) {
         // 회원가입
         String name = dto.name();
         String nickname = dto.nickname();
@@ -76,22 +76,22 @@ public class AuthController {
         log.info("[name: {}, nickname: {}, email: {}]", name, nickname, email);
 
         TokenResponse tokenResponse = new TokenResponse(accessToken, refreshToken);
-        return new RestTemplate<>(HttpStatus.CREATED, "회원가입 성공", tokenResponse);
+        return new ApiResponse<>(HttpStatus.CREATED, "회원가입 성공", tokenResponse);
     }
 
     @GetMapping("/email-code")
-    public RestTemplate<?> getEmailAuthCode(@RequestParam("email") String email) {
+    public ApiResponse<?> getEmailAuthCode(@RequestParam("email") String email) {
         // TODO : 이메일 검증
         emailValidator.validate(email);
         // TODO : 이메일 인증 코드 발급
         String authCode = authService.issueEmailAuthCode(email);
         emailSender.sendAuthCode(email, authCode);
 
-        return new RestTemplate<>(HttpStatus.NO_CONTENT, "이메일 인증 코드 발급 성공", null);
+        return new ApiResponse<>(HttpStatus.NO_CONTENT, "이메일 인증 코드 발급 성공", null);
     }
 
     @PostMapping("/email-code/verify")
-    public RestTemplate<EmailAuthToken> verifyEmailAuthCode(@RequestBody EmailAuthCodeVerify request) {
+    public ApiResponse<EmailAuthToken> verifyEmailAuthCode(@RequestBody EmailAuthCodeVerify request) {
         // TODO : 이메일 인증 코드 검증
         authService.verifyEmailAuthCode(request.email(), request.authCode());
 
@@ -100,7 +100,7 @@ public class AuthController {
         log.info("이메일 인증 토큰 발급 [email: {}, token: {}]", request.email(), emailAuthToken);
 
         String responseMsg = String.format("이메일 인증 코드 검증 성공. 유효 시간: %d분", jwtUtils.getEmailAuthTokenExpiration() / 1000 / 60);
-        return new RestTemplate<>(HttpStatus.OK, responseMsg, new EmailAuthToken(emailAuthToken));
+        return new ApiResponse<>(HttpStatus.OK, responseMsg, new EmailAuthToken(emailAuthToken));
     }
 }
 
