@@ -1,5 +1,6 @@
 package gnu.capstone.G_Learn_E.domain.public_folder.entity;
 
+import gnu.capstone.G_Learn_E.domain.public_folder.enums.SubjectGrade;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,6 +19,9 @@ public class Subject {
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    private SubjectGrade grade;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     private Department department;
@@ -26,8 +30,9 @@ public class Subject {
     private List<SubjectWorkbookMap> subjectWorkbookMaps = new ArrayList<>();
 
     @Builder
-    public Subject(String name, Department department) {
+    public Subject(String name, SubjectGrade grade, Department department) {
         this.name = name;
+        this.grade = grade;
         this.department = department;
     }
 }

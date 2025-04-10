@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
+import gnu.capstone.G_Learn_E.domain.public_folder.enums.SubjectGrade;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.CollegeRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.DepartmentRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectRepository;
@@ -108,14 +109,22 @@ public class FileUploadService {
                 if (deptDto.getSubjects() != null) {
                     for (SubjectDTO subjDto : deptDto.getSubjects()) {
                         // 이미 존재하면 스킵
-                        if (subjectRepository.existsByNameAndDepartmentId(subjDto.getName(), department.getId())) {
+                        if (subjectRepository.existsByNameAndGradeAndDepartmentId(subjDto.getName(), getSubjectGrade(subjDto), department.getId())) {
                             continue;
                         }
+                        SubjectGrade grade = getSubjectGrade(subjDto);
                         Subject subject = Subject.builder()
                                 .name(subjDto.getName())
                                 .department(department)
+                                .grade(grade)
                                 .build();
-                        department.getSubjects().add(subject);
+
+                        // department.getSubjects()에 subject와 name, grade가 같은 항목이 없으면 저장
+                        boolean duplicated = department.getSubjects().stream()
+                                .anyMatch(s -> s.getName().equals(subject.getName()) && s.getGrade() == subject.getGrade());
+                        if(!duplicated) {
+                            department.getSubjects().add(subject);
+                        }
                     }
                 }
             }
@@ -124,6 +133,19 @@ public class FileUploadService {
         // 최종 저장
         collegeRepository.save(college);
         // Cascade.ALL 설정에 따라 Department / Subject도 함께 반영 가능
+    }
+
+    private static SubjectGrade getSubjectGrade(SubjectDTO subjDto) {
+        SubjectGrade grade = SubjectGrade.NO_GRADE_DISTINCT;
+        switch (subjDto.getGrade()) {
+            case 1 -> grade = SubjectGrade.FIRST_YEAR;
+            case 2 -> grade = SubjectGrade.SECOND_YEAR;
+            case 3 -> grade = SubjectGrade.THIRD_YEAR;
+            case 4 -> grade = SubjectGrade.FOURTH_YEAR;
+            case 5 -> grade = SubjectGrade.FIFTH_YEAR;
+            case 6 -> grade = SubjectGrade.SIXTH_YEAR;
+        }
+        return grade;
     }
 
 
@@ -152,5 +174,6 @@ public class FileUploadService {
     @NoArgsConstructor
     public static class SubjectDTO {
         private String name;
+        private Integer grade;
     }
 }
