@@ -67,7 +67,6 @@ security:
     authenticated:
       - "/api/auth/tokenRefresh"
       - "/api/auth/logout"
-      - "/api/notification"
     #      - "/api/user"
     #      - "/api/certificates/**"
     #      - "/api/user/**"
@@ -79,7 +78,7 @@ security:
       - "/api/auth/login"
       - "/api/auth/email-auth/**"
     email-auth:
-        - "/api/auth/signup"
+      - "/api/auth/signup"
     any-request: "permit-all"  # 'authenticated', 'permit-all', 'anonymous' 중 하나
 
 fast-api:

@@ -9,7 +9,7 @@ import gnu.capstone.G_Learn_E.domain.user.dto.request.GainExpRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.UserInfoResponse;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
-import gnu.capstone.G_Learn_E.global.template.RestTemplate;
+import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,30 +28,30 @@ public class UserController {
 
     private final UserService userService;
     @GetMapping("/info/{userId}") // 경로 매핑 수정
-    public RestTemplate<List<UserInfoResponse>> getInfo(@PathVariable("userId") Long userId) {
+    public ApiResponse<List<UserInfoResponse>> getInfo(@PathVariable("userId") Long userId) {
         List<User> users = userService.findAll(userId);
         List<UserInfoResponse> responses = users.stream()
                 .map(UserInfoResponse::from)
                 .toList();
 
-        return new RestTemplate<>(HttpStatus.OK, "유저 정보 조회 성공", responses);
+        return new ApiResponse<>(HttpStatus.OK, "유저 정보 조회 성공", responses);
     }
 
     @PostMapping("/exp/gain")
-    public RestTemplate<UserExpResponse> gainExp(
+    public ApiResponse<UserExpResponse> gainExp(
             @RequestParam Long userId,
             @RequestParam Integer exp
     ) {
         UserExpResponse response = userService.gainExp(userId, exp);
-        return new RestTemplate<>(HttpStatus.OK, "경험치가 증가했습니다.", response);
+        return new ApiResponse<>(HttpStatus.OK, "경험치가 증가했습니다.", response);
     }
     @PatchMapping("/nickname")
-    public RestTemplate<NicknameUpdateResponse> updateNickname(
+    public ApiResponse<NicknameUpdateResponse> updateNickname(
             @RequestParam Long userId,
             @RequestParam String nickname
     ) {
         NicknameUpdateResponse response = userService.updateNickname(userId, nickname);
-        return new RestTemplate<>(HttpStatus.OK, "닉네임이 변경되었습니다.", response);
+        return new ApiResponse<>(HttpStatus.OK, "닉네임이 변경되었습니다.", response);
     }
 
 }
