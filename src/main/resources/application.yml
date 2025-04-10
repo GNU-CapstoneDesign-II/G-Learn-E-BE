@@ -67,6 +67,7 @@ security:
     authenticated:
       - "/api/auth/tokenRefresh"
       - "/api/auth/logout"
+      - "/api/notification"
     #      - "/api/user"
     #      - "/api/certificates/**"
     #      - "/api/user/**"

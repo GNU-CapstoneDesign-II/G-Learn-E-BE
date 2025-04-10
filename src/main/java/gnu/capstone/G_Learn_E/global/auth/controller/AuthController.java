@@ -103,3 +103,4 @@ public class AuthController {
         return new RestTemplate<>(HttpStatus.OK, responseMsg, new EmailAuthToken(emailAuthToken));
     }
 }
+

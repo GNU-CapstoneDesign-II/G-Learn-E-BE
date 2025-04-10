@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 
 public record NotificationResponse(
         Long id,
-        Long userId,
         String content,
         boolean isRead,
         LocalDateTime createdAt
@@ -14,7 +13,6 @@ public record NotificationResponse(
     public static NotificationResponse from(Notification notification) {
         return new NotificationResponse(
                 notification.getId(),
-                notification.getUser().getId(),
                 notification.getContent(),
                 notification.isRead(),
                 notification.getCreatedAt()
