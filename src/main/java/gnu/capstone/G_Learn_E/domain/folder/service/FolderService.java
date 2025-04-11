@@ -7,13 +7,12 @@ import gnu.capstone.G_Learn_E.domain.folder.repository.FolderRepository;
 import gnu.capstone.G_Learn_E.domain.folder.repository.FolderWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -78,7 +77,7 @@ public class FolderService {
         return folder;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Folder> getFolderTree(User user) {
         log.info("getFolderTree request");
         return folderRepository.findAllByUserWithParent(user);
