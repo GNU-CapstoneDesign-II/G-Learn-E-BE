@@ -26,21 +26,23 @@ public class UserController {
     }
 
     @PostMapping("/exp/gain")
-    public ApiResponse<?> gainExp(
+    public ApiResponse<UserInfoResponse> gainExp(
             @AuthenticationPrincipal User user,
             @RequestBody GainExpRequest request
             ) {
         userService.gainExp(user, request.gainExp());
-        return new ApiResponse<>(HttpStatus.OK, "경험치가 증가했습니다.", null);
+        UserInfoResponse response = UserInfoResponse.from(user);
+        return new ApiResponse<>(HttpStatus.OK, "경험치가 증가했습니다.", response);
     }
 
     @PatchMapping("/nickname")
-    public ApiResponse<?> updateNickname(
+    public ApiResponse<UserInfoResponse> updateNickname(
             @AuthenticationPrincipal User user,
             @RequestBody NicknameUpdateRequest request
             ) {
         userService.updateNickname(user, request.newNickname());
-        return new ApiResponse<>(HttpStatus.OK, "닉네임이 변경되었습니다.", null);
+        UserInfoResponse response = UserInfoResponse.from(user);
+        return new ApiResponse<>(HttpStatus.OK, "닉네임이 변경되었습니다.", response);
     }
 
 }
