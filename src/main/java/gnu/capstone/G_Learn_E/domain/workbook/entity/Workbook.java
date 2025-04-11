@@ -44,6 +44,9 @@ public class Workbook {
     @Column
     private LocalDateTime createdAt;
 
+    @Column
+    private boolean isUploaded;
+
     @OneToMany(mappedBy = "workbook", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FolderWorkbookMap> folderWorkbookMaps = new ArrayList<>();
 
@@ -70,5 +73,6 @@ public class Workbook {
         this.courseYear = courseYear;
         this.semester = semester;
         this.createdAt = LocalDateTime.now();
+        this.isUploaded = false;
     }
 }
