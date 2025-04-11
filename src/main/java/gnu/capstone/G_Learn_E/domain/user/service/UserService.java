@@ -8,6 +8,7 @@ import gnu.capstone.G_Learn_E.domain.user.exception.UserInvalidException;
 import gnu.capstone.G_Learn_E.domain.user.exception.UserNotFoundException;
 import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -73,9 +74,18 @@ public class UserService {
         return userRepository.existsByNickname(nickname);
     }
 
-    public List<User> findAll(Long userId) {
-        return userRepository.findAllById(Collections.singleton(userId));
+
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UserInvalidException("인증되지 않은 사용자입니다.");
+        }
+
+        String email = authentication.getName();
+        return userRepository.findUserByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
     }
+
 
     @Transactional
     public UserExpResponse gainExp(Long userId, Integer exp) {
@@ -102,6 +112,7 @@ public class UserService {
 
         return NicknameUpdateResponse.from(user);
     }
+
 }
 
 
