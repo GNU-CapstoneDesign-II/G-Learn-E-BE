@@ -21,7 +21,7 @@ public record SimpleFolderResponse(
         return new SimpleFolderResponse(
                 folder.getId(),
                 folder.getName(),
-                folder.getParent().getId(),
+                folder.getParent() != null ? folder.getParent().getId() : null,
                 folder.getCreatedAt().toString()
         );
     }
