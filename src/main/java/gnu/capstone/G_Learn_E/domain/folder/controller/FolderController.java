@@ -4,6 +4,7 @@ import gnu.capstone.G_Learn_E.domain.folder.dto.request.CreateFolderRequest;
 import gnu.capstone.G_Learn_E.domain.folder.dto.request.MoveFolderRequest;
 import gnu.capstone.G_Learn_E.domain.folder.dto.request.RenameFolderRequest;
 import gnu.capstone.G_Learn_E.domain.folder.dto.response.FolderResponse;
+import gnu.capstone.G_Learn_E.domain.folder.dto.response.FolderTreeResponse;
 import gnu.capstone.G_Learn_E.domain.folder.dto.response.FolderWorkbookRemoveResponse;
 import gnu.capstone.G_Learn_E.domain.folder.dto.response.SimpleFolderResponse;
 import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
@@ -19,7 +20,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -58,6 +62,38 @@ public class FolderController {
         return new ApiResponse<>(HttpStatus.OK, "폴더 조회에 성공하였습니다.", response);
     }
 
+    @GetMapping("/folder-tree")
+    public ApiResponse<FolderTreeResponse> getFolderTree(
+            @AuthenticationPrincipal User user
+    ) {
+        log.info("getFolderTree request");
+
+        List<Folder> folders = folderService.getFolderTree(user);
+
+        Map<Long, FolderTreeResponse> responseMap = new HashMap<>();
+        List<FolderTreeResponse> roots = new ArrayList<>();
+
+        // 1. 모든 폴더를 미리 response 객체로 만들어 Map에 저장
+        for (Folder folder : folders) {
+            responseMap.put(folder.getId(), FolderTreeResponse.of(folder.getId(), folder.getName(), new ArrayList<>()));
+        }
+
+        // 2. 부모-자식 관계 구성
+        for (Folder folder : folders) {
+            FolderTreeResponse node = responseMap.get(folder.getId());
+            Folder parent = folder.getParent();
+
+            if (parent != null) {
+                responseMap.get(parent.getId()).childFolders().add(node);
+            } else {
+                roots.add(node); // 루트 폴더
+            }
+        }
+
+        FolderTreeResponse response = roots.isEmpty() ? null : roots.getFirst();
+
+        return new ApiResponse<>(HttpStatus.OK, "폴더 트리 조회에 성공하였습니다.", response);
+    }
 
     @PostMapping
     public ApiResponse<FolderResponse> createFolder(

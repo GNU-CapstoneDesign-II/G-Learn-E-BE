@@ -39,4 +39,13 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
 
 
     List<Folder> findByParentAndUser(Folder parent, User user);
+
+
+    @Query("""
+        SELECT f FROM Folder f
+        LEFT JOIN FETCH f.parent
+        WHERE f.user = :user
+    """)
+    List<Folder> findAllByUserWithParent(@Param("user") User user); // 폴더 트리 조회
+
 }

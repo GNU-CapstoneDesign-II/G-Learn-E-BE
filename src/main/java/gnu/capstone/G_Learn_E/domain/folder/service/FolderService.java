@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -73,6 +75,12 @@ public class FolderService {
             throw new IllegalArgumentException("You do not have permission to access this folder");
         }
         return folder;
+    }
+
+    @Transactional
+    public List<Folder> getFolderTree(User user) {
+        log.info("getFolderTree request");
+        return folderRepository.findAllByUserWithParent(user);
     }
 
 
