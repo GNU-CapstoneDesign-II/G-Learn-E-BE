@@ -88,10 +88,10 @@ public class ProblemConverter {
         if (optionsList == null) {
             return null;
         }
-        return optionsList.stream()
-                .map(option -> Option.builder()
-                        .number((short) (optionsList.indexOf(option) + 1)) // 1부터 시작하는 번호
-                        .content(option)
+        return IntStream.range(0, optionsList.size())
+                .mapToObj(i -> Option.builder()
+                        .number((short) (i + 1)) // 1부터 시작하는 번호
+                        .content(optionsList.get(i))
                         .build())
                 .collect(Collectors.toList());
     }
