@@ -1,10 +1,16 @@
 package gnu.capstone.G_Learn_E.domain.user.controller;
 
+import gnu.capstone.G_Learn_E.domain.user.dto.request.GainExpRequest;
+import gnu.capstone.G_Learn_E.domain.user.dto.request.NicknameUpdateRequest;
+import gnu.capstone.G_Learn_E.domain.user.dto.response.UserInfoResponse;
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
+import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -13,6 +19,30 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    @GetMapping
+    public ApiResponse<UserInfoResponse> getInfo(@AuthenticationPrincipal User user) {
+        UserInfoResponse response = UserInfoResponse.from(user);
+        return new ApiResponse<>(HttpStatus.OK, "유저 정보 조회 성공", response);
+    }
 
-    // TODO : 유저 컨트롤러 구현
+    @PostMapping("/exp/gain")
+    public ApiResponse<UserInfoResponse> gainExp(
+            @AuthenticationPrincipal User user,
+            @RequestBody GainExpRequest request
+            ) {
+        userService.gainExp(user, request.gainExp());
+        UserInfoResponse response = UserInfoResponse.from(user);
+        return new ApiResponse<>(HttpStatus.OK, "경험치가 증가했습니다.", response);
+    }
+
+    @PatchMapping("/nickname")
+    public ApiResponse<UserInfoResponse> updateNickname(
+            @AuthenticationPrincipal User user,
+            @RequestBody NicknameUpdateRequest request
+            ) {
+        userService.updateNickname(user, request.newNickname());
+        UserInfoResponse response = UserInfoResponse.from(user);
+        return new ApiResponse<>(HttpStatus.OK, "닉네임이 변경되었습니다.", response);
+    }
+
 }

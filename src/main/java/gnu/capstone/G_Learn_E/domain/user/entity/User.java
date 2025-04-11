@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Setter
     @Column(unique = true, nullable = false)
     private String nickname;
 

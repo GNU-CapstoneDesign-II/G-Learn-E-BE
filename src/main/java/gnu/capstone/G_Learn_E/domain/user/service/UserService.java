@@ -10,6 +10,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -74,4 +78,23 @@ public class UserService {
         return userRepository.existsByNickname(nickname);
     }
 
+    public List<User> findAll(Long userId) {
+        return userRepository.findAllById(Collections.singleton(userId));
+    }
+
+    @Transactional
+    public void gainExp(User user, Integer exp) {
+        user.gainExp(exp);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateNickname(User user, String newNickname) {
+        if(existsByNickname(newNickname)) {
+            // 닉네임 중복 체크
+            throw UserInvalidException.existsNickname();
+        }
+        user.setNickname(newNickname);
+        userRepository.save(user);
+    }
 }

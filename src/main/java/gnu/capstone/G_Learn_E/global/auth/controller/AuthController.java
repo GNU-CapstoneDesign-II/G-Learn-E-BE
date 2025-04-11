@@ -103,3 +103,4 @@ public class AuthController {
         return new ApiResponse<>(HttpStatus.OK, responseMsg, new EmailAuthToken(emailAuthToken));
     }
 }
+
