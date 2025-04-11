@@ -1,6 +1,7 @@
 package gnu.capstone.G_Learn_E.domain.user.controller;
 
-import gnu.capstone.G_Learn_E.domain.user.dto.response.NicknameUpdateResponse;
+import gnu.capstone.G_Learn_E.domain.user.dto.request.GainExpRequest;
+import gnu.capstone.G_Learn_E.domain.user.dto.request.NicknameUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.UserInfoResponse;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
@@ -27,18 +28,18 @@ public class UserController {
     @PostMapping("/exp/gain")
     public ApiResponse<?> gainExp(
             @AuthenticationPrincipal User user,
-            @RequestParam Integer exp
-    ) {
-        userService.gainExp(user, exp);
+            @RequestBody GainExpRequest request
+            ) {
+        userService.gainExp(user, request.gainExp());
         return new ApiResponse<>(HttpStatus.OK, "경험치가 증가했습니다.", null);
     }
 
     @PatchMapping("/nickname")
-    public ApiResponse<NicknameUpdateResponse> updateNickname(
+    public ApiResponse<?> updateNickname(
             @AuthenticationPrincipal User user,
-            @RequestParam String nickname
-    ) {
-        userService.updateNickname(user, nickname);
+            @RequestBody NicknameUpdateRequest request
+            ) {
+        userService.updateNickname(user, request.newNickname());
         return new ApiResponse<>(HttpStatus.OK, "닉네임이 변경되었습니다.", null);
     }
 
