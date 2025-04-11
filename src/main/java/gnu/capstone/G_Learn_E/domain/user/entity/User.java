@@ -61,7 +61,6 @@ public class User {
         this.level = 1;
         this.exp = 0;
         this.status = UserStatus.ACTIVE;
-        // TODO : 개인 폴더에 루트 디렉터리를 추가해줘야 됨
     }
 
     public void updateProfileImage(Integer profileImage){

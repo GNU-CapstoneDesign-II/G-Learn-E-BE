@@ -1,17 +1,13 @@
 package gnu.capstone.G_Learn_E.domain.user.service;
 
-import gnu.capstone.G_Learn_E.domain.user.dto.response.NicknameUpdateResponse;
-import gnu.capstone.G_Learn_E.domain.user.dto.response.UserExpResponse;
-import gnu.capstone.G_Learn_E.domain.user.dto.response.UserInfoResponse;
+import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
+import gnu.capstone.G_Learn_E.domain.folder.repository.FolderRepository;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.exception.UserInvalidException;
 import gnu.capstone.G_Learn_E.domain.user.exception.UserNotFoundException;
 import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
-import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +21,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final FolderRepository folderRepository;
     private final PasswordEncoder passwordEncoder;
 
     public User save(User user) {
@@ -44,7 +41,15 @@ public class UserService {
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .build();
-        return userRepository.save(user);
+        user = userRepository.save(user);
+
+        Folder folder = Folder.builder()
+                .name("기본 폴더")
+                .user(user)
+                .parent(null)
+                .build();
+        folderRepository.save(folder);
+        return user;
     }
 
 
@@ -93,5 +98,3 @@ public class UserService {
         userRepository.save(user);
     }
 }
-
-

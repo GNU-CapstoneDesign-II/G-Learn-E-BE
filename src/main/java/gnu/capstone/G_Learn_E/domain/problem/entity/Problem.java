@@ -7,6 +7,7 @@ import gnu.capstone.G_Learn_E.domain.problem.enums.ProblemType;
 import gnu.capstone.G_Learn_E.global.common.serialization.Option;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -21,10 +22,9 @@ public class Problem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 문제 번호
 
-    private String title;        // 문제 제목
+    private Integer problemNumber; // 문제 번호 (문제집 내에서의 순서)
 
-    @Column(columnDefinition = "TEXT")
-    private String content;      // 문제 본문 내용
+    private String title;        // 문제 제목
 
     @Convert(converter = OptionListConverter.class)
     @Column(columnDefinition = "TEXT")
@@ -47,4 +47,15 @@ public class Problem {
 
     @OneToMany(mappedBy = "problem", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolveLog> solveLogs; // 문제를 푼 사용자들의 풀이 기록
+
+    @Builder
+    public Problem(Integer problemNumber, String title, List<Option> options, List<String> answers,
+                   String explanation, ProblemType type) {
+        this.problemNumber = problemNumber;
+        this.title = title;
+        this.options = options;
+        this.answers = answers;
+        this.explanation = explanation;
+        this.type = type;
+    }
 }

@@ -39,6 +39,11 @@ spring:
             protocols:
               TLSv1.2
 
+  servlet:
+    multipart:
+      max-request-size: 15MB
+      max-file-size: 15MB
+
 
 jwt:
   secret: ${jwt.secret}
@@ -87,6 +92,12 @@ fast-api:
     create-problem:
       method: ${fast-api.endpoints.create-problem.method}
       path: ${fast-api.endpoints.create-problem.path}
+    pdf-to-string:
+      method: ${fast-api.endpoints.pdf-to-string.method}
+      path: ${fast-api.endpoints.pdf-to-string.path}
+    audio-to-string:
+      method: ${fast-api.endpoints.audio-to-string.method}
+      path: ${fast-api.endpoints.audio-to-string.path}
     grade-descriptive:
       method: ${fast-api.endpoints.grade-descriptive.method}
       path: ${fast-api.endpoints.grade-descriptive.path}

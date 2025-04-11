@@ -1,24 +1,15 @@
 package gnu.capstone.G_Learn_E.domain.user.controller;
 
-import gnu.capstone.G_Learn_E.domain.public_folder.dto.response.CollegeResponse;
-import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
-import gnu.capstone.G_Learn_E.domain.user.dto.request.NicknameUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.NicknameUpdateResponse;
-import gnu.capstone.G_Learn_E.domain.user.dto.response.UserExpResponse;
-import gnu.capstone.G_Learn_E.domain.user.dto.request.GainExpRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.UserInfoResponse;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RestController

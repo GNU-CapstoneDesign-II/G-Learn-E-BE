@@ -1,4 +1,4 @@
-package gnu.capstone.G_Learn_E.global.fastapi.dto.response;
+package gnu.capstone.G_Learn_E.domain.workbook.dto.response;
 
 import java.util.List;
 
