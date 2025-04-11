@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -53,5 +54,14 @@ public class WorkbookService {
         folderWorkbookMapRepository.save(folderWorkbookMap);
 
         return newWorkbook;
+    }
+
+
+    public List<Workbook> getChildrenWorkbooks(Folder folder) {
+        // left join으로 들고오지 못한 FolderWorkbookMap을 가져오기
+        List<FolderWorkbookMap> byFolder = folderWorkbookMapRepository.findByFolderWithWorkbook(folder);
+        return byFolder.stream()
+                .map(FolderWorkbookMap::getWorkbook)
+                .toList();
     }
 }

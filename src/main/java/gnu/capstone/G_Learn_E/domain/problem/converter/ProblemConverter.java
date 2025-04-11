@@ -8,6 +8,7 @@ import gnu.capstone.G_Learn_E.global.common.serialization.Option;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ProblemConverter {
 
@@ -88,6 +89,7 @@ public class ProblemConverter {
         if (optionsList == null) {
             return null;
         }
+
         return IntStream.range(0, optionsList.size())
                 .mapToObj(i -> Option.builder()
                         .number((short) (i + 1)) // 1부터 시작하는 번호
