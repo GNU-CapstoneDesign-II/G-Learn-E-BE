@@ -2,6 +2,7 @@ package gnu.capstone.G_Learn_E.domain.folder.entity;
 
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,4 +24,13 @@ public class FolderWorkbookMap {
     @JoinColumn(name = "workbook_id")
     private Workbook workbook;
 
+    @Builder
+    public FolderWorkbookMap(Folder folder, Workbook workbook) {
+        this.folder = folder;
+        this.workbook = workbook;
+        this.id = FolderWorkbookId.builder()
+                .folderId(folder.getId())
+                .workbookId(workbook.getId())
+                .build();
+    }
 }

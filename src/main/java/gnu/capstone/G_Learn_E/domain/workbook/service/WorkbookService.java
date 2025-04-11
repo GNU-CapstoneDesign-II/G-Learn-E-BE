@@ -1,5 +1,11 @@
 package gnu.capstone.G_Learn_E.domain.workbook.service;
 
+import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
+import gnu.capstone.G_Learn_E.domain.folder.entity.FolderWorkbookId;
+import gnu.capstone.G_Learn_E.domain.folder.entity.FolderWorkbookMap;
+import gnu.capstone.G_Learn_E.domain.folder.repository.FolderRepository;
+import gnu.capstone.G_Learn_E.domain.folder.repository.FolderWorkbookMapRepository;
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.converter.WorkbookConverter;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
@@ -18,9 +24,15 @@ import java.time.LocalDateTime;
 public class WorkbookService {
 
     private final WorkbookRepository workbookRepository;
+    private final FolderRepository folderRepository;
+    private final FolderWorkbookMapRepository folderWorkbookMapRepository;
 
 
-    public Workbook createWorkbook(ProblemGenerateResponse response){
+    public Workbook createWorkbook(ProblemGenerateResponse response, User user){
+
+        Folder rootFolder = folderRepository.findByUserAndParentIsNull(user)
+                .orElseThrow(() -> new RuntimeException("기본 폴더가 없습니다."));
+
         Workbook workbookTemplate = Workbook.builder()
                 .name(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .professor("교수명")
@@ -31,6 +43,15 @@ public class WorkbookService {
                 .build();
 
         Workbook newWorkbook = WorkbookConverter.convertToWorkbookAndProblems(response, workbookTemplate);
-        return workbookRepository.save(newWorkbook);
+        newWorkbook = workbookRepository.save(newWorkbook);
+
+
+        FolderWorkbookMap folderWorkbookMap = FolderWorkbookMap.builder()
+                .folder(rootFolder)
+                .workbook(newWorkbook)
+                .build();
+        folderWorkbookMapRepository.save(folderWorkbookMap);
+
+        return newWorkbook;
     }
 }

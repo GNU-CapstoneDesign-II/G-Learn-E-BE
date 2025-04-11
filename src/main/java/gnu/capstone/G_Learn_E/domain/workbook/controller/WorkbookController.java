@@ -37,7 +37,7 @@ public class WorkbookController {
         ProblemGenerateResponse problemGenerateResponse = fastApiService.makeDummyResponse1(request);
         log.info("Response : {}", problemGenerateResponse);
 
-        Workbook workbook = workbookService.createWorkbook(problemGenerateResponse);
+        Workbook workbook = workbookService.createWorkbook(problemGenerateResponse, user);
 
         WorkbookResponse response = WorkbookResponse.of(workbook);
 
