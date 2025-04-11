@@ -1,9 +1,12 @@
 package gnu.capstone.G_Learn_E.domain.folder.service;
 
 import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
+import gnu.capstone.G_Learn_E.domain.folder.entity.FolderWorkbookId;
+import gnu.capstone.G_Learn_E.domain.folder.entity.FolderWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.folder.repository.FolderRepository;
 import gnu.capstone.G_Learn_E.domain.folder.repository.FolderWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
+import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,7 +77,7 @@ public class FolderService {
 
 
     @Transactional
-    public void moveFolder(User user, Long folderId, Long targetParentId) {
+    public Folder moveFolder(User user, Long folderId, Long targetParentId) {
         log.info("moveFolder request: {}", folderId);
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new IllegalArgumentException("Folder not found"));
@@ -94,6 +97,8 @@ public class FolderService {
         }
 
         folder.setParent(targetParent);
+
+        return folderRepository.save(folder);
     }
 
 
@@ -139,5 +144,29 @@ public class FolderService {
             current = current.getParent();
         }
         return false;
+    }
+
+    @Transactional
+    public boolean deleteWorkbookFromFolder(User user, Long folderId, Long workbookId) {
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new IllegalArgumentException("폴더를 찾을 수 없습니다."));
+
+        if (!folder.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("해당 폴더에 대한 권한이 없습니다.");
+        }
+
+        FolderWorkbookId id = new FolderWorkbookId(folderId, workbookId);
+        FolderWorkbookMap map = folderWorkbookMapRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 폴더에 연결된 문제집이 없습니다."));
+
+        Workbook workbook = map.getWorkbook();
+
+        folderWorkbookMapRepository.delete(map);
+
+        // Workbook 엔티티 자체를 삭제하는 것이 아님
+        // 어떠한 Mapping도 가지지 않는 Workbook을 주기적으로 삭제해주는 Schedular 구현 필요
+
+        // 업로드 여부를 반환
+        return workbook.isUploaded();
     }
 }

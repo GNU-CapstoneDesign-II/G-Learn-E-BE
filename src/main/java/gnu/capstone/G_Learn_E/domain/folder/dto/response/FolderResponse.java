@@ -50,14 +50,16 @@ public record FolderResponse(
             Long id,
             String name,
             Integer coverImage,
-            String createdAt
+            String createdAt,
+            boolean isUploaded
     ) {
-        public static ChildWorkbookResponse of(Long id, String name, Integer coverImage, String createdAt) {
+        public static ChildWorkbookResponse of(Long id, String name, Integer coverImage, String createdAt, boolean isUploaded) {
             return new ChildWorkbookResponse(
                     id,
                     name,
                     coverImage,
-                    createdAt
+                    createdAt,
+                    isUploaded
             );
         }
         public static ChildWorkbookResponse of(Workbook workbook) {
@@ -65,7 +67,8 @@ public record FolderResponse(
                     workbook.getId(),
                     workbook.getName(),
                     workbook.getCoverImage(),
-                    workbook.getCreatedAt().toString()
+                    workbook.getCreatedAt().toString(),
+                    workbook.isUploaded()
             );
         }
     }

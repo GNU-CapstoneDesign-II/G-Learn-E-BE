@@ -4,6 +4,8 @@ import gnu.capstone.G_Learn_E.domain.folder.dto.request.CreateFolderRequest;
 import gnu.capstone.G_Learn_E.domain.folder.dto.request.MoveFolderRequest;
 import gnu.capstone.G_Learn_E.domain.folder.dto.request.RenameFolderRequest;
 import gnu.capstone.G_Learn_E.domain.folder.dto.response.FolderResponse;
+import gnu.capstone.G_Learn_E.domain.folder.dto.response.FolderWorkbookRemoveResponse;
+import gnu.capstone.G_Learn_E.domain.folder.dto.response.SimpleFolderResponse;
 import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
 import gnu.capstone.G_Learn_E.domain.folder.service.FolderService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
@@ -79,9 +81,11 @@ public class FolderController {
     ) {
         log.info("moveFolder request: {}", folderId);
 
-        folderService.moveFolder(user, folderId, request.targetFolderId());
+        Folder folder = folderService.moveFolder(user, folderId, request.targetFolderId());
 
-        return new ApiResponse<>(HttpStatus.OK, "폴더 이동에 성공하였습니다.", null);
+        SimpleFolderResponse response = SimpleFolderResponse.from(folder);
+
+        return new ApiResponse<>(HttpStatus.OK, "폴더 이동에 성공하였습니다.", response);
     }
 
     @PatchMapping("/{folderId}/rename")
@@ -93,7 +97,7 @@ public class FolderController {
         log.info("renameFolder request: {}", folderId);
 
         Folder folder = folderService.renameFolder(user, folderId, request.newFolderName());
-        FolderResponse response = createFolderResponse(folder);
+        SimpleFolderResponse response = SimpleFolderResponse.from(folder);
         return new ApiResponse<>(HttpStatus.OK, "폴더 이름 변경에 성공하였습니다.", response);
     }
 
@@ -107,6 +111,21 @@ public class FolderController {
         folderService.deleteFolder(user, folderId);
 
         return new ApiResponse<>(HttpStatus.OK, "폴더 삭제에 성공하였습니다.", null);
+    }
+
+    @DeleteMapping("/{folderId}/workbook/{workbookId}")
+    public ApiResponse<?> deleteWorkbookFromFolder(
+            @AuthenticationPrincipal User user,
+            @PathVariable(name = "folderId") Long folderId,
+            @PathVariable(name = "workbookId") Long workbookId
+    ) {
+        log.info("deleteWorkbookFromFolder request: {}", folderId);
+
+        boolean isUploadedWorkbook = folderService.deleteWorkbookFromFolder(user, folderId, workbookId);
+
+        FolderWorkbookRemoveResponse response = FolderWorkbookRemoveResponse.of(isUploadedWorkbook);
+
+        return new ApiResponse<>(HttpStatus.OK, "폴더에서 문제집 삭제에 성공하였습니다.", response);
     }
 
 
