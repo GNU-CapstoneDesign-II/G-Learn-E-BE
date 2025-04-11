@@ -14,6 +14,7 @@ import gnu.capstone.G_Learn_E.domain.workbook.enums.Semester;
 import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -58,10 +59,17 @@ public class WorkbookService {
 
 
     public List<Workbook> getChildrenWorkbooks(Folder folder) {
-        // left join으로 들고오지 못한 FolderWorkbookMap을 가져오기
-        List<FolderWorkbookMap> byFolder = folderWorkbookMapRepository.findByFolderWithWorkbook(folder);
-        return byFolder.stream()
-                .map(FolderWorkbookMap::getWorkbook)
-                .toList();
+        if (Hibernate.isInitialized(folder.getFolderWorkbookMaps())) {
+            // folder workbook이 초기화 된 경우
+            return folder.getFolderWorkbookMaps().stream()
+                    .map(FolderWorkbookMap::getWorkbook)
+                    .toList();
+        } else {
+            // folder workbook이 초기화 되지 않은 경우
+            return folderWorkbookMapRepository.findByFolderWithWorkbook(folder)
+                    .stream()
+                    .map(FolderWorkbookMap::getWorkbook)
+                    .toList();
+        }
     }
 }

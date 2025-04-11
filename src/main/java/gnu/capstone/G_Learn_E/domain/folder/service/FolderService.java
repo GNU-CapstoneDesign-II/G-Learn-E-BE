@@ -97,6 +97,41 @@ public class FolderService {
     }
 
 
+    @Transactional
+    public Folder renameFolder(User user, Long folderId, String newName) {
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new IllegalArgumentException("Folder not found"));
+        if(!folder.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("You do not have permission to rename this folder");
+        }
+
+        folder.setName(newName);
+        return folder;
+    }
+
+    @Transactional
+    public void deleteFolder(User user, Long folderId) {
+        Folder folder = folderRepository.findByIdWithChildren(folderId)
+                .orElseThrow(() -> new IllegalArgumentException("Folder not found"));
+        if(!folder.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("You do not have permission to delete this folder");
+        }
+
+        // 하위 폴더 존재 검사
+        if (!folder.getChildren().isEmpty()) {
+            throw new IllegalStateException("하위 폴더가 존재하여 삭제할 수 없습니다.");
+        }
+
+        // 문제집 매핑 존재 검사
+        if (!folder.getFolderWorkbookMaps().isEmpty()) {
+            throw new IllegalStateException("폴더에 연결된 문제집이 있어 삭제할 수 없습니다.");
+        }
+
+        // 폴더 삭제
+        folderRepository.delete(folder);
+    }
+
+
     private boolean isCircularMove(Folder folder, Folder newParent) {
         Folder current = newParent;
         while (current != null) {
@@ -105,6 +140,4 @@ public class FolderService {
         }
         return false;
     }
-
-
 }
