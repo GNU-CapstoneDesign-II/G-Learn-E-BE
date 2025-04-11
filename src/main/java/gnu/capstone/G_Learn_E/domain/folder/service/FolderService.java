@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -128,6 +129,13 @@ public class FolderService {
                 .orElseThrow(() -> new IllegalArgumentException("Folder not found"));
         if(!folder.getUser().getId().equals(user.getId())) {
             throw new IllegalArgumentException("You do not have permission to delete this folder");
+        }
+
+        Folder root = getRootFolder(user);
+
+        // 루트 폴더 삭제 불가
+        if (folder.getId().equals(root.getId())) {
+            throw new IllegalStateException("루트 폴더는 삭제할 수 없습니다.");
         }
 
         // 하위 폴더 존재 검사
