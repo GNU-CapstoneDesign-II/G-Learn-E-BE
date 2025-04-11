@@ -37,6 +37,6 @@ public class NotificationController {
             @PathVariable Long notificationId
     ) {
         notificationService.deleteNotification(user.getId(), notificationId);
-        return new ApiResponse<>(HttpStatus.OK, "알림 삭제에 성공했습니다.");
+        return new ApiResponse<>(HttpStatus.OK, "알림 삭제에 성공했습니다.", null);
     }
 }
