@@ -1,3 +1,7 @@
 /gradlew text eol=lf
 *.bat text eol=crlf
 *.jar binary
+
+# 프로젝트 루트에 `.gitattributes` 파일 생성 또는 편집
+# wait-for-it.sh는 LF 유지, 다른 파일은 기본 설정 유지
+wait-for-it.sh text eol=lf

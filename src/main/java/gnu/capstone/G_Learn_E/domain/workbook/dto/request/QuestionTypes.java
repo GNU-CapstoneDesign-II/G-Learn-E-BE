@@ -1,23 +1,13 @@
-package gnu.capstone.G_Learn_E.global.fastapi.dto.request;
+package gnu.capstone.G_Learn_E.domain.workbook.dto.request;
 
-public record ProblemGenerateRequest(
-        String content,
-        String difficulty,
-        QuestionTypes questionTypes
+public record QuestionTypes(
+        MultipleChoice multipleChoice,
+        Ox ox,
+        FillInTheBlank fillInTheBlank,
+        Descriptive descriptive
 ) {
-    public static ProblemGenerateRequest of(String content, String difficulty, QuestionTypes questionTypes) {
-        return new ProblemGenerateRequest(content, difficulty, questionTypes);
-    }
-
-    public record QuestionTypes(
-            MultipleChoice multipleChoice,
-            Ox ox,
-            FillInTheBlank fillInTheBlank,
-            Descriptive descriptive
-    ) {
-        public static QuestionTypes of(MultipleChoice multipleChoice, Ox ox, FillInTheBlank fillInTheBlank, Descriptive descriptive) {
-            return new QuestionTypes(multipleChoice, ox, fillInTheBlank, descriptive);
-        }
+    public static QuestionTypes of(MultipleChoice multipleChoice, Ox ox, FillInTheBlank fillInTheBlank, Descriptive descriptive) {
+        return new QuestionTypes(multipleChoice, ox, fillInTheBlank, descriptive);
     }
 
     public record MultipleChoice(
@@ -57,3 +47,4 @@ public record ProblemGenerateRequest(
         }
     }
 }
+
