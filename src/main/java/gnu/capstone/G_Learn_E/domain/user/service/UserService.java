@@ -1,24 +1,18 @@
 package gnu.capstone.G_Learn_E.domain.user.service;
 
+import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
+import gnu.capstone.G_Learn_E.domain.folder.repository.FolderRepository;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.NicknameUpdateResponse;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.UserExpResponse;
-import gnu.capstone.G_Learn_E.domain.user.dto.response.UserInfoResponse;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.exception.UserInvalidException;
 import gnu.capstone.G_Learn_E.domain.user.exception.UserNotFoundException;
 import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
-import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -26,6 +20,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final FolderRepository folderRepository;
     private final PasswordEncoder passwordEncoder;
 
     public User save(User user) {
@@ -45,7 +40,15 @@ public class UserService {
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .build();
-        return userRepository.save(user);
+        user = userRepository.save(user);
+
+        Folder folder = Folder.builder()
+                .name("기본 폴더")
+                .user(user)
+                .parent(null)
+                .build();
+        folderRepository.save(folder);
+        return user;
     }
 
 
@@ -74,39 +77,14 @@ public class UserService {
         return userRepository.existsByNickname(nickname);
     }
 
-
-    public User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UserInvalidException("인증되지 않은 사용자입니다.");
-        }
-
-        String email = authentication.getName();
-        return userRepository.findUserByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-    }
-
-
-    @Transactional
-    public UserExpResponse gainExp(Long userId, Integer exp) {
-        if (userId == null) {
-            throw new IllegalArgumentException("userId는 필수입니다.");
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
-
+    public UserExpResponse gainExp(User user, Integer exp) {
         user.gainExp(exp);
         userRepository.save(user);
 
         return UserExpResponse.from(user);
-
     }
-    @Transactional
-    public NicknameUpdateResponse updateNickname(Long userId, String newNickname) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
 
+    public NicknameUpdateResponse updateNickname(User user, String newNickname) {
         user.changeNickname(newNickname);  // 엔티티 메서드 호출 없이 setter 없이 변경하는 방식
         userRepository.save(user);
 

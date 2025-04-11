@@ -33,7 +33,7 @@ public class UserController {
             @AuthenticationPrincipal User user,
             @RequestParam Integer exp
     ) {
-        UserExpResponse response = userService.gainExp(user.getId(), exp);
+        UserExpResponse response = userService.gainExp(user, exp);
         return new ApiResponse<>(HttpStatus.OK, "경험치가 증가했습니다.", response);
     }
 
@@ -43,7 +43,7 @@ public class UserController {
             @AuthenticationPrincipal User user,
             @RequestParam String nickname
     ) {
-        NicknameUpdateResponse response = userService.updateNickname(user.getId(), nickname);
+        NicknameUpdateResponse response = userService.updateNickname(user, nickname);
         return new ApiResponse<>(HttpStatus.OK, "닉네임이 변경되었습니다.", response);
     }
 }
