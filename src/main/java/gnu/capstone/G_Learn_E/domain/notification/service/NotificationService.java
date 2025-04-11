@@ -3,7 +3,9 @@ package gnu.capstone.G_Learn_E.domain.notification.service;
 import gnu.capstone.G_Learn_E.domain.notification.dto.response.NotificationResponse;
 import gnu.capstone.G_Learn_E.domain.notification.entity.Notification;
 import gnu.capstone.G_Learn_E.domain.notification.repository.NotificationRepository;
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -20,12 +22,14 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
-    public List<NotificationResponse> getNotificationsByUser(Long userId, int offset, int limit) {
+    public List<NotificationResponse> getNotificationsByUser(User user, int offset, int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
-        return notificationRepository.findAllByUserId(userId, pageable)
+        return notificationRepository.findAllByUserId(user.getId(), pageable)
                 .map(NotificationResponse::from)
                 .toList(); // ✅ Page<Notification>이므로 map 사용 가능
     }
+
+    @Transactional
     public void deleteNotification(Long userId, Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 알림이 존재하지 않습니다. id=" + notificationId));

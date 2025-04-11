@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Setter
     @Column(unique = true, nullable = false)
     private String nickname;
 
@@ -75,9 +77,5 @@ public class User {
         if(!UserLevelPolicy.canLevelUp(this.level, this.exp) && this.exp > UserLevelPolicy.getRequiredExp(this.level)){
             this.exp = UserLevelPolicy.getRequiredExp(this.level);
         }
-    }
-
-    public void changeNickname(String newNickname) {
-        this.nickname = newNickname;
     }
 }

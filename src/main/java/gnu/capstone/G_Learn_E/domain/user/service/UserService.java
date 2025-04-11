@@ -78,29 +78,19 @@ public class UserService {
     }
 
     @Transactional
-    public UserExpResponse gainExp(Long userId, Integer exp) {
-        if (userId == null) {
-            throw new IllegalArgumentException("userId는 필수입니다.");
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
-
+    public void gainExp(User user, Integer exp) {
         user.gainExp(exp);
         userRepository.save(user);
-
-        return UserExpResponse.from(user);
-
     }
+
     @Transactional
-    public NicknameUpdateResponse updateNickname(Long userId, String newNickname) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
-
-        user.changeNickname(newNickname);  // 엔티티 메서드 호출 없이 setter 없이 변경하는 방식
+    public void updateNickname(User user, String newNickname) {
+        if(existsByNickname(newNickname)) {
+            // 닉네임 중복 체크
+            throw UserInvalidException.existsNickname();
+        }
+        user.setNickname(newNickname);
         userRepository.save(user);
-
-        return NicknameUpdateResponse.from(user);
     }
 }
 

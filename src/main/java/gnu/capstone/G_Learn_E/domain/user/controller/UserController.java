@@ -27,32 +27,28 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    @GetMapping("/info/{userId}") // 경로 매핑 수정
-    public ApiResponse<List<UserInfoResponse>> getInfo(@PathVariable("userId") Long userId) {
-        List<User> users = userService.findAll(userId);
-        List<UserInfoResponse> responses = users.stream()
-                .map(UserInfoResponse::from)
-                .toList();
-
-        return new ApiResponse<>(HttpStatus.OK, "유저 정보 조회 성공", responses);
+    @GetMapping
+    public ApiResponse<UserInfoResponse> getInfo(@AuthenticationPrincipal User user) {
+        UserInfoResponse response = UserInfoResponse.from(user);
+        return new ApiResponse<>(HttpStatus.OK, "유저 정보 조회 성공", response);
     }
 
     @PostMapping("/exp/gain")
-    public ApiResponse<UserExpResponse> gainExp(
-            @RequestParam Long userId,
+    public ApiResponse<?> gainExp(
+            @AuthenticationPrincipal User user,
             @RequestParam Integer exp
     ) {
-        UserExpResponse response = userService.gainExp(userId, exp);
-        return new ApiResponse<>(HttpStatus.OK, "경험치가 증가했습니다.", response);
+        userService.gainExp(user, exp);
+        return new ApiResponse<>(HttpStatus.OK, "경험치가 증가했습니다.", null);
     }
+
     @PatchMapping("/nickname")
     public ApiResponse<NicknameUpdateResponse> updateNickname(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal User user,
             @RequestParam String nickname
     ) {
-        NicknameUpdateResponse response = userService.updateNickname(userId, nickname);
-        return new ApiResponse<>(HttpStatus.OK, "닉네임이 변경되었습니다.", response);
+        userService.updateNickname(user, nickname);
+        return new ApiResponse<>(HttpStatus.OK, "닉네임이 변경되었습니다.", null);
     }
 
 }
-    // TODO : 유저 컨트롤러 구현

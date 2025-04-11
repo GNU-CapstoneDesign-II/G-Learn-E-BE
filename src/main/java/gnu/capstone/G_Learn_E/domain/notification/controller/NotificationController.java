@@ -1,6 +1,5 @@
 package gnu.capstone.G_Learn_E.domain.notification.controller;
 
-import gnu.capstone.G_Learn_E.domain.notification.dto.response.NotificationDeleteResponse;
 import gnu.capstone.G_Learn_E.domain.notification.dto.response.NotificationResponse;
 import gnu.capstone.G_Learn_E.domain.notification.service.NotificationService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
@@ -8,13 +7,10 @@ import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -30,20 +26,17 @@ public class NotificationController {
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        List<NotificationResponse> notifications = notificationService.getNotificationsByUser(user.getId(), offset, limit);
+        List<NotificationResponse> notifications = notificationService.getNotificationsByUser(user, offset, limit);
         return new ApiResponse<>(HttpStatus.OK, "알림 조회에 성공했습니다.", notifications);
     }
 
 
     @DeleteMapping("/{notificationId}")
-    public ResponseEntity<NotificationDeleteResponse> deleteNotification(
+    public ApiResponse<?> deleteNotification(
             @AuthenticationPrincipal User user,
             @PathVariable Long notificationId
     ) {
         notificationService.deleteNotification(user.getId(), notificationId);
-        return ResponseEntity.ok(NotificationDeleteResponse.success());
+        return new ApiResponse<>(HttpStatus.OK, "알림 삭제에 성공했습니다.");
     }
-
-
-
 }
