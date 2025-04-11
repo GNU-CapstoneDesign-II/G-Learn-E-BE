@@ -1,5 +1,7 @@
 package gnu.capstone.G_Learn_E.domain.user.service;
 
+import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
+import gnu.capstone.G_Learn_E.domain.folder.repository.FolderRepository;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.exception.UserInvalidException;
 import gnu.capstone.G_Learn_E.domain.user.exception.UserNotFoundException;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final FolderRepository folderRepository;
     private final PasswordEncoder passwordEncoder;
 
     public User save(User user) {
@@ -34,7 +37,15 @@ public class UserService {
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .build();
-        return userRepository.save(user);
+        user = userRepository.save(user);
+
+        Folder folder = Folder.builder()
+                .name("기본 폴더")
+                .user(user)
+                .parent(null)
+                .build();
+        folderRepository.save(folder);
+        return user;
     }
 
 
