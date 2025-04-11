@@ -1,5 +1,6 @@
 package gnu.capstone.G_Learn_E.domain.workbook.entity;
 
+import gnu.capstone.G_Learn_E.domain.folder.entity.FolderWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.SubjectWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
@@ -42,6 +43,9 @@ public class Workbook {
 
     @Column
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "workbook", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FolderWorkbookMap> folderWorkbookMaps = new ArrayList<>();
 
     @OneToMany(mappedBy = "workbook", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubjectWorkbookMap> subjectWorkbookMaps = new ArrayList<>();

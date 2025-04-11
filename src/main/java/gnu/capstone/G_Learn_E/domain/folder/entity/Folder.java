@@ -2,6 +2,7 @@ package gnu.capstone.G_Learn_E.domain.folder.entity;
 
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -39,6 +40,15 @@ public class Folder {
 
     @PrePersist
     public void prePersist(){
+        this.createdAt = LocalDateTime.now();
+    }
+
+
+    @Builder
+    public Folder(String name, Folder parent, User user) {
+        this.name = name;
+        this.parent = parent;
+        this.user = user;
         this.createdAt = LocalDateTime.now();
     }
 }
