@@ -26,7 +26,7 @@ public class SolveLog {
     @Column(columnDefinition = "TEXT")
     private List<String> submitAnswer; // 제출한 답안
 
-    @Column(nullable = true)
+    @Setter
     Boolean isCorrect; // 정답 여부
 
     private LocalDateTime createdAt; // 생성일시

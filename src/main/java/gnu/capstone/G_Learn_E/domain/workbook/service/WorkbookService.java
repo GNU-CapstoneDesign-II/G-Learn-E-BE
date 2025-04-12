@@ -35,6 +35,11 @@ public class WorkbookService {
                 .orElseThrow(() -> new RuntimeException("Workbook not found"));
     }
 
+    public Workbook findWorkbookByIdWithProblems(Long workbookId) {
+        return workbookRepository.findByIdWithProblems(workbookId)
+                .orElseThrow(() -> new RuntimeException("Workbook not found"));
+    }
+
 
     public Workbook createWorkbook(ProblemGenerateResponse response, User user){
 
