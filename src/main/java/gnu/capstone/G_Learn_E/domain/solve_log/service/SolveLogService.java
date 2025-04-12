@@ -138,9 +138,7 @@ public class SolveLogService {
 
         // 문제집 풀이 상태 업데이트 (진행 중)
         // 서술형, 빈칸 등의 채점은 GPT 이용으로 인해 시간이 걸릴 수 있으므로 Flush
-        solvedWorkbook.setStatus(SolvingStatus.IN_PROGRESS);
-        solvedWorkbookRepository.save(solvedWorkbook);
-        solvedWorkbookRepository.flush();
+        forceSetSolvingStatus(solvedWorkbook, SolvingStatus.IN_PROGRESS);
         try {
             List<SolveLog> solveLogs = findAllSolveLog(solvedWorkbook);
             Map<Long, SolveLog> blankSolveLogMap = new HashMap<>();
@@ -217,15 +215,15 @@ public class SolveLogService {
             return GradeWorkbookResponse.of(correctCount, wrongCount);
         } catch (Exception e) {
             log.error("문제 풀이 채점 실패", e);
-            restoreStatus(solvedWorkbook);
+            forceSetSolvingStatus(solvedWorkbook, SolvingStatus.NOT_STARTED);
             throw new RuntimeException("문제 풀이 채점 실패", e);
         }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void restoreStatus(SolvedWorkbook workbook) {
+    public void forceSetSolvingStatus(SolvedWorkbook workbook, SolvingStatus status) {
         // 새로운 트랜잭션에서 상태 복구
-        workbook.setStatus(SolvingStatus.NOT_STARTED);
+        workbook.setStatus(status);
         solvedWorkbookRepository.save(workbook);
     }
 
