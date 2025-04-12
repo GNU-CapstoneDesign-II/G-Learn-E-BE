@@ -1,10 +1,26 @@
 package gnu.capstone.G_Learn_E.domain.solve_log.controller;
 
+import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
+import gnu.capstone.G_Learn_E.domain.problem.service.ProblemService;
+import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
+import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SolveLogRequest;
+import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
+import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
 import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
+import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
+import gnu.capstone.G_Learn_E.domain.workbook.service.WorkbookService;
+import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -12,8 +28,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class SolveLogController {
 
+    private final WorkbookService workbookService;
+    private final ProblemService problemService;
     private final SolveLogService solveLogService;
 
     // TODO : 풀이 로그 컨트롤러 구현
 
+
+    @PatchMapping("/workbook/{workbookId}")
+    public ApiResponse<?> saveUserAnswer(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId,
+            @RequestBody SaveSolveLogRequest request
+    ){
+        Workbook workbook = workbookService.findWorkbookById(workbookId);
+        SolvedWorkbook solvedWorkbook = solveLogService.findSolvedWorkbook(workbook, user);
+
+        solveLogService.updateSolveLog(solvedWorkbook, request);
+
+        return new ApiResponse<>(HttpStatus.OK, "풀이 로그 저장 성공", null);
+    }
 }
