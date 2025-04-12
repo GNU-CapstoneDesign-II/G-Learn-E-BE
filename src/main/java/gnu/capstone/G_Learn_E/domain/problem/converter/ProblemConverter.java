@@ -149,7 +149,7 @@ public class ProblemConverter {
                             // 문제 풀이 정보 변환
                             ProblemSolvePageResponse.ProblemInfo.UserAttempt userAttempt =
                                     ProblemSolvePageResponse.ProblemInfo.UserAttempt.of(
-                                            (isSolved) ? solveLog.getSubmitAnswer() : null,
+                                            (!solveLog.getSubmitAnswer().isEmpty())? solveLog.getSubmitAnswer() : null,
                                             (isSolved) ? solveLog.getIsCorrect() : null
                                     );
 

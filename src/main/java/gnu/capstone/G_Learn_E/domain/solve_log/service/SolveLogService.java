@@ -1,6 +1,8 @@
 package gnu.capstone.G_Learn_E.domain.solve_log.service;
 
 import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemRepository;
+import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
+import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SolveLogRequest;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbookId;
@@ -13,9 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -75,5 +75,37 @@ public class SolveLogService {
         log.info("solveLog : {}", solveLogRepository.findAllBySolvedWorkbookId(solvedWorkbook.getId()));
 
         return solvedWorkbook;
+    }
+
+    @Transactional
+    public void saveAllSolveLog(List<SolveLog> solveLogs) {
+        // 문제 풀이 로그 저장
+        solveLogRepository.saveAll(solveLogs);
+    }
+
+    @Transactional
+    public void updateSolveLog(SolvedWorkbook solvedWorkbook, SaveSolveLogRequest request){
+        Map<Long, SolveLog> solveLogToMap = findAllSolveLogToMap(solvedWorkbook);
+
+        List<SolveLog> logsToUpdate = new ArrayList<>();
+
+        for (SolveLogRequest solveLogRequest : request.userAttempts()) {
+            Long problemId = solveLogRequest.problemId();
+            List<String> newAnswer = solveLogRequest.submitAnswer();
+
+            SolveLog solveLog = solveLogToMap.get(problemId);
+            if (solveLog == null) continue;
+
+            List<String> currentAnswer = solveLog.getSubmitAnswer();
+
+            // 기존 답안과 다를 때만 갱신
+            if (!Objects.equals(currentAnswer, newAnswer)) {
+                // 순서도 함께 비교
+                solveLog.setSubmitAnswer(newAnswer);
+                logsToUpdate.add(solveLog);
+            }
+        }
+
+        saveAllSolveLog(logsToUpdate);
     }
 }
