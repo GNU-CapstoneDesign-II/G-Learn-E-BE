@@ -1,22 +1,14 @@
 package gnu.capstone.G_Learn_E.domain.problem.converter;
 
-import gnu.capstone.G_Learn_E.domain.problem.dto.response.ProblemResponse;
-import gnu.capstone.G_Learn_E.domain.problem.dto.response.ProblemSolvePageResponse;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.problem.enums.ProblemType;
-import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
-import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
-import gnu.capstone.G_Learn_E.domain.solve_log.enums.SolvingStatus;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.global.common.serialization.Option;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -114,67 +106,5 @@ public class ProblemConverter {
                         .content(optionsList.get(i))
                         .build())
                 .collect(Collectors.toList());
-    }
-
-
-
-    public static ProblemSolvePageResponse convertToProblemSolvePageResponse(
-            Workbook workbook,
-            List<Problem> problems,
-            SolvedWorkbook solvedWorkbook,
-            Map<Long, SolveLog> solveLogToMap
-    ) {
-        boolean isSolved = solvedWorkbook.getStatus().equals(SolvingStatus.COMPLETED);
-        AtomicInteger correctCount = new AtomicInteger();
-        AtomicInteger wrongCount = new AtomicInteger();
-
-        // 문제 정보와 문제 풀이 기록을 매핑하여 dto로 변환
-        List<ProblemSolvePageResponse.ProblemInfo> problemInfoList =
-                problems.stream()
-                        .sorted(Comparator.comparing(Problem::getProblemNumber)) // 문제 번호로 정렬
-                        .map(problem -> {
-                            // 문제집의 문제 순회
-
-                            // 문제 풀이 기록 매핑
-                            SolveLog solveLog = solveLogToMap.get(problem.getId());
-                            if (isSolved && solveLog.getIsCorrect()) { // 풀이가 완료된 경우
-                                correctCount.getAndIncrement(); // 정답 개수 증가
-                            } else if(isSolved) {
-                                wrongCount.getAndIncrement(); // 오답 개수 증가
-                            }
-
-                            // 문제 정보 변환
-                            ProblemResponse problemResponse = ProblemResponse.from(problem);
-
-                            // 문제 풀이 정보 변환
-                            ProblemSolvePageResponse.ProblemInfo.UserAttempt userAttempt =
-                                    ProblemSolvePageResponse.ProblemInfo.UserAttempt.of(
-                                            (!solveLog.getSubmitAnswer().isEmpty())? solveLog.getSubmitAnswer() : null,
-                                            (isSolved) ? solveLog.getIsCorrect() : null
-                                    );
-
-                            // 문제 정보와 풀이 정보를 결합하여 반환
-                            return ProblemSolvePageResponse.ProblemInfo.from(
-                                    problemResponse,
-                                    userAttempt
-                            );
-                        })
-                        .toList();
-
-        for(ProblemSolvePageResponse.ProblemInfo problemInfo : problemInfoList) {
-            log.info("문제 정보 : {}", problemInfo.problem());
-        }
-
-
-        return ProblemSolvePageResponse.from(
-                ProblemSolvePageResponse.WorkbookInfo.of(
-                        workbook.getId(),
-                        workbook.getName(),
-                        isSolved,
-                        (isSolved) ? correctCount.get() : null,
-                        (isSolved) ? wrongCount.get() : null
-                ),
-                problemInfoList
-        );
     }
 }

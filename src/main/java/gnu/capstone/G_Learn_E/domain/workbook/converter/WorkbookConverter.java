@@ -1,14 +1,24 @@
 package gnu.capstone.G_Learn_E.domain.workbook.converter;
 
+import gnu.capstone.G_Learn_E.domain.problem.dto.response.ProblemResponse;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
+import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
+import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
+import gnu.capstone.G_Learn_E.domain.solve_log.enums.SolvingStatus;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
+import gnu.capstone.G_Learn_E.domain.workbook.dto.response.WorkbookSolveResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static gnu.capstone.G_Learn_E.domain.problem.converter.ProblemConverter.*;
 
+@Slf4j
 public class WorkbookConverter {
 
     /**
@@ -50,5 +60,66 @@ public class WorkbookConverter {
         // Workbook의 문제 목록에 추가 (양방향 연관관계 설정)
         workbook.getProblems().addAll(problems);
         return workbook;
+    }
+
+
+    public static WorkbookSolveResponse convertToWorkbookSolveResponse(
+            Workbook workbook,
+            List<Problem> problems,
+            SolvedWorkbook solvedWorkbook,
+            Map<Long, SolveLog> solveLogToMap
+    ) {
+        boolean isSolved = solvedWorkbook.getStatus().equals(SolvingStatus.COMPLETED);
+        AtomicInteger correctCount = new AtomicInteger();
+        AtomicInteger wrongCount = new AtomicInteger();
+
+        // 문제 정보와 문제 풀이 기록을 매핑하여 dto로 변환
+        List<WorkbookSolveResponse.ProblemInfo> problemInfoList =
+                problems.stream()
+                        .sorted(Comparator.comparing(Problem::getProblemNumber)) // 문제 번호로 정렬
+                        .map(problem -> {
+                            // 문제집의 문제 순회
+
+                            // 문제 풀이 기록 매핑
+                            SolveLog solveLog = solveLogToMap.get(problem.getId());
+                            if (isSolved && solveLog.getIsCorrect()) { // 풀이가 완료된 경우
+                                correctCount.getAndIncrement(); // 정답 개수 증가
+                            } else if(isSolved) {
+                                wrongCount.getAndIncrement(); // 오답 개수 증가
+                            }
+
+                            // 문제 정보 변환
+                            ProblemResponse problemResponse = ProblemResponse.from(problem);
+
+                            // 문제 풀이 정보 변환
+                            WorkbookSolveResponse.ProblemInfo.UserAttempt userAttempt =
+                                    WorkbookSolveResponse.ProblemInfo.UserAttempt.of(
+                                            (!solveLog.getSubmitAnswer().isEmpty())? solveLog.getSubmitAnswer() : null,
+                                            (isSolved) ? solveLog.getIsCorrect() : null
+                                    );
+
+                            // 문제 정보와 풀이 정보를 결합하여 반환
+                            return WorkbookSolveResponse.ProblemInfo.from(
+                                    problemResponse,
+                                    userAttempt
+                            );
+                        })
+                        .toList();
+
+        for(WorkbookSolveResponse.ProblemInfo problemInfo : problemInfoList) {
+            log.info("문제 정보 : {}", problemInfo.problem());
+        }
+
+
+        return WorkbookSolveResponse.from(
+                WorkbookSolveResponse.WorkbookInfo.of(
+                        workbook.getId(),
+                        workbook.getName(),
+                        isSolved,
+                        (isSolved) ? correctCount.get() : null,
+                        (isSolved) ? wrongCount.get() : null
+                ),
+                problemInfoList
+        );
     }
 }
