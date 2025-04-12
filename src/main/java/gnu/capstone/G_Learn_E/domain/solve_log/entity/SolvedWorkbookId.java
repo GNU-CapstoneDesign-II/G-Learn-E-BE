@@ -1,14 +1,12 @@
 package gnu.capstone.G_Learn_E.domain.solve_log.entity;
 
 import jakarta.persistence.Embeddable;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
 @Getter
+@Setter
 @Embeddable
 @NoArgsConstructor
 @AllArgsConstructor

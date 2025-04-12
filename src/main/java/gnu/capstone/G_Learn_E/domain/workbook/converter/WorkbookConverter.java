@@ -25,25 +25,25 @@ public class WorkbookConverter {
 
         // 1. 객관식 문제 변환
         for (ProblemGenerateResponse.MultipleChoice mc : response.result().multipleChoice()) {
-            Problem problem = convertToMultipleProblem(mc, problemNumber++);
+            Problem problem = convertToMultipleProblem(mc, problemNumber++, workbook);
             problems.add(problem);
         }
 
         // 2. OX 문제 변환
         for (ProblemGenerateResponse.Ox ox : response.result().ox()) {
-            Problem problem = convertToOxProblem(ox, problemNumber++);
+            Problem problem = convertToOxProblem(ox, problemNumber++, workbook);
             problems.add(problem);
         }
 
         // 3. 빈칸 채우기 문제 변환
         for (ProblemGenerateResponse.FillInTheBlank fib : response.result().fillInTheBlank()) {
-            Problem problem = convertToBlankProblem(fib, problemNumber++);
+            Problem problem = convertToBlankProblem(fib, problemNumber++, workbook);
             problems.add(problem);
         }
 
         // 4. 서술형 문제 변환
         for (ProblemGenerateResponse.Descriptive desc : response.result().descriptive()) {
-            Problem problem = convertToDescriptiveProblem(desc, problemNumber++);
+            Problem problem = convertToDescriptiveProblem(desc, problemNumber++, workbook);
             problems.add(problem);
         }
 

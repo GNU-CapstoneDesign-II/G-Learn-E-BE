@@ -37,7 +37,7 @@ public record WorkbookResponse(
                 workbook.getCourseYear(),
                 workbook.getSemester().name(),
                 workbook.getCreatedAt().toString(),
-                ProblemResponse.of(workbook.getProblems())
+                ProblemResponse.from(workbook.getProblems())
         );
     }
 }

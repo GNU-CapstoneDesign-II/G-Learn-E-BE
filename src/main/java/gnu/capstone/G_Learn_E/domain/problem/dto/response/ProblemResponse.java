@@ -15,7 +15,7 @@ public record ProblemResponse(
         List<String> answers, // 정답 리스트 (빈칸 복수, 나머지 단일)
         String explanation // 해설
 ) {
-    public static ProblemResponse of(
+    public static ProblemResponse from(
             Long id,
             Integer problemNumber,
             String type,
@@ -27,8 +27,8 @@ public record ProblemResponse(
         return new ProblemResponse(id, problemNumber, type, title, options, answers, explanation);
     }
 
-    public static ProblemResponse of(Problem problem) {
-        return of(
+    public static ProblemResponse from(Problem problem) {
+        return from(
                 problem.getId(),
                 problem.getProblemNumber(),
                 problem.getType().name(),
@@ -39,9 +39,9 @@ public record ProblemResponse(
         );
     }
 
-    public static List<ProblemResponse> of(List<Problem> problems) {
+    public static List<ProblemResponse> from(List<Problem> problems) {
         return problems.stream()
-                .map(ProblemResponse::of)
+                .map(ProblemResponse::from)
                 .toList();
     }
 }
