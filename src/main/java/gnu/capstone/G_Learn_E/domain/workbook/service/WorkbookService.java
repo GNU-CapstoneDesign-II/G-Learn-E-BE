@@ -30,6 +30,12 @@ public class WorkbookService {
     private final FolderWorkbookMapRepository folderWorkbookMapRepository;
 
 
+    public Workbook findWorkbookById(Long workbookId) {
+        return workbookRepository.findById(workbookId)
+                .orElseThrow(() -> new RuntimeException("Workbook not found"));
+    }
+
+
     public Workbook createWorkbook(ProblemGenerateResponse response, User user){
 
         Folder rootFolder = folderRepository.findByUserAndParentIsNull(user)

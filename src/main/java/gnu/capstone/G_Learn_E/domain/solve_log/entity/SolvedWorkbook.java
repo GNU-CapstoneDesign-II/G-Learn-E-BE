@@ -1,8 +1,10 @@
 package gnu.capstone.G_Learn_E.domain.solve_log.entity;
 
+import gnu.capstone.G_Learn_E.domain.solve_log.enums.SolvingStatus;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -27,4 +29,15 @@ public class SolvedWorkbook {
 
     @OneToMany(mappedBy = "solvedWorkbook", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolveLog> solveLogs;
+
+    @Enumerated(EnumType.STRING)
+    private SolvingStatus status; // 풀이 상태 (진행 중, 완료 등)
+
+    @Builder
+    public SolvedWorkbook(SolvedWorkbookId id, User user, Workbook workbook) {
+        this.id = id;
+        this.user = user;
+        this.workbook = workbook;
+        this.status = SolvingStatus.NOT_STARTED;
+    }
 }

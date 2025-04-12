@@ -3,10 +3,12 @@ package gnu.capstone.G_Learn_E.domain.solve_log.entity;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.global.common.serialization.converter.AnswerListConverter;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -22,7 +24,8 @@ public class SolveLog {
     @Column(columnDefinition = "TEXT")
     private List<String> submitAnswer; // 제출한 답안
 
-    boolean isCorrect; // 정답 여부
+    @Column(nullable = true)
+    Boolean isCorrect; // 정답 여부
 
     private LocalDateTime createdAt; // 생성일시
 
@@ -37,4 +40,18 @@ public class SolveLog {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "problem_id")
     private Problem problem; // 푼 문제
+
+
+    @Builder
+    public SolveLog(SolvedWorkbook solvedWorkbook, Problem problem){
+        this.isCorrect = null;
+        this.submitAnswer = new ArrayList<>();
+        this.solvedWorkbook = solvedWorkbook;
+        this.problem = problem;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public Long getProblemId() {
+        return this.problem.getId();
+    }
 }

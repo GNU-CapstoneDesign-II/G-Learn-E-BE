@@ -50,12 +50,13 @@ public class Problem {
 
     @Builder
     public Problem(Integer problemNumber, String title, List<Option> options, List<String> answers,
-                   String explanation, ProblemType type) {
+                   String explanation, ProblemType type, Workbook workbook) {
         this.problemNumber = problemNumber;
         this.title = title;
         this.options = options;
         this.answers = answers;
         this.explanation = explanation;
         this.type = type;
+        this.workbook = workbook;
     }
 }
