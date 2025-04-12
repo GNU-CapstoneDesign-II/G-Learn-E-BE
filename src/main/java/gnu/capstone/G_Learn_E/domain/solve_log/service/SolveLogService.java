@@ -108,4 +108,14 @@ public class SolveLogService {
 
         saveAllSolveLog(logsToUpdate);
     }
+
+    @Transactional
+    public void deleteAllSolveLog(SolvedWorkbook solvedWorkbook) {
+        List<SolveLog> solveLogs = findAllSolveLog(solvedWorkbook);
+        // 문제 별 풀이 로그 삭제
+        solveLogRepository.deleteAll(solveLogs);
+
+        // 문제집 풀이 기록 삭제
+        solvedWorkbookRepository.delete(solvedWorkbook);
+    }
 }
