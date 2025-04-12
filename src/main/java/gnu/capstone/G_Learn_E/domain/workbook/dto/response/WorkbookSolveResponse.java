@@ -39,13 +39,13 @@ public record WorkbookSolveResponse(
 
     public record ProblemInfo(
         ProblemResponse problem,
-        UserAttempt userAttepmt
+        UserAttempt userAttempt
     ){
         public static ProblemInfo from(
                 ProblemResponse problem,
-                UserAttempt userAttepmt
+                UserAttempt userAttempt
         ) {
-            return new ProblemInfo(problem, userAttepmt);
+            return new ProblemInfo(problem, userAttempt);
         }
 
         public record UserAttempt(
