@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class SolvedWorkbook {
     @OneToMany(mappedBy = "solvedWorkbook", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolveLog> solveLogs;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private SolvingStatus status; // 풀이 상태 (진행 중, 완료 등)
 
