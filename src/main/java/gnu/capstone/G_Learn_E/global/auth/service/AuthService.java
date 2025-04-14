@@ -4,7 +4,7 @@ import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
 import gnu.capstone.G_Learn_E.global.auth.exception.AuthInvalidException;
 import gnu.capstone.G_Learn_E.global.auth.exception.AuthNotFoundException;
-import gnu.capstone.G_Learn_E.global.auth.repository.email.EmailAuthCodeRepository;
+import gnu.capstone.G_Learn_E.global.mail.repository.EmailAuthCodeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;

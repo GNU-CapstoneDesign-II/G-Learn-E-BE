@@ -5,12 +5,13 @@ import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.global.auth.dto.request.EmailAuthCodeVerify;
 import gnu.capstone.G_Learn_E.global.auth.dto.request.LoginRequest;
 import gnu.capstone.G_Learn_E.global.auth.dto.request.SignupRequest;
+import gnu.capstone.G_Learn_E.global.auth.dto.response.AccessTokenResponse;
 import gnu.capstone.G_Learn_E.global.auth.dto.response.EmailAuthToken;
 import gnu.capstone.G_Learn_E.global.auth.dto.response.TokenResponse;
 import gnu.capstone.G_Learn_E.global.auth.exception.AuthInvalidException;
 import gnu.capstone.G_Learn_E.global.auth.service.AuthService;
 import gnu.capstone.G_Learn_E.global.auth.util.EmailValidator;
-import gnu.capstone.G_Learn_E.global.jwt.JwtUtils;
+import gnu.capstone.G_Learn_E.global.jwt.service.JwtService;
 import gnu.capstone.G_Learn_E.global.mail.EmailSender;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -30,7 +32,7 @@ public class AuthController {
     private final AuthService authService;
     private final EmailValidator emailValidator;
     private final EmailSender emailSender;
-    private final JwtUtils jwtUtils;
+    private final JwtService jwtService;
 
 
     @PostMapping("/login")
@@ -40,12 +42,8 @@ public class AuthController {
 
         User user = authService.login(email, password);
 
-        // TODO : 리프레시 토큰 저장 로직 추가
-        String accessToken = jwtUtils.generateAccessToken(user);
-        String refreshToken = jwtUtils.generateRefreshToken(user);
-
-        log.info("로그인 성공 [accessToken : {}, refreshToken : {}]", accessToken, refreshToken);
-        log.info("[email: {}]", email);
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateAndStoreRefreshToken(user);
 
         TokenResponse tokenResponse = new TokenResponse(accessToken, refreshToken);
         return new ApiResponse<>(HttpStatus.OK, "로그인 성공", tokenResponse);
@@ -68,12 +66,11 @@ public class AuthController {
 
         User savedUser = userService.save(name, nickname, email, password);
 
-        // TODO : 리프레시 토큰 저장 로직 추가
-        String accessToken = jwtUtils.generateAccessToken(savedUser);
-        String refreshToken = jwtUtils.generateRefreshToken(savedUser);
+        String emailAuthToken = jwtService.extractToken(request);
+        jwtService.setBlacklistToken(emailAuthToken);
 
-        log.info("회원가입 성공 [accessToken : {}, refreshToken : {}]", accessToken, refreshToken);
-        log.info("[name: {}, nickname: {}, email: {}]", name, nickname, email);
+        String accessToken = jwtService.generateAccessToken(savedUser);
+        String refreshToken = jwtService.generateAndStoreRefreshToken(savedUser);
 
         TokenResponse tokenResponse = new TokenResponse(accessToken, refreshToken);
         return new ApiResponse<>(HttpStatus.CREATED, "회원가입 성공", tokenResponse);
@@ -95,12 +92,30 @@ public class AuthController {
         // TODO : 이메일 인증 코드 검증
         authService.verifyEmailAuthCode(request.email(), request.authCode());
 
-        String emailAuthToken = jwtUtils.generateEmailAuthToken(request.email());
+        String emailAuthToken = jwtService.generateEmailAuthToken(request.email());
         log.info("이메일 인증 코드 검증 성공 [email: {}]", request.email());
         log.info("이메일 인증 토큰 발급 [email: {}, token: {}]", request.email(), emailAuthToken);
 
-        String responseMsg = String.format("이메일 인증 코드 검증 성공. 유효 시간: %d분", jwtUtils.getEmailAuthTokenExpiration() / 1000 / 60);
+        String responseMsg = String.format("이메일 인증 코드 검증 성공. 유효 시간: %d분", jwtService.getEmailAuthTokenExpiration() / 1000 / 60);
         return new ApiResponse<>(HttpStatus.OK, responseMsg, new EmailAuthToken(emailAuthToken));
     }
+
+    @PatchMapping("/reissue")
+    public ApiResponse<AccessTokenResponse> reissue(@AuthenticationPrincipal User user, HttpServletRequest request) {
+        String refreshToken = jwtService.extractToken(request);
+        String accessToken = jwtService.reissueAccessToken(user, refreshToken);
+
+        AccessTokenResponse response = AccessTokenResponse.of(accessToken);
+        return new ApiResponse<>(HttpStatus.OK, "엑세스 토큰 재발급 성공", response);
+    }
+
+    @DeleteMapping("/logout")
+    public ApiResponse<?> logout(@AuthenticationPrincipal User user, HttpServletRequest request) {
+        String accessToken = jwtService.extractToken(request);
+        jwtService.logout(user, accessToken);
+        log.info("로그아웃 성공 [userId : {}]", user.getId());
+        return new ApiResponse<>(HttpStatus.NO_CONTENT, "로그아웃 성공", null);
+    }
+
 }
 

@@ -76,6 +76,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(securityPathProperties.permitAll().toArray(new String[0])).permitAll()
                         .requestMatchers(securityPathProperties.authenticated().toArray(new String[0])).authenticated()
+                        .requestMatchers(securityPathProperties.refresh().toArray(new String[0])).authenticated()
                         .requestMatchers(securityPathProperties.anonymous().toArray(new String[0])).anonymous()
                         .requestMatchers(securityPathProperties.emailAuth().toArray(new String[0])).permitAll()
                         .anyRequest().permitAll())

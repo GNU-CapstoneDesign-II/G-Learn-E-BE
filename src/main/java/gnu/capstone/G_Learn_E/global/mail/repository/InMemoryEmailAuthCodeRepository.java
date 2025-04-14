@@ -1,6 +1,5 @@
-package gnu.capstone.G_Learn_E.global.auth.repository.email;
+package gnu.capstone.G_Learn_E.global.mail.repository;
 
-import gnu.capstone.G_Learn_E.global.auth.exception.AuthInvalidException;
 import gnu.capstone.G_Learn_E.global.auth.exception.AuthNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
