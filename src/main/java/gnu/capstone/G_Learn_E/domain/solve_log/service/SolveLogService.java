@@ -166,41 +166,58 @@ public class SolveLogService {
 
             // ✅ 병렬로 결과만 먼저 받아옴 (채점 자체는 여기서 수행, 반영은 아래서)
             log.info("빈칸 채점 비동기 처리 시작");
-            CompletableFuture<List<GradeBlankResponse.GradedProblem>> blankFuture =
-                    CompletableFuture.supplyAsync(() -> gradeBlankProblems(problemMap, blankSolveLogMap))
-                            .exceptionally(e -> {
-                                throw new RuntimeException("빈칸 채점 실패", e);
-                            });
-            log.info("서술형 채점 비동기 처리 시작");
-            CompletableFuture<List<GradeDescriptiveResponse.GradedProblem>> descFuture =
-                    CompletableFuture.supplyAsync(() -> gradeDescriptionProblems(problemMap, descriptionSolveLogMap))
-                            .exceptionally(e -> {
-                                throw new RuntimeException("서술형 채점 실패", e);
-                            });
+            CompletableFuture<List<GradeBlankResponse.GradedProblem>> blankFuture = null;
+            if(!blankSolveLogMap.isEmpty()) {
+                blankFuture = CompletableFuture.supplyAsync(() -> gradeBlankProblems(problemMap, blankSolveLogMap))
+                        .exceptionally(e -> {
+                            throw new RuntimeException("빈칸 채점 실패", e);
+                        });
+            }
 
-            List<GradeBlankResponse.GradedProblem> blankResults = blankFuture.join();
-            List<GradeDescriptiveResponse.GradedProblem> descResults = descFuture.join();
+            log.info("서술형 채점 비동기 처리 시작");
+            CompletableFuture<List<GradeDescriptiveResponse.GradedProblem>> descFuture = null;
+            if(!descriptionSolveLogMap.isEmpty()) {
+                descFuture =
+                        CompletableFuture.supplyAsync(() -> gradeDescriptionProblems(problemMap, descriptionSolveLogMap))
+                                .exceptionally(e -> {
+                                    throw new RuntimeException("서술형 채점 실패", e);
+                                });
+            }
+
+            List<GradeBlankResponse.GradedProblem> blankResults = null;
+            if(blankFuture != null) {
+                 blankResults = blankFuture.join();
+            }
+            List<GradeDescriptiveResponse.GradedProblem> descResults = null;
+            if(descFuture != null) {
+                descResults = descFuture.join();
+            }
+
 
             // ✅ 트랜잭션 안에서 결과 반영
             log.info("빈칸, 서술형 채점 결과 반영 시작");
-            blankResults.forEach(gradedProblem -> {
-                SolveLog solveLog = blankSolveLogMap.get(gradedProblem.id());
-                if (solveLog == null) {
-                    log.warn("빈칸 문제 풀이 로그 없음 : {}", gradedProblem.id());
-                    throw new RuntimeException("빈칸 문제 풀이 로그 없음");
-                }
-                log.info("문제 id : {}, 채점 결과 : {}", gradedProblem.id(), gradedProblem.correct());
-                solveLog.setIsCorrect(gradedProblem.correct());
-            });
-            descResults.forEach(gradedProblem -> {
-                SolveLog solveLog = descriptionSolveLogMap.get(gradedProblem.id());
-                if (solveLog == null) {
-                    log.warn("서술형 문제 풀이 로그 없음 : {}", gradedProblem.id());
-                    throw new RuntimeException("서술형 문제 풀이 로그 없음");
-                }
-                log.info("문제 id : {}, 채점 결과 : {}", gradedProblem.id(), gradedProblem.correct());
-                solveLog.setIsCorrect(gradedProblem.correct());
-            });
+            if(blankResults != null) {
+                blankResults.forEach(gradedProblem -> {
+                    SolveLog solveLog = blankSolveLogMap.get(gradedProblem.id());
+                    if (solveLog == null) {
+                        log.warn("빈칸 문제 풀이 로그 없음 : {}", gradedProblem.id());
+                        throw new RuntimeException("빈칸 문제 풀이 로그 없음");
+                    }
+                    log.info("문제 id : {}, 채점 결과 : {}", gradedProblem.id(), gradedProblem.correct());
+                    solveLog.setIsCorrect(gradedProblem.correct());
+                });
+            }
+            if(descResults != null) {
+                descResults.forEach(gradedProblem -> {
+                    SolveLog solveLog = descriptionSolveLogMap.get(gradedProblem.id());
+                    if (solveLog == null) {
+                        log.warn("서술형 문제 풀이 로그 없음 : {}", gradedProblem.id());
+                        throw new RuntimeException("서술형 문제 풀이 로그 없음");
+                    }
+                    log.info("문제 id : {}, 채점 결과 : {}", gradedProblem.id(), gradedProblem.correct());
+                    solveLog.setIsCorrect(gradedProblem.correct());
+                });
+            }
 
             solveLogs = saveAllSolveLog(solveLogs);
             // 문제집 풀이 상태 업데이트
