@@ -6,6 +6,7 @@ import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import java.util.List;
 
 public record WorkbookResponse(
+        Long id, // 문제집 ID
         String name, // 워크북 이름
         String professor, // 교수 이름
         String examType, // 시험 유형
@@ -16,6 +17,7 @@ public record WorkbookResponse(
         List<ProblemResponse> problems // 문제 목록
 ) {
     public static WorkbookResponse of(
+            Long id,
             String name,
             String professor,
             String examType,
@@ -25,11 +27,12 @@ public record WorkbookResponse(
             String createdAt,
             List<ProblemResponse> problems
     ) {
-        return new WorkbookResponse(name, professor, examType, coverImage, courseYear, semester, createdAt, problems);
+        return new WorkbookResponse(id, name, professor, examType, coverImage, courseYear, semester, createdAt, problems);
     }
 
     public static WorkbookResponse of(Workbook workbook){
         return new WorkbookResponse(
+                workbook.getId(),
                 workbook.getName(),
                 workbook.getProfessor(),
                 workbook.getExamType().name(),
