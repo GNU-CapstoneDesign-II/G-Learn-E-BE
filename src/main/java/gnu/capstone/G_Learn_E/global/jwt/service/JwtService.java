@@ -92,9 +92,6 @@ public class JwtService {
 
         // JwtAuthenticationFilter + JwtUtils 이중 체크
         String tokenType = jwtUtils.getTokenType(refreshToken);
-        if (tokenType.equals(JwtTokenType.REFRESH.getType())) {
-            throw new RuntimeException("refresh 타입의 토큰이 아닙니다.");
-        }
 
         // 3) 블랙리스트 확인
         if (blacklistRepository.isBlacklisted(refreshToken)) {
