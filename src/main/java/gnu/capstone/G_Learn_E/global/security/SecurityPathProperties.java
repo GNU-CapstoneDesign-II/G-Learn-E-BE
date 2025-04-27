@@ -10,6 +10,7 @@ public record SecurityPathProperties(
         List<String> authenticated,
         List<String> anonymous,
         List<String> emailAuth,
+        List<String> refresh,
         String anyRequest
 ) {
 }

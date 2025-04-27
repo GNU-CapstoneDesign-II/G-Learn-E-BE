@@ -1,4 +1,4 @@
-package gnu.capstone.G_Learn_E.global.auth.repository.refresh;
+package gnu.capstone.G_Learn_E.global.jwt.repository;
 
 public interface RefreshTokenRepository {
     void save(Long userId, String refreshToken);

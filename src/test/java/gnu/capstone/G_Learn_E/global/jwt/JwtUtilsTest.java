@@ -1,6 +1,7 @@
 package gnu.capstone.G_Learn_E.global.jwt;
 
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
+import gnu.capstone.G_Learn_E.global.jwt.service.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -29,7 +30,7 @@ public class JwtUtilsTest {
         String token = jwtUtils.generateAccessToken(user);
 
         // when
-        boolean isValid = jwtUtils.validateToken(token);
+        boolean isValid = jwtUtils.validateFormat(token);
 
         // then
         assertThat(isValid).isTrue();
@@ -44,7 +45,7 @@ public class JwtUtilsTest {
         Thread.sleep(5); // 토큰 만료까지 대기
 
         // when
-        boolean isValid = shortLivedJwt.validateToken(token);
+        boolean isValid = shortLivedJwt.validateFormat(token);
 
         // then
         assertThat(isValid).isTrue(); // ✅ 유효한 형식이므로 true
@@ -56,7 +57,7 @@ public class JwtUtilsTest {
         String token = "fake.invalid.token";
 
         // when
-        boolean isValid = jwtUtils.validateToken(token);
+        boolean isValid = jwtUtils.validateFormat(token);
 
         // then
         assertThat(isValid).isFalse();

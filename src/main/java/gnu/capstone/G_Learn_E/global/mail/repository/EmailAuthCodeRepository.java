@@ -1,4 +1,4 @@
-package gnu.capstone.G_Learn_E.global.auth.repository.email;
+package gnu.capstone.G_Learn_E.global.mail.repository;
 
 public interface EmailAuthCodeRepository {
     void saveAuthCode(String email, String authCode);
