@@ -1,12 +1,13 @@
 package gnu.capstone.G_Learn_E.domain.workbook.service;
 
 import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
-import gnu.capstone.G_Learn_E.domain.folder.entity.FolderWorkbookId;
 import gnu.capstone.G_Learn_E.domain.folder.entity.FolderWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.folder.repository.FolderRepository;
 import gnu.capstone.G_Learn_E.domain.folder.repository.FolderWorkbookMapRepository;
+import gnu.capstone.G_Learn_E.domain.problem.converter.ProblemConverter;
+import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
+import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemRepository;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
-import gnu.capstone.G_Learn_E.domain.workbook.converter.WorkbookConverter;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.ExamType;
@@ -25,6 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WorkbookService {
 
+    private final ProblemRepository problemRepository;
     private final WorkbookRepository workbookRepository;
     private final FolderRepository folderRepository;
     private final FolderWorkbookMapRepository folderWorkbookMapRepository;
@@ -36,7 +38,7 @@ public class WorkbookService {
     }
 
     public Workbook findWorkbookByIdWithProblems(Long workbookId) {
-        return workbookRepository.findByIdWithProblems(workbookId)
+        return workbookRepository.findWithMappingsAndProblemsById(workbookId)
                 .orElseThrow(() -> new RuntimeException("Workbook not found"));
     }
 
@@ -46,7 +48,7 @@ public class WorkbookService {
         Folder rootFolder = folderRepository.findByUserAndParentIsNull(user)
                 .orElseThrow(() -> new RuntimeException("기본 폴더가 없습니다."));
 
-        Workbook workbookTemplate = Workbook.builder()
+        Workbook workbook = Workbook.builder()
                 .name(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .professor("교수명")
                 .examType(ExamType.OTHER)
@@ -55,17 +57,24 @@ public class WorkbookService {
                 .semester(Semester.OTHER)
                 .build();
 
-        Workbook newWorkbook = WorkbookConverter.convertToWorkbookAndProblems(response, workbookTemplate);
-        newWorkbook = workbookRepository.save(newWorkbook);
+        List<Problem> problems = ProblemConverter.convertToProblems(response);
+        problemRepository.saveAll(problems);
+
+        int num = 1;
+        for(Problem problem : problems) {
+            workbook.addProblem(problem, num++);
+        }
+        workbook = workbookRepository.save(workbook);
+
 
 
         FolderWorkbookMap folderWorkbookMap = FolderWorkbookMap.builder()
                 .folder(rootFolder)
-                .workbook(newWorkbook)
+                .workbook(workbook)
                 .build();
         folderWorkbookMapRepository.save(folderWorkbookMap);
 
-        return newWorkbook;
+        return workbook;
     }
 
 

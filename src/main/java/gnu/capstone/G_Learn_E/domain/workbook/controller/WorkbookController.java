@@ -5,7 +5,6 @@ import gnu.capstone.G_Learn_E.domain.workbook.converter.WorkbookConverter;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookUpload;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.GradeWorkbookResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.WorkbookSolveResponse;
-import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.problem.service.ProblemService;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
@@ -20,16 +19,12 @@ import gnu.capstone.G_Learn_E.global.fastapi.service.FastApiService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -38,7 +33,6 @@ import java.util.stream.Collectors;
 public class WorkbookController {
 
     private final WorkbookService workbookService;
-    private final ProblemService problemService;
     private final SolveLogService solveLogService;
     private final FastApiService fastApiService;
 
@@ -72,11 +66,8 @@ public class WorkbookController {
             @AuthenticationPrincipal User user,
             @PathVariable("workbookId") Long workbookId
     ){
-        Workbook workbook = workbookService.findWorkbookById(workbookId);
+        Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
         log.info("문제집 조회 성공 : {}", workbook);
-
-        List<Problem> problems = problemService.findAllByWorkbookId(workbook);
-        log.info("문제 조회 성공 : {}", problems);
 
         SolvedWorkbook solvedWorkbook = solveLogService.findSolvedWorkbook(workbook, user);
         log.info("문제집 풀이 기록 조회 성공 : {}", solvedWorkbook);
@@ -86,8 +77,8 @@ public class WorkbookController {
 
         WorkbookSolveResponse response = WorkbookConverter.convertToWorkbookSolveResponse(
                 workbook,
-                problems,
                 solvedWorkbook,
+                workbook.getProblemWorkbookMaps(),
                 solveLogToMap
         );
         log.info("문제 풀이 페이지 로드 성공 : {}", response);
@@ -100,20 +91,7 @@ public class WorkbookController {
             @PathVariable("workbookId") Long workbookId,
             @RequestBody SaveSolveLogRequest request
     ){
-        Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
-        SolvedWorkbook solvedWorkbook = solveLogService.findSolvedWorkbook(workbook, user);
-
-        // 문제 풀이 기록 저장
-        solveLogService.updateSolveLog(solvedWorkbook, request);
-
-        // 채점 시작
-        if(!Hibernate.isInitialized(workbook.getProblems())){
-            Hibernate.initialize(workbook.getProblems());
-        }
-        Map<Long, Problem> problemMap = workbook.getProblems().stream().
-                collect(Collectors.toMap(Problem::getId, Function.identity()));
-
-        GradeWorkbookResponse response = solveLogService.gradeAllSolveLog(user, workbook, problemMap);
+        GradeWorkbookResponse response = solveLogService.gradeWorkbook(user, workbookId, request);
         return new ApiResponse<>(HttpStatus.OK, "문제 풀이 채점 성공", response);
     }
 
