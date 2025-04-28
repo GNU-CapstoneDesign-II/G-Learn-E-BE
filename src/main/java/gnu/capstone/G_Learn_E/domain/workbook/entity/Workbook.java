@@ -3,6 +3,7 @@ package gnu.capstone.G_Learn_E.domain.workbook.entity;
 import gnu.capstone.G_Learn_E.domain.folder.entity.FolderWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.problem.entity.ProblemWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.SubjectWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.ExamType;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.Semester;
@@ -39,14 +40,17 @@ public class Workbook {
     private LocalDateTime createdAt;
     private boolean isUploaded;
 
-    @OneToMany(mappedBy = "workbook", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "workbook", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SubjectWorkbookMap> subjectWorkbookMaps = new ArrayList<>();
+
+    @OneToMany(mappedBy = "workbook", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FolderWorkbookMap> folderWorkbookMaps = new ArrayList<>();
 
-    @OneToMany(mappedBy = "workbook", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "workbook", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("problemNumber ASC")
     private List<ProblemWorkbookMap> problemWorkbookMaps = new ArrayList<>();
 
-    @OneToMany(mappedBy = "workbook", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "workbook", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolvedWorkbook> solvedWorkbooks = new ArrayList<>();
 
     @PrePersist

@@ -20,4 +20,12 @@ public interface WorkbookRepository extends JpaRepository<Workbook, Long> {
             "problemWorkbookMaps.problem"
     })
     Optional<Workbook> findWithMappingsAndProblemsById(@Param("workbookId") Long workbookId);
+
+    /** 폴더·과목 매핑이 모두 없는 고아 워크북 조회 */
+    @Query("""
+        SELECT w FROM Workbook w
+        WHERE w.folderWorkbookMaps IS EMPTY
+          AND w.subjectWorkbookMaps IS EMPTY
+    """)
+    List<Workbook> findOrphanWorkbooks();
 }
