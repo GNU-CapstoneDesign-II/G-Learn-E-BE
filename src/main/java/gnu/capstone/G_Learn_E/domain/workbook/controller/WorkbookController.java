@@ -2,6 +2,7 @@ package gnu.capstone.G_Learn_E.domain.workbook.controller;
 
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
 import gnu.capstone.G_Learn_E.domain.workbook.converter.WorkbookConverter;
+import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookUpload;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.GradeWorkbookResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.WorkbookSolveResponse;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
@@ -114,5 +115,14 @@ public class WorkbookController {
 
         GradeWorkbookResponse response = solveLogService.gradeAllSolveLog(user, workbook, problemMap);
         return new ApiResponse<>(HttpStatus.OK, "문제 풀이 채점 성공", response);
+    }
+
+    @PostMapping("/upload")
+    public ApiResponse<?> uploadWorkbook(
+            @AuthenticationPrincipal User user,
+            @RequestBody List<WorkbookUpload> request
+    ){
+
+        return new ApiResponse<>(HttpStatus.OK, "문제집 업로드 성공", null);
     }
 }
