@@ -25,12 +25,14 @@ public record WorkbookResponse(
 
     public record Author(
             Long userId,
-            String name
+            String name,
+            String nickname
     ) {
         public static Author from(User user) {
             return new Author(
                     user.getId(),
-                    user.getName()
+                    user.getName(),
+                    user.getNickname()
             );
         }
     }

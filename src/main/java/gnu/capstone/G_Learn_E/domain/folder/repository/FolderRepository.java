@@ -48,4 +48,5 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
     """)
     List<Folder> findAllByUserWithParent(@Param("user") User user); // 폴더 트리 조회
 
+    boolean existsByUserAndFolderWorkbookMaps_Workbook_Id(User user, Long workbookId);
 }

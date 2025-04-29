@@ -5,6 +5,7 @@ import gnu.capstone.G_Learn_E.domain.folder.entity.FolderWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.folder.repository.FolderRepository;
 import gnu.capstone.G_Learn_E.domain.folder.repository.FolderWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.problem.converter.ProblemConverter;
+import gnu.capstone.G_Learn_E.domain.problem.dto.request.ProblemRequest;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.*;
@@ -24,8 +25,9 @@ import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -59,7 +61,6 @@ public class WorkbookService {
         return workbook;
     }
 
-
     public Workbook createWorkbook(ProblemGenerateResponse response, User user){
 
         Folder rootFolder = folderRepository.findByUserAndParentIsNull(user)
@@ -84,8 +85,6 @@ public class WorkbookService {
         }
         workbook = workbookRepository.save(workbook);
 
-
-
         FolderWorkbookMap folderWorkbookMap = FolderWorkbookMap.builder()
                 .folder(rootFolder)
                 .workbook(workbook)
@@ -94,6 +93,53 @@ public class WorkbookService {
 
         return workbook;
     }
+
+    @Transactional
+    public Workbook createWorkbookFromProblems(List<ProblemRequest> problemRequests, User user) {
+        Folder rootFolder = folderRepository.findByUserAndParentIsNull(user)
+                .orElseThrow(() -> new RuntimeException("기본 폴더가 없습니다."));
+
+        Workbook workbook = Workbook.builder()
+                .name(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .professor("교수명")
+                .examType(ExamType.OTHER)
+                .coverImage(1)
+                .courseYear(LocalDateTime.now().getYear())
+                .semester(Semester.OTHER)
+                .author(user)
+                .build();
+
+        Workbook savedWorkbook = workbookRepository.save(workbook);
+
+        // Problem 객체 찾아오기
+        Map<Long, Problem> problems = problemRepository.findAllById(
+                problemRequests.stream()
+                        .map(ProblemRequest::id)
+                        .toList()
+        ).stream().collect(Collectors.toMap(Problem::getId, problem -> problem));
+
+        int problemNumber = 1;
+        for(ProblemRequest problemRequest : problemRequests) {
+            if(isEqualProblem(problems.get(problemRequest.id()), problemRequest)) {
+                // 문제를 찾았고, 같으면 문제집에 추가
+                savedWorkbook.addProblem(problems.get(problemRequest.id()), problemNumber++);
+            } else {
+                // 다르면 문제 엔티티 새로 생성해서 문제집에 추가
+                Problem problem = ProblemConverter.convertToProblem(problemRequest);
+                problemRepository.save(problem);
+                savedWorkbook.addProblem(problem, problemNumber++);
+            }
+        }
+
+        FolderWorkbookMap folderWorkbookMap = FolderWorkbookMap.builder()
+                .folder(rootFolder)
+                .workbook(workbook)
+                .build();
+        savedWorkbook.getFolderWorkbookMaps().add(folderWorkbookMap);
+        return savedWorkbook;
+    }
+
+
 
 
     public List<Workbook> getChildrenWorkbooks(Folder folder) {
@@ -195,5 +241,48 @@ public class WorkbookService {
 
         // 6️⃣ 저장 — cascade = ALL 덕분에 매핑 엔티티까지 함께 persist
         return saved;
+    }
+
+
+
+    private boolean isEqualProblem(Problem problem, ProblemRequest problemRequest) {
+        if (problem.getType().toString() != problemRequest.type()) {
+            return false;
+        }
+        // 문제 제목이 다르면 false
+        if (problem.getTitle() != problemRequest.title()) {
+            return false;
+        }
+        // 문제 선택지가 다르면 false
+        if (problem.getOptions() != null && problemRequest.options() != null) {
+            if (problem.getOptions().size() != problemRequest.options().size()) {
+                return false;
+            }
+            for (int i = 0; i < problem.getOptions().size(); i++) {
+                if (problem.getOptions().get(i).getContent() != problemRequest.options().get(i)) {
+                    return false;
+                }
+            }
+        } else if (problem.getOptions() != null || problemRequest.options() != null) {
+            return false;
+        }
+        // 문제 정답 리스트가 다르면
+        if (problem.getAnswers() != null && problemRequest.answers() != null) {
+            if (problem.getAnswers().size() != problemRequest.answers().size()) {
+                return false;
+            }
+            for (int i = 0; i < problem.getAnswers().size(); i++) {
+                if (problem.getAnswers().get(i) != problemRequest.answers().get(i)) {
+                    return false;
+                }
+            }
+        } else if (problem.getAnswers() != null || problemRequest.answers() != null) {
+            return false;
+        }
+        // 문제 해설이 다르면 false
+        if (problem.getExplanation() != problemRequest.explanation()) {
+            return false;
+        }
+        return true;
     }
 }

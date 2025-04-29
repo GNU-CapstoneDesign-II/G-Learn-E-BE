@@ -83,6 +83,12 @@ public class FolderService {
         return folderRepository.findAllByUserWithParent(user);
     }
 
+    // 유저의 개인 폴더 안에 존재하는 문제집 ID 인지 검사
+    public boolean isWorkbookInUserFolder(User user, Long workbookId) {
+        log.info("isWorkbookInUserFolder request: {}", workbookId);
+        return folderRepository.existsByUserAndFolderWorkbookMaps_Workbook_Id(user, workbookId);
+    }
+
 
     @Transactional
     public Folder moveFolder(User user, Long folderId, Long targetParentId) {
