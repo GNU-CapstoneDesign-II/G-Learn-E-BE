@@ -1,5 +1,6 @@
 package gnu.capstone.G_Learn_E.domain.problem.converter;
 
+import gnu.capstone.G_Learn_E.domain.problem.dto.request.ProblemRequest;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.problem.enums.ProblemType;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
@@ -125,5 +126,51 @@ public class ProblemConverter {
         }
 
         return result;
+    }
+
+
+    public static Problem convertToProblem(ProblemRequest problemRequest) {
+        switch (problemRequest.type()) {
+            case "MULTIPLE" -> {
+                return Problem.builder()
+                        .title(problemRequest.title())
+                        .options(convertOptions(problemRequest.options()))
+                        .answers(problemRequest.answers())
+                        .explanation(problemRequest.explanation())
+                        .type(ProblemType.MULTIPLE)
+                        .build();
+            }
+            case "OX" -> {
+                return Problem.builder()
+                        .title(problemRequest.title())
+                        .options(null)
+                        .answers(problemRequest.answers())
+                        .explanation(problemRequest.explanation())
+                        .type(ProblemType.OX)
+                        .build();
+            }
+            case "BLANK" -> {
+                return Problem.builder()
+                        .title(problemRequest.title())
+                        .options(null)
+                        .answers(problemRequest.answers())
+                        .explanation(problemRequest.explanation())
+                        .type(ProblemType.BLANK)
+                        .build();
+            }
+            case "DESCRIPTIVE" -> {
+                return Problem.builder()
+                        .title(problemRequest.title())
+                        .options(null)
+                        .answers(problemRequest.answers())
+                        // 서술형 문제는 해설이 없는 경우도 있음
+                        .explanation(null)
+                        .type(ProblemType.DESCRIPTIVE)
+                        .build();
+            }
+            default -> {
+                throw new IllegalArgumentException("Invalid problem type: " + problemRequest.type());
+            }
+        }
     }
 }

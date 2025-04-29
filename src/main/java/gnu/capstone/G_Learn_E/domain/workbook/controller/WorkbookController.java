@@ -1,19 +1,23 @@
 package gnu.capstone.G_Learn_E.domain.workbook.controller;
 
+import gnu.capstone.G_Learn_E.domain.folder.service.FolderService;
+import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
+import gnu.capstone.G_Learn_E.domain.problem.service.ProblemService;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
+import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
 import gnu.capstone.G_Learn_E.domain.workbook.converter.WorkbookConverter;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.response.GradeWorkbookResponse;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.response.WorkbookSolveResponse;
-import gnu.capstone.G_Learn_E.domain.problem.service.ProblemService;
+import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookMergeRequest;
+import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookUpload;
+import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookUploadList;
+import gnu.capstone.G_Learn_E.domain.workbook.dto.response.*;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
 import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.request.ProblemGenerateRequest;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.response.WorkbookResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.service.WorkbookService;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
 import gnu.capstone.G_Learn_E.global.fastapi.service.FastApiService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -31,11 +36,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class WorkbookController {
 
+    private final ProblemService problemService;
     private final WorkbookService workbookService;
+    private final FolderService folderService;
+    private final PublicFolderService publicFolderService;
     private final SolveLogService solveLogService;
     private final FastApiService fastApiService;
-
-    // TODO : 문제집 컨트롤러 구현
 
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, path = "/generate")
@@ -43,8 +49,6 @@ public class WorkbookController {
             @AuthenticationPrincipal User user,
             @ModelAttribute ProblemGenerateRequest request
     ) {
-
-
         ProblemGenerateResponse problemGenerateResponse = fastApiService.generateProblems(request);
         log.info("User : {}", user);
         log.info("Response : {}", problemGenerateResponse);
@@ -58,7 +62,7 @@ public class WorkbookController {
     }
 
     /**
-     * 문제 풀이 페이지 로드
+     * 개인 폴더 문제 풀이 페이지 로드
      */
     @GetMapping("/{workbookId}/solve")
     public ApiResponse<WorkbookSolveResponse> problemSolvePageLoad(
@@ -67,6 +71,10 @@ public class WorkbookController {
     ){
         Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
         log.info("문제집 조회 성공 : {}", workbook);
+        if(!folderService.isWorkbookInUserFolder(user, workbookId) &&
+                !publicFolderService.isPublicWorkbook(workbookId)) {
+            throw new RuntimeException("문제집 접근 권한이 없습니다.");
+        }
 
         SolvedWorkbook solvedWorkbook = solveLogService.findSolvedWorkbook(workbook, user);
         log.info("문제집 풀이 기록 조회 성공 : {}", solvedWorkbook);
@@ -90,7 +98,74 @@ public class WorkbookController {
             @PathVariable("workbookId") Long workbookId,
             @RequestBody SaveSolveLogRequest request
     ){
-        GradeWorkbookResponse response = solveLogService.gradeWorkbook(user, workbookId, request);
+        if(!folderService.isWorkbookInUserFolder(user, workbookId) &&
+                !publicFolderService.isPublicWorkbook(workbookId)) {
+            throw new RuntimeException("문제집 접근 권한이 없습니다.");
+        }
+        Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
+        GradeWorkbookResponse response = solveLogService.gradeWorkbook(user, workbook, request);
         return new ApiResponse<>(HttpStatus.OK, "문제 풀이 채점 성공", response);
+    }
+
+    @PostMapping("/{workbookId}/upload")
+    public ApiResponse<?> uploadWorkbook(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId,
+            @RequestBody WorkbookUpload request
+    ){
+        log.info("문제집 업로드 요청 : {}", request);
+        Subject subject = publicFolderService.findSubjectInTree(request.collegeId(), request.departmentId(), request.subjectId());
+        Workbook workbook = workbookService.uploadWorkbook(workbookId, subject, user);
+        WorkbookUploadResponse response = WorkbookUploadResponse.of(
+                workbook.getId(),
+                subject.getId(),
+                subject.getName()
+        );
+        return new ApiResponse<>(HttpStatus.OK, "문제집 업로드 성공", response);
+    }
+
+    @PostMapping("/upload/list")
+    public ApiResponse<?> uploadWorkbookList(
+            @AuthenticationPrincipal User user,
+            @RequestBody WorkbookUploadList request
+    ){
+
+        return new ApiResponse<>(HttpStatus.OK, "문제집 리스트 업로드 성공", null);
+    }
+
+    @PostMapping("/{workbookId}/download")
+    public ApiResponse<?> downloadWorkbook(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId
+    ){
+        Workbook workbook = workbookService.downloadWorkbook(workbookId, user);
+        WorkbookDownloadResponse response = WorkbookDownloadResponse.of(workbook.getId());
+        return new ApiResponse<>(HttpStatus.OK, "문제집 다운로드 성공", response);
+    }
+
+    @GetMapping("/merge")
+    public ApiResponse<?> mergeWorkbookPageLoad(
+            @AuthenticationPrincipal User user,
+            @RequestParam("ids") List<Long> workbookIds
+    ){
+        boolean isvalid = workbookIds.stream()
+                // 하나라도 isInUserFolders == false가 있으면 allMatch 전체가 false
+                .allMatch(id -> folderService.isWorkbookInUserFolder(user, id));
+        if(!isvalid) {
+            throw new RuntimeException("문제집이 유저의 폴더에 존재하지 않습니다.");
+        }
+        List<Problem> problems = problemService.findAllByWorkbookIds(workbookIds);
+        WorkbookMergePageResponse response = WorkbookMergePageResponse.from(problems);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 병합 페이지 로드 성공", response);
+    }
+
+    @PostMapping("/merge")
+    public ApiResponse<?> mergeWorkbook(
+            @AuthenticationPrincipal User user,
+            @RequestBody WorkbookMergeRequest request
+    ){
+        Workbook workbook = workbookService.createWorkbookFromProblems(request.problems(), user);
+        WorkbookResponse response = WorkbookResponse.of(workbook);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 병합 성공", response);
     }
 }

@@ -5,12 +5,14 @@ import gnu.capstone.G_Learn_E.domain.problem.entity.ProblemWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.SubjectWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.ExamType;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.Semester;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -25,6 +27,10 @@ public class Workbook {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    private User author;
+
     private String name;
     private String professor;
 
@@ -38,6 +44,8 @@ public class Workbook {
     private Semester semester;
 
     private LocalDateTime createdAt;
+
+    @Setter
     private boolean isUploaded;
 
     @OneToMany(mappedBy = "workbook", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -64,7 +72,9 @@ public class Workbook {
                     ExamType examType,
                     Integer coverImage,
                     Integer courseYear,
-                    Semester semester) {
+                    Semester semester,
+                    User author
+    ) {
         this.name = name;
         this.professor = professor;
         this.examType = examType;
@@ -72,6 +82,7 @@ public class Workbook {
         this.courseYear = courseYear;
         this.semester = semester;
         this.isUploaded = false;
+        this.author = author;
     }
 
     /**

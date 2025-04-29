@@ -3,7 +3,6 @@ package gnu.capstone.G_Learn_E.domain.solve_log.service;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.problem.entity.ProblemWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.problem.enums.ProblemType;
-import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemRepository;
 import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SolveLogRequest;
@@ -16,13 +15,11 @@ import gnu.capstone.G_Learn_E.domain.solve_log.repository.SolvedWorkbookReposito
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.GradeWorkbookResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
-import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.request.GradeBlankRequest;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.request.GradeDescriptiveRequest;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.response.GradeBlankResponse;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.response.GradeDescriptiveResponse;
 import gnu.capstone.G_Learn_E.global.fastapi.service.FastApiService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,7 +36,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SolveLogService {
 
-    private final WorkbookRepository workbookRepository;
     private final SolveLogRepository solveLogRepository;
     private final SolvedWorkbookRepository solvedWorkbookRepository;
     private final ProblemWorkbookMapRepository problemWorkbookMapRepository;
@@ -49,10 +45,7 @@ public class SolveLogService {
 
     @Transactional
     public SolvedWorkbook findSolvedWorkbook(Workbook workbook, User user) {
-        SolvedWorkbookId solvedWorkbookId = new SolvedWorkbookId(user.getId(), workbook.getId());
-        log.info("solvedWorkbookId : {}", solvedWorkbookId);
-
-        return solvedWorkbookRepository.findById(solvedWorkbookId).orElseGet(
+        return solvedWorkbookRepository.findById(new SolvedWorkbookId(user.getId(), workbook.getId())).orElseGet(
                 () -> createSolveLogs(workbook, user) // solvedWorkbookId가 없으면 createSolveLogs 메서드 호출
         );
     }
@@ -79,8 +72,6 @@ public class SolveLogService {
                                 .workbook(workbook)
                                 .build()
                 ));
-        log.info("solvedWorkbook : {}", solvedWorkbook);
-
 
         problemWorkbookMapRepository.findAllByWorkbook_IdOrderByProblemNumber(workbook.getId()).forEach(problem -> {
             SolveLog solveLog = SolveLog.builder()
@@ -89,7 +80,6 @@ public class SolveLogService {
                     .build();
             solveLogRepository.save(solveLog);
         });
-        log.info("solveLog : {}", solveLogRepository.findAllBySolvedWorkbookId(solvedWorkbook.getId()));
 
         return solvedWorkbook;
     }
@@ -139,25 +129,21 @@ public class SolveLogService {
     @Transactional
     public GradeWorkbookResponse gradeWorkbook(
             User user,
-            Long workbookId,
+            Workbook workbook,
             SaveSolveLogRequest request
     ) {
-        // 1. Workbook + Problems 한 번에 로드
-        Workbook workbook = workbookRepository.findWithMappingsAndProblemsById(workbookId)
-                .orElseThrow(() -> new EntityNotFoundException("Workbook not found"));
-
-        // 2. SolvedWorkbook 조회 or 신규 생성
+        // 1. SolvedWorkbook 조회 or 신규 생성
         SolvedWorkbook solvedWorkbook = findSolvedWorkbook(workbook, user);
 
-        // 3. 사용자가 보낸 풀이 저장/업데이트
+        // 2. 사용자가 보낸 풀이 저장/업데이트
         updateSolveLog(solvedWorkbook, request);
 
-        // 4. grading: 문제 목록과 정답 맵 생성
+        // 3. grading: 문제 목록과 정답 맵 생성
         Map<Long, Problem> problemMap = workbook.getProblemWorkbookMaps().stream()
                 .map(ProblemWorkbookMap::getProblem)
                 .collect(Collectors.toMap(Problem::getId, Function.identity()));
 
-        // 5. 채점 수행
+        // 4. 채점 수행
         return gradeAllSolveLog(solvedWorkbook, problemMap);
     }
 

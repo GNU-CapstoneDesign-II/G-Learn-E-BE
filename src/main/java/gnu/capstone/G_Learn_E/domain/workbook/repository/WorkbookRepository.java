@@ -12,8 +12,14 @@ import java.util.Optional;
 
 @Repository
 public interface WorkbookRepository extends JpaRepository<Workbook, Long> {
-    @Query("SELECT swm.workbook FROM SubjectWorkbookMap swm WHERE swm.subject.id = :subjectId")
-    List<Workbook> findAllBySubjectId(@Param("subjectId") Long subjectId);
+    @Query("""
+        select distinct w
+        from SubjectWorkbookMap swm
+        join swm.workbook w
+        join fetch w.author
+        where swm.subject.id = :subjectId
+    """)
+    List<Workbook> findAllWithAuthorBySubjectId(@Param("subjectId") Long subjectId);
 
     @EntityGraph(attributePaths = {
             "problemWorkbookMaps",

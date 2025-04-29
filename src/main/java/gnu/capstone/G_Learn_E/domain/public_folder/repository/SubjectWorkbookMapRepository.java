@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface SubjectWorkbookMapRepository extends JpaRepository<SubjectWorkbookMap, SubjectWorkbookId> {
     List<SubjectWorkbookMap> findAllBySubject_Id(Long subjectId);
+
+    boolean existsByWorkbook_Id(Long workbookId);
 }
