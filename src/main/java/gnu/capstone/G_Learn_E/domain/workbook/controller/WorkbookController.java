@@ -1,20 +1,19 @@
 package gnu.capstone.G_Learn_E.domain.workbook.controller;
 
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
+import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
 import gnu.capstone.G_Learn_E.domain.workbook.converter.WorkbookConverter;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookUpload;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.response.GradeWorkbookResponse;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.response.WorkbookSolveResponse;
-import gnu.capstone.G_Learn_E.domain.problem.service.ProblemService;
+import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookUploadList;
+import gnu.capstone.G_Learn_E.domain.workbook.dto.response.*;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
 import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.request.ProblemGenerateRequest;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.response.WorkbookResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.service.WorkbookService;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
 import gnu.capstone.G_Learn_E.global.fastapi.service.FastApiService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -33,10 +32,9 @@ import java.util.Map;
 public class WorkbookController {
 
     private final WorkbookService workbookService;
+    private final PublicFolderService publicFolderService;
     private final SolveLogService solveLogService;
     private final FastApiService fastApiService;
-
-    // TODO : 문제집 컨트롤러 구현
 
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, path = "/generate")
@@ -44,8 +42,6 @@ public class WorkbookController {
             @AuthenticationPrincipal User user,
             @ModelAttribute ProblemGenerateRequest request
     ) {
-
-
         ProblemGenerateResponse problemGenerateResponse = fastApiService.generateProblems(request);
         log.info("User : {}", user);
         log.info("Response : {}", problemGenerateResponse);
@@ -66,7 +62,7 @@ public class WorkbookController {
             @AuthenticationPrincipal User user,
             @PathVariable("workbookId") Long workbookId
     ){
-        Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
+        Workbook workbook = workbookService.findUsersWorkbookByIdWithProblems(workbookId, user);
         log.info("문제집 조회 성공 : {}", workbook);
 
         SolvedWorkbook solvedWorkbook = solveLogService.findSolvedWorkbook(workbook, user);
@@ -91,16 +87,34 @@ public class WorkbookController {
             @PathVariable("workbookId") Long workbookId,
             @RequestBody SaveSolveLogRequest request
     ){
-        GradeWorkbookResponse response = solveLogService.gradeWorkbook(user, workbookId, request);
+        Workbook workbook = workbookService.findUsersWorkbookByIdWithProblems(workbookId, user);
+        GradeWorkbookResponse response = solveLogService.gradeWorkbook(user, workbook, request);
         return new ApiResponse<>(HttpStatus.OK, "문제 풀이 채점 성공", response);
     }
 
-    @PostMapping("/upload")
+    @PostMapping("/{workbookId}/upload")
     public ApiResponse<?> uploadWorkbook(
             @AuthenticationPrincipal User user,
-            @RequestBody List<WorkbookUpload> request
+            @PathVariable("workbookId") Long workbookId,
+            @RequestBody WorkbookUpload request
+    ){
+        log.info("문제집 업로드 요청 : {}", request);
+        Subject subject = publicFolderService.findSubjectInTree(request.collegeId(), request.departmentId(), request.subjectId());
+        Workbook workbook = workbookService.uploadWorkbook(workbookId, subject, user);
+        WorkbookUploadResponse response = WorkbookUploadResponse.of(
+                workbook.getId(),
+                subject.getId(),
+                subject.getName()
+        );
+        return new ApiResponse<>(HttpStatus.OK, "문제집 업로드 성공", response);
+    }
+
+    @PostMapping("/upload/list")
+    public ApiResponse<?> uploadWorkbookList(
+            @AuthenticationPrincipal User user,
+            @RequestBody WorkbookUploadList request
     ){
 
-        return new ApiResponse<>(HttpStatus.OK, "문제집 업로드 성공", null);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 리스트 업로드 성공", null);
     }
 }

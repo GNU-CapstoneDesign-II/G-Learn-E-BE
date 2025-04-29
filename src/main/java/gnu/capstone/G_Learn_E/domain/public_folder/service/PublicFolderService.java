@@ -50,4 +50,14 @@ public class PublicFolderService {
         return workbookRepository.findAllBySubjectId(subjectId);
     }
 
+    public Subject findSubjectInTree(Long collegeId, Long departmentId, Long subjectId) {
+        // collegeId, departmentId, subjectId로 Subject 조회
+        College college = collegeRepository.findById(collegeId)
+                .orElseThrow(() -> new RuntimeException("College not found"));
+        Department department = departmentRepository.findByIdAndCollegeId(departmentId, collegeId)
+                .orElseThrow(() -> new RuntimeException("Department not found"));
+        return subjectRepository.findByIdAndDepartmentId(subjectId, departmentId)
+                .orElseThrow(() -> new RuntimeException("Subject not found"));
+    }
+
 }

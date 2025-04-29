@@ -7,18 +7,24 @@ import gnu.capstone.G_Learn_E.domain.folder.repository.FolderWorkbookMapReposito
 import gnu.capstone.G_Learn_E.domain.problem.converter.ProblemConverter;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemRepository;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.*;
+import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectRepository;
+import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.ExamType;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.Semester;
 import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -27,6 +33,8 @@ import java.util.List;
 public class WorkbookService {
 
     private final ProblemRepository problemRepository;
+    private final SubjectRepository subjectRepository;
+    private final SubjectWorkbookMapRepository subjectWorkbookMapRepository;
     private final WorkbookRepository workbookRepository;
     private final FolderRepository folderRepository;
     private final FolderWorkbookMapRepository folderWorkbookMapRepository;
@@ -42,6 +50,15 @@ public class WorkbookService {
                 .orElseThrow(() -> new RuntimeException("Workbook not found"));
     }
 
+    public Workbook findUsersWorkbookByIdWithProblems(Long workbookId, User user) {
+        Workbook workbook = workbookRepository.findWithMappingsAndProblemsById(workbookId)
+                .orElseThrow(() -> new RuntimeException("Workbook not found"));
+        if (!workbook.getAuthor().getId().equals(user.getId())) {
+            throw new RuntimeException("문제집 소유자가 아닙니다.");
+        }
+        return workbook;
+    }
+
 
     public Workbook createWorkbook(ProblemGenerateResponse response, User user){
 
@@ -55,6 +72,7 @@ public class WorkbookService {
                 .coverImage(1)
                 .courseYear(LocalDateTime.now().getYear())
                 .semester(Semester.OTHER)
+                .author(user)
                 .build();
 
         List<Problem> problems = ProblemConverter.convertToProblems(response);
@@ -91,5 +109,49 @@ public class WorkbookService {
                     .map(FolderWorkbookMap::getWorkbook)
                     .toList();
         }
+    }
+
+
+    @Transactional
+    public Workbook uploadWorkbook(Long originId, Subject subject, User user) {
+
+        Workbook origin = findUsersWorkbookByIdWithProblems(originId, user);
+        // 트랜잭션 관리를 위해 로딩...; 공부해야될듯
+        subject = subjectRepository.findById(subject.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
+
+        // 2️⃣ 원본 워크북은 업로드 처리만 표시
+        origin.setUploaded(true);   // Dirty-checking으로 자동 update
+
+        // 3️⃣ 메타 정보 복제
+        Workbook uploadWorkbook = Workbook.builder()
+                .name(origin.getName())
+                .professor(origin.getProfessor())
+                .examType(origin.getExamType())
+                .coverImage(origin.getCoverImage())
+                .courseYear(origin.getCourseYear())
+                .semester(origin.getSemester())
+                .author(origin.getAuthor())
+                .build();
+        uploadWorkbook.setUploaded(true);
+        log.info("업로드할 문제집 : {}", uploadWorkbook);
+
+        // 4️⃣ 같은 Problem 들을 동일 순서로 매핑
+        origin.getProblemWorkbookMaps().forEach(map ->
+                uploadWorkbook.addProblem(map.getProblem(), map.getProblemNumber())
+        );
+        log.info("문제 매핑 완료");
+
+        // 5️⃣ Public 영역(Subject)과 매핑
+        SubjectWorkbookMap subjectWorkbookMap = SubjectWorkbookMap.builder()
+                .id(new SubjectWorkbookId(subject.getId(), uploadWorkbook.getId()))
+                .workbook(uploadWorkbook)
+                .subject(subject)
+                .build();
+        subjectWorkbookMapRepository.save(subjectWorkbookMap);
+        uploadWorkbook.getSubjectWorkbookMaps().add(subjectWorkbookMap);
+
+        // 6️⃣ 저장 — cascade = ALL 덕분에 매핑 엔티티까지 함께 persist
+        return workbookRepository.save(uploadWorkbook);
     }
 }
