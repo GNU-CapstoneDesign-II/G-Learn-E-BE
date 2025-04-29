@@ -92,6 +92,9 @@ public class FolderService {
         if(!folder.getUser().getId().equals(user.getId())) {
             throw new IllegalArgumentException("You do not have permission to move this folder");
         }
+        if(folderId == getRootFolder(user).getId()) {
+            throw new IllegalArgumentException("Cannot move root folder");
+        }
 
 
         Folder targetParent = folderRepository.findById(targetParentId)
