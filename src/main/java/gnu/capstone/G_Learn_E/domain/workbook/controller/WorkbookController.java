@@ -147,4 +147,15 @@ public class WorkbookController {
 
         return new ApiResponse<>(HttpStatus.OK, "문제집 리스트 업로드 성공", null);
     }
+
+    @PostMapping("/{workbookId}/download")
+    public ApiResponse<?> downloadWorkbook(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId
+    ){
+        Workbook workbook = workbookService.downloadWorkbook(workbookId, user);
+        WorkbookDownloadResponse response = WorkbookDownloadResponse.of(workbook.getId());
+        return new ApiResponse<>(HttpStatus.OK, "문제집 다운로드 성공", response);
+    }
+
 }

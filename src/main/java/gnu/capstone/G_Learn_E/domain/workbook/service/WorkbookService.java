@@ -154,4 +154,46 @@ public class WorkbookService {
         // 6️⃣ 저장 — cascade = ALL 덕분에 매핑 엔티티까지 함께 persist
         return workbookRepository.save(uploadWorkbook);
     }
+
+    @Transactional
+    public Workbook downloadWorkbook(Long originId, User user) {
+        // 문제집, 문제 리스트
+        Workbook origin = findWorkbookByIdWithProblems(originId);
+        // 트랜잭션 관리를 위해 로딩...; 공부해야될듯
+        if(!subjectWorkbookMapRepository.existsByWorkbook_Id(origin.getId())){
+            throw new RuntimeException("공개 문제집이 아닙니다.");
+        }
+
+        // 메타 정보 복제
+        Workbook downloadWorkbook = Workbook.builder()
+                .name(origin.getName())
+                .professor(origin.getProfessor())
+                .examType(origin.getExamType())
+                .coverImage(origin.getCoverImage())
+                .courseYear(origin.getCourseYear())
+                .semester(origin.getSemester())
+                .author(origin.getAuthor())
+                .build();
+        downloadWorkbook.setUploaded(true);
+
+        // 같은 Problem 들을 동일 순서로 매핑
+        origin.getProblemWorkbookMaps().forEach(map ->
+                downloadWorkbook.addProblem(map.getProblem(), map.getProblemNumber())
+        );
+        log.info("문제 매핑 완료");
+        Workbook saved = workbookRepository.save(downloadWorkbook);
+
+        // 유저의 루트 폴더에 다운로드 문제집을 매핑
+        Folder rootFolder = folderRepository.findByUserAndParentIsNull(user)
+                .orElseThrow(() -> new RuntimeException("기본 폴더가 없습니다."));
+        FolderWorkbookMap folderWorkbookMap = FolderWorkbookMap.builder()
+                .folder(rootFolder)
+                .workbook(saved)
+                .build();
+
+        saved.getFolderWorkbookMaps().add(folderWorkbookMap);
+
+        // 6️⃣ 저장 — cascade = ALL 덕분에 매핑 엔티티까지 함께 persist
+        return saved;
+    }
 }
