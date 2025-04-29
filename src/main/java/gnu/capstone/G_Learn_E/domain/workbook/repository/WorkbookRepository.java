@@ -1,6 +1,5 @@
 package gnu.capstone.G_Learn_E.domain.workbook.repository;
 
-import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,8 +12,14 @@ import java.util.Optional;
 
 @Repository
 public interface WorkbookRepository extends JpaRepository<Workbook, Long> {
-    @Query("SELECT swm.workbook FROM SubjectWorkbookMap swm WHERE swm.subject.id = :subjectId")
-    List<Workbook> findAllBySubjectId(@Param("subjectId") Long subjectId);
+    @Query("""
+        select distinct w
+        from SubjectWorkbookMap swm
+        join swm.workbook w
+        join fetch w.author
+        where swm.subject.id = :subjectId
+    """)
+    List<Workbook> findAllWithAuthorBySubjectId(@Param("subjectId") Long subjectId);
 
     @EntityGraph(attributePaths = {
             "problemWorkbookMaps",

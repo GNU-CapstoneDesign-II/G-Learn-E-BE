@@ -1,5 +1,6 @@
 package gnu.capstone.G_Learn_E.domain.public_folder.dto.response;
 
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 
 import java.time.LocalDateTime;
@@ -9,14 +10,28 @@ public record WorkbookResponse(
         Long id,
         String name,
         Integer coverImage,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Author author
 ) {
     public static WorkbookResponse from(Workbook workbook) {
         return new WorkbookResponse(
                 workbook.getId(),
                 workbook.getName(),
                 workbook.getCoverImage(),
-                workbook.getCreatedAt()
+                workbook.getCreatedAt(),
+                Author.from(workbook.getAuthor())
         );
+    }
+
+    public record Author(
+            Long userId,
+            String name
+    ) {
+        public static Author from(User user) {
+            return new Author(
+                    user.getId(),
+                    user.getName()
+            );
+        }
     }
 }

@@ -55,7 +55,7 @@ public class PublicFolderController {
     @GetMapping("/workbooks/{subject_id}")
     public ApiResponse<List<WorkbookResponse>> getWorkbooks(@PathVariable("subject_id") Long subjectId) {
 
-        List<Workbook> workbooks = publicFolderService.getWorkbooksBySubjectId(subjectId);
+        List<Workbook> workbooks = publicFolderService.getWorkbooksBySubjectIdWithAuthor(subjectId);
         List<WorkbookResponse> response = workbooks.stream()
                 .map(WorkbookResponse::from)
                 .toList();

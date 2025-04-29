@@ -46,8 +46,8 @@ public class PublicFolderService {
         return subjects;
     }
 
-    public List<Workbook> getWorkbooksBySubjectId(Long subjectId) {
-        return workbookRepository.findAllBySubjectId(subjectId);
+    public List<Workbook> getWorkbooksBySubjectIdWithAuthor(Long subjectId) {
+        return workbookRepository.findAllWithAuthorBySubjectId(subjectId);
     }
 
     public Subject findSubjectInTree(Long collegeId, Long departmentId, Long subjectId) {
@@ -58,6 +58,10 @@ public class PublicFolderService {
                 .orElseThrow(() -> new RuntimeException("Department not found"));
         return subjectRepository.findByIdAndDepartmentId(subjectId, departmentId)
                 .orElseThrow(() -> new RuntimeException("Subject not found"));
+    }
+
+    public boolean isPublicWorkbook(Long workbookId) {
+        return subjectWorkbookMapRepository.existsByWorkbook_Id(workbookId);
     }
 
 }
