@@ -13,6 +13,8 @@ import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.service.WorkbookService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
@@ -28,6 +30,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/api/folder/private")
+@Tag(name = "개인 폴더 API")
 @RequiredArgsConstructor
 public class FolderController {
 
@@ -35,6 +38,7 @@ public class FolderController {
     private final WorkbookService workbookService;
 
 
+    @Operation(summary = "폴더 조회", description = "폴더 + 하위폴더 + 문제집을 조회합니다.")
     @GetMapping("/{folderId}")
     public ApiResponse<FolderResponse> getFolder(
             @AuthenticationPrincipal User user,
@@ -51,6 +55,7 @@ public class FolderController {
         return new ApiResponse<>(HttpStatus.OK, "폴더 조회에 성공하였습니다.", response);
     }
 
+    @Operation(summary = "루트 폴더 조회", description = "루트 폴더 + 하위폴더 + 문제집을 조회합니다.")
     @GetMapping
     public ApiResponse<FolderResponse> getFolder(
             @AuthenticationPrincipal User user
@@ -62,6 +67,7 @@ public class FolderController {
         return new ApiResponse<>(HttpStatus.OK, "폴더 조회에 성공하였습니다.", response);
     }
 
+    @Operation(summary = "폴더 트리 조회", description = "폴더 트리를 조회합니다.")
     @GetMapping("/folder-tree")
     public ApiResponse<FolderTreeResponse> getFolderTree(
             @AuthenticationPrincipal User user
@@ -95,6 +101,7 @@ public class FolderController {
         return new ApiResponse<>(HttpStatus.OK, "폴더 트리 조회에 성공하였습니다.", response);
     }
 
+    @Operation(summary = "폴더 생성", description = "폴더를 생성합니다.")
     @PostMapping
     public ApiResponse<FolderResponse> createFolder(
             @AuthenticationPrincipal User user,
@@ -109,6 +116,7 @@ public class FolderController {
         return new ApiResponse<>(HttpStatus.OK, "폴더 생성에 성공하였습니다.", response);
     }
 
+    @Operation(summary = "폴더 이동", description = "폴더를 이동합니다.")
     @PatchMapping("/{folderId}/move")
     public ApiResponse<?> moveFolder(
             @AuthenticationPrincipal User user,
@@ -124,6 +132,7 @@ public class FolderController {
         return new ApiResponse<>(HttpStatus.OK, "폴더 이동에 성공하였습니다.", response);
     }
 
+    @Operation(summary = "폴더 이름 변경", description = "폴더 이름을 변경합니다.")
     @PatchMapping("/{folderId}/rename")
     public ApiResponse<?> renameFolder(
             @AuthenticationPrincipal User user,
@@ -137,6 +146,7 @@ public class FolderController {
         return new ApiResponse<>(HttpStatus.OK, "폴더 이름 변경에 성공하였습니다.", response);
     }
 
+    @Operation(summary = "폴더 삭제", description = "폴더를 삭제합니다.")
     @DeleteMapping("/{folderId}")
     public ApiResponse<?> deleteFolder(
             @AuthenticationPrincipal User user,
@@ -149,6 +159,7 @@ public class FolderController {
         return new ApiResponse<>(HttpStatus.OK, "폴더 삭제에 성공하였습니다.", null);
     }
 
+    @Operation(summary = "문제집 삭제", description = "폴더에서 문제집을 삭제합니다.")
     @DeleteMapping("/{folderId}/workbook/{workbookId}")
     public ApiResponse<?> deleteWorkbookFromFolder(
             @AuthenticationPrincipal User user,

@@ -1,6 +1,8 @@
 package gnu.capstone.G_Learn_E.global.file_upload.controller;
 
 import gnu.capstone.G_Learn_E.global.file_upload.service.FileUploadService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,12 +20,14 @@ import java.nio.file.Path;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "파일 업로드 API, 향후 admin API로 이동 예정")
 @RequestMapping("/dev/api/fileupload")
 public class FileUploadController {
 
     private final FileUploadService fileUploadService;
 
 
+    @Operation(summary = "파일 업로드", description = "경상대 개설과목 json 파일을 업로드합니다.")
     @PostMapping("/upload/public_folder_metadata")
     public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file) {
         try {

@@ -20,6 +20,8 @@ import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.service.WorkbookService;
 import gnu.capstone.G_Learn_E.global.fastapi.service.FastApiService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/api/workbook")
+@Tag(name = "문제집 API")
 @RequiredArgsConstructor
 public class WorkbookController {
 
@@ -44,6 +47,7 @@ public class WorkbookController {
     private final FastApiService fastApiService;
 
 
+    @Operation(summary = "문제집 생성", description = "문제집을 생성합니다.")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, path = "/generate")
     public ApiResponse<WorkbookResponse> createWorkbook(
             @AuthenticationPrincipal User user,
@@ -64,6 +68,7 @@ public class WorkbookController {
     /**
      * 개인 폴더 문제 풀이 페이지 로드
      */
+    @Operation(summary = "문제 풀이 페이지 로드", description = "문제 풀이 페이지를 로드합니다.")
     @GetMapping("/{workbookId}/solve")
     public ApiResponse<WorkbookSolveResponse> problemSolvePageLoad(
             @AuthenticationPrincipal User user,
@@ -92,6 +97,7 @@ public class WorkbookController {
         return new ApiResponse<>(HttpStatus.OK, "문제 풀이 페이지 로드 성공", response);
     }
 
+    @Operation(summary = "문제 풀이 채점", description = "문제 풀이를 채점합니다.")
     @PostMapping("/{workbookId}/grade")
     public ApiResponse<?> gradeWorkbook(
             @AuthenticationPrincipal User user,
@@ -107,6 +113,7 @@ public class WorkbookController {
         return new ApiResponse<>(HttpStatus.OK, "문제 풀이 채점 성공", response);
     }
 
+    @Operation(summary = "문제집 업로드", description = "문제집을 public 폴더에 업로드합니다.")
     @PostMapping("/{workbookId}/upload")
     public ApiResponse<?> uploadWorkbook(
             @AuthenticationPrincipal User user,
@@ -124,6 +131,7 @@ public class WorkbookController {
         return new ApiResponse<>(HttpStatus.OK, "문제집 업로드 성공", response);
     }
 
+    @Operation(summary = "문제집 리스트 업로드", description = "문제집 리스트를 public 폴더에 업로드합니다. (TODO)")
     @PostMapping("/upload/list")
     public ApiResponse<?> uploadWorkbookList(
             @AuthenticationPrincipal User user,
@@ -133,6 +141,7 @@ public class WorkbookController {
         return new ApiResponse<>(HttpStatus.OK, "문제집 리스트 업로드 성공", null);
     }
 
+    @Operation(summary = "문제집 다운로드", description = "문제집을 다운로드합니다.")
     @PostMapping("/{workbookId}/download")
     public ApiResponse<?> downloadWorkbook(
             @AuthenticationPrincipal User user,
@@ -143,6 +152,7 @@ public class WorkbookController {
         return new ApiResponse<>(HttpStatus.OK, "문제집 다운로드 성공", response);
     }
 
+    @Operation(summary = "문제집 병합 페이지 로드", description = "문제집 병합 페이지를 로드합니다.")
     @GetMapping("/merge")
     public ApiResponse<?> mergeWorkbookPageLoad(
             @AuthenticationPrincipal User user,
@@ -159,6 +169,7 @@ public class WorkbookController {
         return new ApiResponse<>(HttpStatus.OK, "문제집 병합 페이지 로드 성공", response);
     }
 
+    @Operation(summary = "문제집 병합", description = "여러 문제집을 병합합니다.")
     @PostMapping("/merge")
     public ApiResponse<?> mergeWorkbook(
             @AuthenticationPrincipal User user,

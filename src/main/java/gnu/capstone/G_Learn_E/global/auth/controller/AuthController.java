@@ -14,6 +14,8 @@ import gnu.capstone.G_Learn_E.global.auth.util.EmailValidator;
 import gnu.capstone.G_Learn_E.global.jwt.service.JwtService;
 import gnu.capstone.G_Learn_E.global.mail.EmailSender;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "인증 API")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -35,6 +38,7 @@ public class AuthController {
     private final JwtService jwtService;
 
 
+    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
     @PostMapping("/login")
     public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         String email = request.email();
@@ -49,6 +53,7 @@ public class AuthController {
         return new ApiResponse<>(HttpStatus.OK, "로그인 성공", tokenResponse);
     }
 
+    @Operation(summary = "회원가입", description = "이메일 인증 후 회원가입합니다.")
     @PostMapping("/signup")
     public ApiResponse<TokenResponse> signUp(HttpServletRequest request, @Valid @RequestBody SignupRequest dto) {
         // 회원가입
@@ -76,6 +81,7 @@ public class AuthController {
         return new ApiResponse<>(HttpStatus.CREATED, "회원가입 성공", tokenResponse);
     }
 
+    @Operation(summary = "이메일 인증 코드 발급", description = "이메일 인증 코드를 발급합니다.")
     @GetMapping("/email-code")
     public ApiResponse<?> getEmailAuthCode(@RequestParam("email") String email) {
         // TODO : 이메일 검증
@@ -87,6 +93,7 @@ public class AuthController {
         return new ApiResponse<>(HttpStatus.NO_CONTENT, "이메일 인증 코드 발급 성공", null);
     }
 
+    @Operation(summary = "이메일 인증 코드 검증", description = "이메일 인증 코드를 검증합니다.")
     @PostMapping("/email-code/verify")
     public ApiResponse<EmailAuthToken> verifyEmailAuthCode(@RequestBody EmailAuthCodeVerify request) {
         // TODO : 이메일 인증 코드 검증
@@ -100,6 +107,7 @@ public class AuthController {
         return new ApiResponse<>(HttpStatus.OK, responseMsg, new EmailAuthToken(emailAuthToken));
     }
 
+    @Operation(summary = "엑세스 토큰 재발급", description = "엑세스 토큰을 재발급합니다.")
     @PatchMapping("/reissue")
     public ApiResponse<AccessTokenResponse> reissue(@AuthenticationPrincipal User user, HttpServletRequest request) {
         String refreshToken = jwtService.extractToken(request);
@@ -109,6 +117,7 @@ public class AuthController {
         return new ApiResponse<>(HttpStatus.OK, "엑세스 토큰 재발급 성공", response);
     }
 
+    @Operation(summary = "로그아웃", description = "로그아웃합니다. 엑세스 토큰과 리프레시 토큰을 블랙리스트에 추가합니다.")
     @DeleteMapping("/logout")
     public ApiResponse<?> logout(@AuthenticationPrincipal User user, HttpServletRequest request) {
         String accessToken = jwtService.extractToken(request);
