@@ -28,10 +28,27 @@ public class PublicFolderService {
     private final WorkbookRepository workbookRepository;
 
     // TODO : 커리큘럼 폴더 서비스 구현
+
+    public College getCollege(Long collegeId) {
+        return collegeRepository.findById(collegeId)
+                .orElseThrow(() -> new RuntimeException("College not found"));
+    }
+
     public List<College> getColleges() {
         return collegeRepository.findAll();
     }
+    public List<College> getColleges(boolean isCollege) {
+        if (isCollege) {
+            return collegeRepository.findAllByCollegeTrue();
+        } else {
+            return collegeRepository.findAllByCollegeFalse();
+        }
+    }
 
+    public Department getDepartmentByCollegeId(Long collegeId, Long departmentId) {
+        return departmentRepository.findByIdAndCollegeId(departmentId, collegeId)
+                .orElseThrow(() -> new RuntimeException("Department not found"));
+    }
     public List<Department> getDepartmentsByCollegeId(Long collegeId) {
         return departmentRepository.findByCollegeId(collegeId);
     }
@@ -63,5 +80,4 @@ public class PublicFolderService {
     public boolean isPublicWorkbook(Long workbookId) {
         return subjectWorkbookMapRepository.existsByWorkbook_Id(workbookId);
     }
-
 }
