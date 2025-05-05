@@ -170,16 +170,20 @@ public class WorkbookService {
         // 🔹 (c) 다시 매핑
         int seq = 1;
         boolean changed = false;
+        List<Problem> newProblems = new ArrayList<>();
         for (ProblemRequest req : problemRequests) {
             Problem p = existing.get(req.id());
             if (p != null && isEqualProblem(p, req)) {
                 workbook.addProblem(p, seq++);
             } else {
                 Problem newP = ProblemConverter.convertToProblem(req);
-                problemRepository.save(newP);
+                newProblems.add(newP);
                 workbook.addProblem(newP, seq++);
                 changed = true;
             }
+        }
+        if (!newProblems.isEmpty()) {
+            problemRepository.saveAll(newProblems);
         }
         if (changed) workbook.setAuthor(user);
 
