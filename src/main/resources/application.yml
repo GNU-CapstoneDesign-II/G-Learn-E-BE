@@ -21,3 +21,106 @@ spring:
       show_sql: true
       format_sql: true
     open-in-view: false
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${spring.mail.username}
+    password: ${spring.mail.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            trust:
+              smtp.gmail.com
+            protocols:
+              TLSv1.2
+
+  servlet:
+    multipart:
+      max-request-size: 15MB
+      max-file-size: 15MB
+
+
+jwt:
+  secret: ${jwt.secret}
+  expiration-time:
+    email-auth-token: ${jwt.expiration-time.email-auth-token}
+    access-token: ${jwt.expiration-time.access-token}
+    refresh-token: ${jwt.expiration-time.refresh-token}
+
+
+mail-auth:
+  code:
+    expiration-time: ${mail-auth.code.expiration-time}
+    length: ${mail-auth.code.length}
+  allowed-domain:
+    - gnu.ac.kr
+    - gmail.com
+
+
+security:
+  path:
+    permit-all:
+      - "/swagger-ui/**"
+      - "/v3/api-docs/**"
+    #      - "/api/user/**"
+    #      - "/api/map/**"
+    authenticated:
+      - "/api/auth/tokenRefresh"
+      - "/api/auth/logout"
+    #      - "/api/user"
+    #      - "/api/certificates/**"
+    #      - "/api/user/**"
+    #      - "/api/building/**"
+    #      - "/api/review/**"
+    #      - "/api/notification/**"
+    anonymous:
+      - "/api/auth"
+      - "/api/auth/login"
+      - "/api/auth/email-auth/**"
+    email-auth:
+      - "/api/auth/signup"
+    refresh:
+      - "/api/auth/reissue"        # 여기서만 Refresh Token 허용
+    any-request: "permit-all"  # 'authenticated', 'permit-all', 'anonymous' 중 하나
+
+fast-api:
+  base-url: ${fast-api.base-url}
+  endpoints:
+    create-problem:
+      method: ${fast-api.endpoints.create-problem.method}
+      path: ${fast-api.endpoints.create-problem.path}
+    pdf-to-string:
+      method: ${fast-api.endpoints.pdf-to-string.method}
+      path: ${fast-api.endpoints.pdf-to-string.path}
+    audio-to-string:
+      method: ${fast-api.endpoints.audio-to-string.method}
+      path: ${fast-api.endpoints.audio-to-string.path}
+    grade-descriptive:
+      method: ${fast-api.endpoints.grade-descriptive.method}
+      path: ${fast-api.endpoints.grade-descriptive.path}
+    grade-blank:
+      method: ${fast-api.endpoints.grade-blank.method}
+      path: ${fast-api.endpoints.grade-blank.path}
+    daily-usage: # 사용량 조회
+      method: ${fast-api.endpoints.daily-usage.method}
+      path: ${fast-api.endpoints.daily-usage.path}
+    daily-logs: # 로그 조회
+      method: ${fast-api.endpoints.daily-logs.method}
+      path: ${fast-api.endpoints.daily-logs.path}
+    weekly-usage:
+      method: ${fast-api.endpoints.weekly-usage.method}
+      path: ${fast-api.endpoints.weekly-usage.path}
+    weekly-logs:
+      method: ${fast-api.endpoints.weekly-logs.method}
+      path: ${fast-api.endpoints.weekly-logs.path}
+    monthly-usage:
+      method: ${fast-api.endpoints.monthly-usage.method}
+      path: ${fast-api.endpoints.monthly-usage.path}
+    monthly-logs:
+      method: ${fast-api.endpoints.monthly-logs.method}
+      path: ${fast-api.endpoints.monthly-logs.path}
