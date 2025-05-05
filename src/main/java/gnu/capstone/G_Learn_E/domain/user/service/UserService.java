@@ -56,6 +56,16 @@ public class UserService {
         return user;
     }
 
+    @Transactional
+    public User updateAffiliation(User user, College college, Department department) {
+        if(!college.isCollege()){
+            throw new RuntimeException("유효한 단과대학이 아닙니다.");
+        }
+        user.setCollege(college);
+        user.setDepartment(department);
+        return userRepository.save(user);
+    }
+
 
     // find --------------------------------------------------------------------------------------------
     public User findById(Long id) {

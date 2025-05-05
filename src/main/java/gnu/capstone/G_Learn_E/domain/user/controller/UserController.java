@@ -1,5 +1,9 @@
 package gnu.capstone.G_Learn_E.domain.user.controller;
 
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
+import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
+import gnu.capstone.G_Learn_E.domain.user.dto.request.AffiliationUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.request.GainExpRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.request.NicknameUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.UserInfoResponse;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final PublicFolderService publicFolderService;
 
     @Operation(summary = "유저 정보 조회", description = "유저 정보를 조회합니다.")
     @GetMapping
@@ -52,4 +57,16 @@ public class UserController {
         return new ApiResponse<>(HttpStatus.OK, "닉네임이 변경되었습니다.", response);
     }
 
+    @PatchMapping("/affiliation")
+    public ApiResponse<UserInfoResponse> updateAffiliation(
+            @AuthenticationPrincipal User user,
+            @RequestBody AffiliationUpdateRequest request
+    ) {
+        College college = publicFolderService.getCollege(request.collegeId());
+        Department department = publicFolderService.getDepartmentByCollegeId(request.collegeId(), request.departmentId());
+
+        user = userService.updateAffiliation(user, college, department);
+        UserInfoResponse response = UserInfoResponse.from(user);
+        return new ApiResponse<>(HttpStatus.OK, "소속이 변경되었습니다.", response);
+    }
 }
