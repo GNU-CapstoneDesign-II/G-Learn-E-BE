@@ -3,7 +3,9 @@ package gnu.capstone.G_Learn_E.domain.solve_log.controller;
 import gnu.capstone.G_Learn_E.domain.folder.service.FolderService;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
+import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
+import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbookId;
 import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
@@ -16,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -41,11 +45,12 @@ public class SolveLogController {
                 !publicFolderService.isPublicWorkbook(workbookId)) {
             throw new RuntimeException("문제집 접근 권한이 없습니다.");
         }
+        List<SolveLog> solveLogs = solveLogService.findAllSolveLog(SolvedWorkbookId.builder()
+                        .userId(user.getId())
+                        .workbookId(workbookId)
+                .build());
 
-        Workbook workbook = workbookService.findWorkbookById(workbookId);
-        SolvedWorkbook solvedWorkbook = solveLogService.findSolvedWorkbook(workbook, user);
-
-        solveLogService.updateSolveLog(solvedWorkbook, request);
+        solveLogService.updateSolveLog(solveLogs, request);
 
         return new ApiResponse<>(HttpStatus.OK, "풀이 로그 저장 성공", null);
     }
@@ -62,7 +67,7 @@ public class SolveLogController {
         }
 
         Workbook workbook = workbookService.findWorkbookById(workbookId);
-        SolvedWorkbook solvedWorkbook = solveLogService.findSolvedWorkbook(workbook, user);
+        SolvedWorkbook solvedWorkbook = solveLogService.findSolvedWorkbookByIdWithSolveLogs(workbook, user);
 
         solveLogService.deleteAllSolveLog(solvedWorkbook);
 

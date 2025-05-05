@@ -7,7 +7,9 @@ import gnu.capstone.G_Learn_E.domain.folder.repository.FolderWorkbookMapReposito
 import gnu.capstone.G_Learn_E.domain.problem.converter.ProblemConverter;
 import gnu.capstone.G_Learn_E.domain.problem.dto.request.ProblemRequest;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
+import gnu.capstone.G_Learn_E.domain.problem.enums.ProblemType;
 import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemRepository;
+import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.*;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectWorkbookMapRepository;
@@ -18,6 +20,7 @@ import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.ExamType;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.Semester;
 import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
+import gnu.capstone.G_Learn_E.global.common.serialization.Option;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +28,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,11 +41,14 @@ import java.util.stream.Collectors;
 public class WorkbookService {
 
     private final ProblemRepository problemRepository;
+    private final ProblemWorkbookMapRepository problemWorkbookMapRepository;
     private final SubjectRepository subjectRepository;
     private final SubjectWorkbookMapRepository subjectWorkbookMapRepository;
     private final WorkbookRepository workbookRepository;
     private final FolderRepository folderRepository;
     private final FolderWorkbookMapRepository folderWorkbookMapRepository;
+
+    private static final Normalizer.Form NF = Normalizer.Form.NFC;
 
 
     public Workbook findWorkbookById(Long workbookId) {
@@ -140,6 +148,43 @@ public class WorkbookService {
         return savedWorkbook;
     }
 
+
+    @Transactional
+    public Workbook replaceProblemsInWorkbook(
+            Long workbookId,
+            List<ProblemRequest> problemRequests,
+            User user
+    ) {
+        // 🔹 (a) 매핑 테이블 싹 제거 – 벌크 연산
+        problemWorkbookMapRepository.deleteByWorkbookId(workbookId);
+        // => delete 쿼리 즉시 실행 + 영속성 컨텍스트 동기화(clearAutomatically)
+
+        Workbook workbook = workbookRepository.findById(workbookId)
+                .orElseThrow(() -> new RuntimeException("Workbook not found"));
+
+        // 🔹 (b) 문제 엔티티 캐싱
+        Map<Long, Problem> existing = problemRepository.findAllById(
+                problemRequests.stream().map(ProblemRequest::id).toList()
+        ).stream().collect(Collectors.toMap(Problem::getId, p -> p));
+
+        // 🔹 (c) 다시 매핑
+        int seq = 1;
+        boolean changed = false;
+        for (ProblemRequest req : problemRequests) {
+            Problem p = existing.get(req.id());
+            if (p != null && isEqualProblem(p, req)) {
+                workbook.addProblem(p, seq++);
+            } else {
+                Problem newP = ProblemConverter.convertToProblem(req);
+                problemRepository.save(newP);
+                workbook.addProblem(newP, seq++);
+                changed = true;
+            }
+        }
+        if (changed) workbook.setAuthor(user);
+
+        return workbook;      // flush 는 트랜잭션 끝에서
+    }
 
 
 
@@ -244,49 +289,6 @@ public class WorkbookService {
         return saved;
     }
 
-
-
-    private boolean isEqualProblem(Problem problem, ProblemRequest problemRequest) {
-        if (problem.getType().toString() != problemRequest.type()) {
-            return false;
-        }
-        // 문제 제목이 다르면 false
-        if (problem.getTitle() != problemRequest.title()) {
-            return false;
-        }
-        // 문제 선택지가 다르면 false
-        if (problem.getOptions() != null && problemRequest.options() != null) {
-            if (problem.getOptions().size() != problemRequest.options().size()) {
-                return false;
-            }
-            for (int i = 0; i < problem.getOptions().size(); i++) {
-                if (problem.getOptions().get(i).getContent() != problemRequest.options().get(i)) {
-                    return false;
-                }
-            }
-        } else if (problem.getOptions() != null || problemRequest.options() != null) {
-            return false;
-        }
-        // 문제 정답 리스트가 다르면
-        if (problem.getAnswers() != null && problemRequest.answers() != null) {
-            if (problem.getAnswers().size() != problemRequest.answers().size()) {
-                return false;
-            }
-            for (int i = 0; i < problem.getAnswers().size(); i++) {
-                if (problem.getAnswers().get(i) != problemRequest.answers().get(i)) {
-                    return false;
-                }
-            }
-        } else if (problem.getAnswers() != null || problemRequest.answers() != null) {
-            return false;
-        }
-        // 문제 해설이 다르면 false
-        if (problem.getExplanation() != problemRequest.explanation()) {
-            return false;
-        }
-        return true;
-    }
-
     @Transactional
     public Workbook renameWorkbook(Long workbookId, String newName) {
         Workbook workbook = workbookRepository.findById(workbookId)
@@ -306,5 +308,46 @@ public class WorkbookService {
                 Semester.fromString(request.semester())
         );
         return workbookRepository.save(workbook);
+    }
+
+
+
+
+    private boolean isEqualProblem(Problem p, ProblemRequest r) {
+
+        // 1️⃣ Enum
+        if (p.getType() != ProblemType.valueOf(r.type())) return false;
+
+        // 2️⃣ 제목 (한글 정규화)
+        if (!Objects.equals(norm(p.getTitle()), norm(r.title()))) return false;
+
+        // 3️⃣ 선택지 비교 — null ↔ 빈 리스트 허용
+        if (!equalsList(toContents(p.getOptions()), r.options())) return false;
+
+        // 4️⃣ 정답 비교 (동일)
+        if (!equalsList(p.getAnswers(), r.answers())) return false;
+
+        // 5️⃣ 해설 — null/빈/공백 동등 처리
+        return Objects.equals(normalizeBlank(p.getExplanation()),
+                normalizeBlank(r.explanation()));
+    }
+
+    /* ---------- helper ---------- */
+    private static String norm(String s) {
+        return s == null ? null : Normalizer.normalize(s, NF);
+    }
+
+    private static List<String> toContents(List<Option> opts) {
+        return opts == null ? List.of() :
+                opts.stream().map(Option::getContent).toList();
+    }
+
+    private static <T> boolean equalsList(List<T> a, List<T> b) {
+        if ((a == null || a.isEmpty()) && (b == null || b.isEmpty())) return true;
+        return Objects.equals(a, b);
+    }
+
+    private static String normalizeBlank(String s) {
+        return (s == null || s.isBlank()) ? null : norm(s);
     }
 }
