@@ -2,6 +2,8 @@ package gnu.capstone.G_Learn_E.domain.user.service;
 
 import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
 import gnu.capstone.G_Learn_E.domain.folder.repository.FolderRepository;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.exception.UserInvalidException;
 import gnu.capstone.G_Learn_E.domain.user.exception.UserNotFoundException;
@@ -27,7 +29,7 @@ public class UserService {
     public User save(User user) {
         return userRepository.save(user);
     }
-    public User save(String name, String nickname, String email, String password) {
+    public User save(String name, String nickname, String email, String password, College college, Department department) {
         if(existsByEmail(email)) {
             throw UserInvalidException.existsEmail();
         }
@@ -40,6 +42,8 @@ public class UserService {
                 .nickname(nickname)
                 .email(email)
                 .password(passwordEncoder.encode(password))
+                .college(college)
+                .department(department)
                 .build();
         user = userRepository.save(user);
 
