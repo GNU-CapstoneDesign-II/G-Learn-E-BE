@@ -98,4 +98,20 @@ public class Workbook {
         this.problemWorkbookMaps.add(map);
         problem.getProblemWorkbookMaps().add(map);
     }
+
+    public void updateWorkbook(
+            String name,
+            String professor,
+            ExamType examType,
+            Integer coverImage,
+            Integer courseYear,
+            Semester semester
+    ) {
+        this.name = name;
+        this.professor = professor;
+        this.examType = examType;
+        this.coverImage = coverImage;
+        this.courseYear = courseYear;
+        this.semester = semester;
+    }
 }

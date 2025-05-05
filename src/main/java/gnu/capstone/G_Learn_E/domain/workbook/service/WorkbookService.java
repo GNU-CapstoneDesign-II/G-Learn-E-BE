@@ -12,6 +12,7 @@ import gnu.capstone.G_Learn_E.domain.public_folder.entity.*;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
+import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.ExamType;
@@ -291,6 +292,19 @@ public class WorkbookService {
         Workbook workbook = workbookRepository.findById(workbookId)
                 .orElseThrow(() -> new RuntimeException("Workbook not found"));
         workbook.setName(newName);
+        return workbookRepository.save(workbook);
+    }
+
+    public Workbook updateWorkbook(Long workbookId, WorkbookUpdateRequest request) {
+        Workbook workbook = findWorkbookById(workbookId);
+        workbook.updateWorkbook(
+                request.name(),
+                request.professor(),
+                ExamType.fromString(request.examType()),
+                request.coverImage(),
+                request.courseYear(),
+                Semester.fromString(request.semester())
+        );
         return workbookRepository.save(workbook);
     }
 }

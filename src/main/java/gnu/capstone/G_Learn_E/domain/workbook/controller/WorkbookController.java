@@ -64,7 +64,7 @@ public class WorkbookController {
 
     @Operation(summary = "문제집 이름 변경", description = "문제집 이름을 변경합니다.")
     @PatchMapping("/{workbookId}/rename")
-    private ApiResponse<?> renameWorkbook(
+    public ApiResponse<?> renameWorkbook(
             @AuthenticationPrincipal User user,
             @PathVariable("workbookId") Long workbookId,
             @RequestBody WorkbookRenameRequest request
@@ -76,6 +76,21 @@ public class WorkbookController {
         Workbook workbook = workbookService.renameWorkbook(workbookId, request.newName());
         WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
         return new ApiResponse<>(HttpStatus.OK, "문제집 이름 변경 성공", response);
+    }
+
+    @PatchMapping("/{workbookId}")
+    public ApiResponse<?> updateWorkbook(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId,
+            @RequestBody WorkbookUpdateRequest request
+    ) {
+        log.info("문제집 수정 요청 : {}", request);
+        if(!folderService.isWorkbookInUserFolder(user, workbookId)) {
+            throw new RuntimeException("문제집 접근 권한이 없습니다.");
+        }
+        Workbook workbook = workbookService.updateWorkbook(workbookId, request);
+        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 정보 수정 성공", response);
     }
 
     /**
