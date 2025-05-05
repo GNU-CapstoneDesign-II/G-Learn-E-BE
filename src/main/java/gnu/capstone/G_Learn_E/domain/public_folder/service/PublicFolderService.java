@@ -31,6 +31,13 @@ public class PublicFolderService {
     public List<College> getColleges() {
         return collegeRepository.findAll();
     }
+    public List<College> getColleges(boolean isCollege) {
+        if (isCollege) {
+            return collegeRepository.findAllByCollegeTrue();
+        } else {
+            return collegeRepository.findAllByCollegeFalse();
+        }
+    }
 
     public List<Department> getDepartmentsByCollegeId(Long collegeId) {
         return departmentRepository.findByCollegeId(collegeId);
