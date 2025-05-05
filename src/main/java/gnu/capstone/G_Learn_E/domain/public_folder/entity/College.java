@@ -23,8 +23,8 @@ public class College {
     private String name;
 
     @Setter
-    @Column(nullable = false)
-    boolean isCollege = true;
+    @Column(name = "is_college", nullable = false)
+    private boolean college = true;
 
     @OneToMany(mappedBy = "college", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Department> departments = new ArrayList<>();

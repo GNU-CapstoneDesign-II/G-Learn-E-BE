@@ -21,8 +21,11 @@ public class DevPublicFolderController {
 
 
     @Operation(summary = "단과대 isCollege 업데이트", description = "단과대 isCollege를 업데이트합니다.")
-    @PatchMapping("/college/{collegeId}/isCollege")
-    public ApiResponse<?> updateIsCollege(@PathVariable String collegeId, @RequestBody UpdateCollege request) {
+    @PatchMapping("/college/{college_id}/isCollege")
+    public ApiResponse<?> updateIsCollege(
+            @PathVariable(name = "college_id") String collegeId,
+            @RequestBody UpdateCollege request
+    ) {
         devPublicFolderService.updateIsCollege(Long.parseLong(collegeId), request.isCollege());
         return new ApiResponse<>(HttpStatus.OK, "단과대 isCollege 업데이트 성공", null);
     }
