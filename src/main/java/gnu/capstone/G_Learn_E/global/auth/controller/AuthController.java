@@ -1,5 +1,8 @@
 package gnu.capstone.G_Learn_E.global.auth.controller;
 
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
+import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.global.auth.dto.request.EmailAuthCodeVerify;
@@ -32,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+    private final PublicFolderService publicFolderService;
     private final AuthService authService;
     private final EmailValidator emailValidator;
     private final EmailSender emailSender;
@@ -61,6 +65,11 @@ public class AuthController {
         String nickname = dto.nickname();
         String email = dto.email();
         String password = dto.password();
+        Long collegeId = dto.collegeId();
+        Long departmentId = dto.departmentId();
+
+        College college = publicFolderService.getCollege(collegeId);
+        Department department = publicFolderService.getDepartmentByCollegeId(collegeId, departmentId);
 
         // 토큰 이메일과 입력받은 이메일 검증
         String tokenEmail = (String) request.getAttribute("email");
@@ -69,7 +78,7 @@ public class AuthController {
             throw AuthInvalidException.emailAndTokenNotMatch();
         }
 
-        User savedUser = userService.save(name, nickname, email, password);
+        User savedUser = userService.save(name, nickname, email, password, college, department);
 
         String emailAuthToken = jwtService.extractToken(request);
         jwtService.setBlacklistToken(emailAuthToken);

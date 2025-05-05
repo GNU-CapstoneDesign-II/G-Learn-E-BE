@@ -2,6 +2,8 @@ package gnu.capstone.G_Learn_E.domain.user.entity;
 
 import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
 import gnu.capstone.G_Learn_E.domain.notification.entity.Notification;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
 import gnu.capstone.G_Learn_E.global.common.enums.UserStatus;
 import jakarta.persistence.*;
@@ -42,6 +44,17 @@ public class User {
 
     private UserStatus status;
 
+    @Setter
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "college_id", nullable = false)
+    private College college;
+
+    @Setter
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department department;
+
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Folder> folders = new ArrayList<>();
 
@@ -52,7 +65,7 @@ public class User {
     private List<SolvedWorkbook> solvedWorkbooks = new ArrayList<>();
 
     @Builder
-    public User(String name, String nickname, String email, String password) {
+    public User(String name, String nickname, String email, String password, College college, Department department) {
         this.name = name;
         this.nickname = nickname;
         this.email = email;
@@ -61,6 +74,8 @@ public class User {
         this.level = 1;
         this.exp = 0;
         this.status = UserStatus.ACTIVE;
+        this.college = college;
+        this.department = department;
     }
 
     public void updateProfileImage(Integer profileImage){

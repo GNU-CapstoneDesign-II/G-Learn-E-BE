@@ -13,10 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -32,8 +29,10 @@ public class PublicFolderController {
 
     @Operation(summary = "단과대 목록 조회", description = "단과대 목록을 조회합니다.")
     @GetMapping("/colleges")
-    public ApiResponse<List<CollegeResponse>> getColleges() {
-        List<College> colleges = publicFolderService.getColleges();
+    public ApiResponse<List<CollegeResponse>> getColleges(
+            @RequestParam(value = "isCollege", defaultValue = "true") boolean isCollege
+    ) {
+        List<College> colleges = publicFolderService.getColleges(isCollege);
         List<CollegeResponse> response = colleges.stream().map(
                 CollegeResponse::from
         ).toList();
@@ -64,7 +63,6 @@ public class PublicFolderController {
     @Operation(summary = "문제집 목록 조회", description = "과목 폴더에서 문제집 목록을 조회합니다.")
     @GetMapping("/workbooks/{subject_id}")
     public ApiResponse<List<WorkbookResponse>> getWorkbooks(@PathVariable("subject_id") Long subjectId) {
-
         List<Workbook> workbooks = publicFolderService.getWorkbooksBySubjectIdWithAuthor(subjectId);
         List<WorkbookResponse> response = workbooks.stream()
                 .map(WorkbookResponse::from)
