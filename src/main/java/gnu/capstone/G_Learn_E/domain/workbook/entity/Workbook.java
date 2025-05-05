@@ -31,6 +31,7 @@ public class Workbook {
     @JoinColumn(name = "author_id")
     private User author;
 
+    @Setter
     private String name;
     private String professor;
 

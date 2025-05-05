@@ -285,4 +285,12 @@ public class WorkbookService {
         }
         return true;
     }
+
+    @Transactional
+    public Workbook renameWorkbook(Long workbookId, String newName) {
+        Workbook workbook = workbookRepository.findById(workbookId)
+                .orElseThrow(() -> new RuntimeException("Workbook not found"));
+        workbook.setName(newName);
+        return workbookRepository.save(workbook);
+    }
 }

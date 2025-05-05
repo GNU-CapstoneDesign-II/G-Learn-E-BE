@@ -7,15 +7,12 @@ import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
 import gnu.capstone.G_Learn_E.domain.workbook.converter.WorkbookConverter;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookMergeRequest;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookUpload;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookUploadList;
+import gnu.capstone.G_Learn_E.domain.workbook.dto.request.*;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.*;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
 import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
-import gnu.capstone.G_Learn_E.domain.workbook.dto.request.ProblemGenerateRequest;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.service.WorkbookService;
 import gnu.capstone.G_Learn_E.global.fastapi.service.FastApiService;
@@ -63,6 +60,22 @@ public class WorkbookController {
 
         // Workbook 생성 로직 처리 후 결과 반환
         return new ApiResponse<>(HttpStatus.OK, "문제집 생성에 성공하였습니다.", response);
+    }
+
+    @Operation(summary = "문제집 이름 변경", description = "문제집 이름을 변경합니다.")
+    @PatchMapping("/{workbookId}/rename")
+    private ApiResponse<?> renameWorkbook(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId,
+            @RequestBody WorkbookRenameRequest request
+    ) {
+        log.info("문제집 이름 변경 요청 : {}", request);
+        if(!folderService.isWorkbookInUserFolder(user, workbookId)) {
+            throw new RuntimeException("문제집 접근 권한이 없습니다.");
+        }
+        Workbook workbook = workbookService.renameWorkbook(workbookId, request.newName());
+        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 이름 변경 성공", response);
     }
 
     /**
@@ -148,7 +161,7 @@ public class WorkbookController {
             @PathVariable("workbookId") Long workbookId
     ){
         Workbook workbook = workbookService.downloadWorkbook(workbookId, user);
-        WorkbookDownloadResponse response = WorkbookDownloadResponse.of(workbook.getId());
+        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
         return new ApiResponse<>(HttpStatus.OK, "문제집 다운로드 성공", response);
     }
 

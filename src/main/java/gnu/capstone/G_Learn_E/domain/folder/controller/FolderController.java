@@ -132,6 +132,21 @@ public class FolderController {
         return new ApiResponse<>(HttpStatus.OK, "폴더 이동에 성공하였습니다.", response);
     }
 
+    @Operation(summary = "문제집 이동", description = "문제집을 이동합니다.")
+    @PatchMapping("/workbook/{workbookId}/move")
+    public ApiResponse<?> moveWorkbook(
+            @AuthenticationPrincipal User user,
+            @PathVariable(name = "workbookId") Long workbookId,
+            @RequestBody MoveFolderRequest request
+    ) {
+        Folder folder = folderService.moveWorkbook(user, workbookId, request.targetFolderId());
+
+        SimpleFolderResponse response = SimpleFolderResponse.from(folder);
+
+        return new ApiResponse<>(HttpStatus.OK, "문제집 이동에 성공하였습니다.", response);
+    }
+
+
     @Operation(summary = "폴더 이름 변경", description = "폴더 이름을 변경합니다.")
     @PatchMapping("/{folderId}/rename")
     public ApiResponse<?> renameFolder(

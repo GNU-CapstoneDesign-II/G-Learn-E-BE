@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FolderWorkbookMapRepository extends JpaRepository<FolderWorkbookMap, FolderWorkbookId> {
@@ -22,4 +23,6 @@ public interface FolderWorkbookMapRepository extends JpaRepository<FolderWorkboo
         WHERE m.folder = :folder
     """)
     List<FolderWorkbookMap> findByFolderWithWorkbook(@Param("folder") Folder folder);
+
+    Optional<FolderWorkbookMap> findByWorkbook_Id(Long workbookId);
 }

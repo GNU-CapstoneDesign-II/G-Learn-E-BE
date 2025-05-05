@@ -7,6 +7,7 @@ import gnu.capstone.G_Learn_E.domain.folder.repository.FolderRepository;
 import gnu.capstone.G_Learn_E.domain.folder.repository.FolderWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
+import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import java.util.List;
 public class FolderService {
 
     private final FolderRepository folderRepository;
+    private final WorkbookRepository workbookRepository;
     private final FolderWorkbookMapRepository folderWorkbookMapRepository;
 
 
@@ -192,5 +194,33 @@ public class FolderService {
 
         // 업로드 여부를 반환
         return workbook.isUploaded();
+    }
+
+    @Transactional
+    public Folder moveWorkbook(User user, Long workbookId, Long targetFolderId) {
+        // 1) 사용자의 대상 폴더 조회 및 검증
+        Folder target = folderRepository.findByIdAndUser(targetFolderId, user)
+                .orElseThrow(() -> new RuntimeException("대상 폴더를 찾을 수 없습니다."));
+
+        // 2) 사용자가 작성한 워크북 조회 및 검증
+        if(!isWorkbookInUserFolder(user, workbookId)) {
+            throw new RuntimeException("문제집 접근 권한이 없습니다.");
+        }
+        Workbook wb = workbookRepository.findById(workbookId)
+                .orElseThrow(() -> new RuntimeException("워크북을 찾을 수 없습니다."));
+
+        // 3) 기존 매핑 삭제
+        FolderWorkbookMap oldMap = folderWorkbookMapRepository.findByWorkbook_Id(workbookId)
+                .orElseThrow(() -> new RuntimeException("이 워크북의 기존 폴더 매핑이 없습니다."));
+        folderWorkbookMapRepository.delete(oldMap);
+
+        // 4) 새 매핑 생성·저장
+        FolderWorkbookMap newMap = FolderWorkbookMap.builder()
+                .folder(target)
+                .workbook(wb)
+                .build();
+        folderWorkbookMapRepository.save(newMap);
+
+        return target;
     }
 }
