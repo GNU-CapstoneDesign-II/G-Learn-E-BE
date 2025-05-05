@@ -2,6 +2,7 @@ package gnu.capstone.G_Learn_E.domain.workbook.controller;
 
 import gnu.capstone.G_Learn_E.domain.folder.service.FolderService;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
+import gnu.capstone.G_Learn_E.domain.problem.entity.ProblemWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.problem.service.ProblemService;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -64,7 +66,7 @@ public class WorkbookController {
 
     @Operation(summary = "문제집 이름 변경", description = "문제집 이름을 변경합니다.")
     @PatchMapping("/{workbookId}/rename")
-    private ApiResponse<?> renameWorkbook(
+    public ApiResponse<?> renameWorkbook(
             @AuthenticationPrincipal User user,
             @PathVariable("workbookId") Long workbookId,
             @RequestBody WorkbookRenameRequest request
@@ -78,6 +80,22 @@ public class WorkbookController {
         return new ApiResponse<>(HttpStatus.OK, "문제집 이름 변경 성공", response);
     }
 
+    @Operation(summary = "문제집 정보 수정", description = "문제집 정보를 수정합니다.")
+    @PatchMapping("/{workbookId}")
+    public ApiResponse<?> updateWorkbook(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId,
+            @RequestBody WorkbookUpdateRequest request
+    ) {
+        log.info("문제집 수정 요청 : {}", request);
+        if(!folderService.isWorkbookInUserFolder(user, workbookId)) {
+            throw new RuntimeException("문제집 접근 권한이 없습니다.");
+        }
+        Workbook workbook = workbookService.updateWorkbook(workbookId, request);
+        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 정보 수정 성공", response);
+    }
+
     /**
      * 개인 폴더 문제 풀이 페이지 로드
      */
@@ -88,22 +106,30 @@ public class WorkbookController {
             @PathVariable("workbookId") Long workbookId
     ){
         Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
+        List<ProblemWorkbookMap> problemWorkbookMaps = workbook.getProblemWorkbookMaps();
+        List<Problem> problems = problemWorkbookMaps.stream()
+                .map(ProblemWorkbookMap::getProblem)
+                .toList();
         log.info("문제집 조회 성공 : {}", workbook);
         if(!folderService.isWorkbookInUserFolder(user, workbookId) &&
                 !publicFolderService.isPublicWorkbook(workbookId)) {
             throw new RuntimeException("문제집 접근 권한이 없습니다.");
         }
 
-        SolvedWorkbook solvedWorkbook = solveLogService.findSolvedWorkbook(workbook, user);
+        SolvedWorkbook solvedWorkbook = solveLogService.findOrCreateSolvedWorkbook(workbook, user);
         log.info("문제집 풀이 기록 조회 성공 : {}", solvedWorkbook);
 
-        Map<Long, SolveLog> solveLogToMap = solveLogService.findAllSolveLogToMap(solvedWorkbook);
+        List<SolveLog> solveLogs = solveLogService.findOrCreateAllSolveLog(solvedWorkbook, problems);
+        Map<Long, SolveLog> solveLogToMap = solveLogs.stream().collect(
+                Collectors.toMap(SolveLog::getProblemId, solveLog -> solveLog)
+        );
+
         log.info("문제 풀이 기록 조회 성공 : {}", solveLogToMap);
 
         WorkbookSolveResponse response = WorkbookConverter.convertToWorkbookSolveResponse(
                 workbook,
                 solvedWorkbook,
-                workbook.getProblemWorkbookMaps(),
+                problemWorkbookMaps,
                 solveLogToMap
         );
         log.info("문제 풀이 페이지 로드 성공 : {}", response);
@@ -191,5 +217,40 @@ public class WorkbookController {
         Workbook workbook = workbookService.createWorkbookFromProblems(request.problems(), user);
         WorkbookResponse response = WorkbookResponse.of(workbook);
         return new ApiResponse<>(HttpStatus.OK, "문제집 병합 성공", response);
+    }
+
+    @Operation(summary = "문제집 문제 조회 (문제집 편집용)", description = "문제집의 문제를 조회합니다.")
+    @GetMapping("/{workbookId}/problems")
+    public ApiResponse<?> getProblems(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId
+    ) {
+        log.info("문제집 문제 조회 요청 : {}", workbookId);
+        if(!folderService.isWorkbookInUserFolder(user, workbookId)) {
+            throw new RuntimeException("문제집 접근 권한이 없습니다.");
+        }
+        Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
+        List<Problem> problems = workbook.getProblemWorkbookMaps().stream()
+                .map(ProblemWorkbookMap::getProblem)
+                .toList();
+        WorkbookMergePageResponse response = WorkbookMergePageResponse.from(problems);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 문제 조회 성공", response);
+    }
+
+    @Operation(summary = "문제집 문제 수정", description = "문제집의 문제를 수정합니다.")
+    @PatchMapping("/{workbookId}/problems")
+    public ApiResponse<?> updateProblems(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId,
+            @RequestBody WorkbookUpdateProblemsRequest request
+    ) {
+        log.info("문제집 문제 수정 요청 : {}", request);
+        if(!folderService.isWorkbookInUserFolder(user, workbookId)) {
+            throw new RuntimeException("문제집 접근 권한이 없습니다.");
+        }
+        solveLogService.deleteAllLogByWorkbook(workbookId);
+        Workbook workbook = workbookService.replaceProblemsInWorkbook(workbookId, request.problems(), user);
+        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 문제 수정 성공", response);
     }
 }
