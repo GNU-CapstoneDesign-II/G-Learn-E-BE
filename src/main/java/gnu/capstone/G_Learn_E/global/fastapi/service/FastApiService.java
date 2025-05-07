@@ -102,7 +102,7 @@ public class FastApiService {
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
             // FastAPI 서버에 POST 요청 보내기
-            ResponseEntity<PdfToStringResponse> response = restTemplate.postForEntity(url, requestEntity, PdfToStringResponse.class);
+            ResponseEntity<ToStringResponse> response = restTemplate.postForEntity(url, requestEntity, ToStringResponse.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 System.out.println("Pdf To String response: " + response.getBody());
                 return response.getBody().text();
@@ -117,9 +117,47 @@ public class FastApiService {
 
     }
 
-    private String audioToStringRequest(AudioToStringRequest request){
+    public String audioToStringRequest(AudioToStringRequest request) {
+        try {
+            // 1) 엔드포인트 조회
+            FastApiProperties.Endpoint endpoint = getEndpoint("audio-to-string");
+            String url = fastApiProperties.baseUrl() + endpoint.path();
 
-        return "converted";
+            // 2) MultipartFile 추출
+            MultipartFile audioFile = request.audioFile();
+
+            // 3) 바디 구성 (InputStreamResource 래핑)
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add(
+                    "audioFile",
+                    new MultipartInputStreamFileResource(
+                            audioFile.getInputStream(),
+                            audioFile.getOriginalFilename()
+                    )
+            );
+
+            // 4) 헤더 설정
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity =
+                    new HttpEntity<>(body, headers);
+
+            // 5) API 호출
+            log.info("FastAPI URL: {}", url);
+            ResponseEntity<ToStringResponse> response =
+                    restTemplate.postForEntity(url, requestEntity, ToStringResponse.class);
+
+            // 6) 응답 처리
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return response.getBody().text();
+            } else {
+                throw new RuntimeException("FastAPI 호출 실패: " + response.getStatusCode());
+            }
+        } catch (IOException e) {
+            log.error("오디오 파일 읽기 오류: {}", e.getMessage());
+            throw new RuntimeException("Audio to String 변환 실패", e);
+        }
     }
 
 
