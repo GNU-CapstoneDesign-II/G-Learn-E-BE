@@ -66,6 +66,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public void plusCreateWorkbookCount(User user) {
+        user.plusCreateWorkbookCount();
+        userRepository.save(user);
+    }
+
+
 
     // find --------------------------------------------------------------------------------------------
     public User findById(Long id) {

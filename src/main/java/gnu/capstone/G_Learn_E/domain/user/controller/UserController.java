@@ -57,6 +57,7 @@ public class UserController {
         return new ApiResponse<>(HttpStatus.OK, "닉네임이 변경되었습니다.", response);
     }
 
+    @Operation(summary = "유저 소속 변경", description = "유저의 소속을 변경합니다.")
     @PatchMapping("/affiliation")
     public ApiResponse<UserInfoResponse> updateAffiliation(
             @AuthenticationPrincipal User user,
@@ -68,5 +69,13 @@ public class UserController {
         user = userService.updateAffiliation(user, college, department);
         UserInfoResponse response = UserInfoResponse.from(user);
         return new ApiResponse<>(HttpStatus.OK, "소속이 변경되었습니다.", response);
+    }
+
+    @GetMapping("/solving-statistics")
+    public ApiResponse<UserInfoResponse> getSolvingStatistics(
+            @AuthenticationPrincipal User user
+    ) {
+        UserInfoResponse response = UserInfoResponse.from(user);
+        return new ApiResponse<>(HttpStatus.OK, "유저 정보 조회 성공", response);
     }
 }

@@ -44,6 +44,8 @@ public class User {
 
     private UserStatus status;
 
+    private Integer createWorkbookCount = 0;
+
     @Setter
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "college_id", nullable = false)
@@ -76,6 +78,7 @@ public class User {
         this.status = UserStatus.ACTIVE;
         this.college = college;
         this.department = department;
+        this.createWorkbookCount = 0;
     }
 
     public void updateProfileImage(Integer profileImage){
@@ -91,5 +94,9 @@ public class User {
         if(!UserLevelPolicy.canLevelUp(this.level, this.exp) && this.exp > UserLevelPolicy.getRequiredExp(this.level)){
             this.exp = UserLevelPolicy.getRequiredExp(this.level);
         }
+    }
+
+    public void plusCreateWorkbookCount(){
+        this.createWorkbookCount++;
     }
 }

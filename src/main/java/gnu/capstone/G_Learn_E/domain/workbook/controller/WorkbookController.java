@@ -7,6 +7,8 @@ import gnu.capstone.G_Learn_E.domain.problem.service.ProblemService;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
+import gnu.capstone.G_Learn_E.domain.user.entity.UserLevelPolicy;
+import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.domain.workbook.converter.WorkbookConverter;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.request.*;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.*;
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WorkbookController {
 
+    private final UserService userService;
     private final ProblemService problemService;
     private final WorkbookService workbookService;
     private final FolderService folderService;
@@ -57,6 +60,11 @@ public class WorkbookController {
         log.info("Response : {}", problemGenerateResponse);
 
         Workbook workbook = workbookService.createWorkbook(problemGenerateResponse, user);
+
+        // 유저의 문제집 생성 개수 증가
+        userService.plusCreateWorkbookCount(user);
+        // 문제집 생성 시 경험치 부여
+        userService.gainExp(user, UserLevelPolicy.EXP_CREATE_WORKBOOK);
 
         WorkbookResponse response = WorkbookResponse.of(workbook);
 
@@ -149,6 +157,15 @@ public class WorkbookController {
         }
         Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
         GradeWorkbookResponse response = solveLogService.gradeWorkbook(user, workbook, request);
+
+        userService.gainExp(
+                user,
+                (int) Math.round(
+                        UserLevelPolicy.EXP_SOLVE_PROBLEM
+                                * ((double) response.correctCount()
+                                / (response.correctCount() + response.wrongCount()))
+                )
+        );
         return new ApiResponse<>(HttpStatus.OK, "문제 풀이 채점 성공", response);
     }
 
@@ -167,6 +184,7 @@ public class WorkbookController {
                 subject.getId(),
                 subject.getName()
         );
+        userService.gainExp(user, UserLevelPolicy.EXP_UPLOAD_WORKBOOK);
         return new ApiResponse<>(HttpStatus.OK, "문제집 업로드 성공", response);
     }
 
