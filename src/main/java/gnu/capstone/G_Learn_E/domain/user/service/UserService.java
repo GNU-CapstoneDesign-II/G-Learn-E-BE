@@ -6,6 +6,7 @@ import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.user.dto.CollegeRanking;
 import gnu.capstone.G_Learn_E.domain.user.dto.DepartmentRanking;
+import gnu.capstone.G_Learn_E.domain.user.dto.request.UserInfoUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.CollegeRankingPageResponse;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.DepartmentRankingPageResponse;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
@@ -67,6 +68,33 @@ public class UserService {
     }
 
     @Transactional
+    public User updateUserInfo(User user, String name, String nickname, College college, Department department) {
+        if(userRepository.existsByNickname(nickname)) {
+            // 닉네임 중복 체크
+            throw UserInvalidException.existsNickname();
+        }
+        user.setName(name);
+        user.setNickname(nickname);
+
+        if(!college.isCollege()){
+            throw new RuntimeException("유효한 단과대학이 아닙니다.");
+        }
+        user.setCollege(college);
+        user.setDepartment(department);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateNickname(User user, String newNickname) {
+        if(existsByNickname(newNickname)) {
+            // 닉네임 중복 체크
+            throw UserInvalidException.existsNickname();
+        }
+        user.setNickname(newNickname);
+        userRepository.save(user);
+    }
+
+    @Transactional
     public User updateAffiliation(User user, College college, Department department) {
         if(!college.isCollege()){
             throw new RuntimeException("유효한 단과대학이 아닙니다.");
@@ -125,17 +153,6 @@ public class UserService {
         user.gainExp(exp);
         userRepository.save(user);
     }
-
-    @Transactional
-    public void updateNickname(User user, String newNickname) {
-        if(existsByNickname(newNickname)) {
-            // 닉네임 중복 체크
-            throw UserInvalidException.existsNickname();
-        }
-        user.setNickname(newNickname);
-        userRepository.save(user);
-    }
-
 
     // ranking --------------------------------------------------------------------------------------
     public List<User> getUserRankList(int page, int size, String sort) {
@@ -369,6 +386,4 @@ public class UserService {
 
         return CollegeRankingPageResponse.from(result);
     }
-
-
 }

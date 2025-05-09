@@ -7,6 +7,7 @@ import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
 import gnu.capstone.G_Learn_E.domain.user.dto.request.AffiliationUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.request.GainExpRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.request.NicknameUpdateRequest;
+import gnu.capstone.G_Learn_E.domain.user.dto.request.UserInfoUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.*;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
@@ -48,6 +49,20 @@ public class UserController {
         userService.gainExp(user, request.gainExp());
         UserInfoResponse response = UserInfoResponse.from(user);
         return new ApiResponse<>(HttpStatus.OK, "경험치가 증가했습니다.", response);
+    }
+
+    @Operation(summary = "유저 정보 수정", description = "유저 정보를 수정합니다.")
+    @PatchMapping
+    public ApiResponse<UserInfoResponse> updateInfo(
+            @AuthenticationPrincipal User user,
+            @RequestBody UserInfoUpdateRequest request
+    ) {
+        College college = publicFolderService.getCollege(request.collegeId());
+        Department department = publicFolderService.getDepartmentByCollegeId(request.collegeId(), request.departmentId());
+
+        user = userService.updateUserInfo(user, request.name(), request.nickname(), college, department);
+        UserInfoResponse response = UserInfoResponse.from(user);
+        return new ApiResponse<>(HttpStatus.OK, "유저 정보 수정 성공", response);
     }
 
     @Operation(summary = "유저 닉네임 변경", description = "유저의 닉네임을 변경합니다.")
