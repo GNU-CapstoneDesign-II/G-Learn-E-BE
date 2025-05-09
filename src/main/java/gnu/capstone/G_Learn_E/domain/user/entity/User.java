@@ -44,7 +44,8 @@ public class User {
 
     private UserStatus status;
 
-    private Integer createWorkbookCount = 0;
+    private long createWorkbookCount;
+    private long solvedWorkbookCount;
 
     @Setter
     @ManyToOne(fetch = FetchType.EAGER)
@@ -79,6 +80,7 @@ public class User {
         this.college = college;
         this.department = department;
         this.createWorkbookCount = 0;
+        this.solvedWorkbookCount = 0;
     }
 
     public void updateProfileImage(Integer profileImage){
@@ -98,5 +100,9 @@ public class User {
 
     public void plusCreateWorkbookCount(){
         this.createWorkbookCount++;
+    }
+
+    public void updateSolvedWorkbookCount(long count){
+        this.solvedWorkbookCount = count;
     }
 }
