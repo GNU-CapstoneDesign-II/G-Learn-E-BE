@@ -96,6 +96,18 @@ public class SolveLogService {
     }
 
     @Transactional
+    public boolean updateSolvedWorkbookCountByUser(User user) {
+        // 특정 유저가 완료한 SolvedWorkbook 개수 조회
+        long l = solvedWorkbookRepository.countByIdUserIdAndStatus(user.getId(), SolvingStatus.COMPLETED);
+        if(user.getSolvedWorkbookCount() != l) {
+            // 유저의 SolvedWorkbook 개수 업데이트
+            user.updateSolvedWorkbookCount(l);
+            return true;
+        }
+        return false;
+    }
+
+    @Transactional
     public SolvedWorkbook createSolvedWorkbook(Workbook workbook, User user) {
         log.info("createSolvedWorkbook");
         SolvedWorkbookId solvedWorkbookId = new SolvedWorkbookId(user.getId(), workbook.getId());

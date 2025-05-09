@@ -186,7 +186,10 @@ public class WorkbookService {
         if (!newProblems.isEmpty()) {
             problemRepository.saveAll(newProblems);
         }
-        if (changed) workbook.setAuthor(user);
+        if (changed){
+            workbook.setAuthor(user);
+            workbook.setUploaded(false);
+        }
 
         return workbook;      // flush 는 트랜잭션 끝에서
     }
@@ -218,6 +221,9 @@ public class WorkbookService {
                 .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
 
         // 2️⃣ 원본 워크북은 업로드 처리만 표시
+        if(origin.isUploaded()) {
+            throw new RuntimeException("이미 업로드된 문제집입니다.");
+        }
         origin.setUploaded(true);   // Dirty-checking으로 자동 update
 
         // 3️⃣ 메타 정보 복제
