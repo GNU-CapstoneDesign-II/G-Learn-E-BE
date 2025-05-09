@@ -1,5 +1,7 @@
 package gnu.capstone.G_Learn_E.domain.user.dto.response;
 
+import gnu.capstone.G_Learn_E.domain.public_folder.dto.response.CollegeResponse;
+import gnu.capstone.G_Learn_E.domain.public_folder.dto.response.DepartmentResponse;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 
 import java.util.ArrayList;
@@ -55,7 +57,9 @@ public record UserRankingPageResponse(
             Short level,
             Long ranking,
             long createdWorkbooks,
-            long solvedWorkbooks
+            long solvedWorkbooks,
+            CollegeResponse college,
+            DepartmentResponse department
     ) {
         public static UserRankingResponse from(
                 User user,
@@ -68,7 +72,9 @@ public record UserRankingPageResponse(
                     user.getLevel(),
                     ranking,
                     user.getCreateWorkbookCount(),
-                    user.getSolvedWorkbookCount()
+                    user.getSolvedWorkbookCount(),
+                    CollegeResponse.from(user.getCollege()),
+                    DepartmentResponse.from(user.getDepartment())
             );
         }
     }
