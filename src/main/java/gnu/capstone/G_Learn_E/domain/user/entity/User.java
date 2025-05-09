@@ -23,6 +23,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @Column(nullable = false)
     private String name;
 
@@ -43,6 +44,9 @@ public class User {
     private Integer exp;
 
     private UserStatus status;
+
+    private long createWorkbookCount;
+    private long solvedWorkbookCount;
 
     @Setter
     @ManyToOne(fetch = FetchType.EAGER)
@@ -76,6 +80,8 @@ public class User {
         this.status = UserStatus.ACTIVE;
         this.college = college;
         this.department = department;
+        this.createWorkbookCount = 0;
+        this.solvedWorkbookCount = 0;
     }
 
     public void updateProfileImage(Integer profileImage){
@@ -91,5 +97,13 @@ public class User {
         if(!UserLevelPolicy.canLevelUp(this.level, this.exp) && this.exp > UserLevelPolicy.getRequiredExp(this.level)){
             this.exp = UserLevelPolicy.getRequiredExp(this.level);
         }
+    }
+
+    public void plusCreateWorkbookCount(){
+        this.createWorkbookCount++;
+    }
+
+    public void updateSolvedWorkbookCount(long count){
+        this.solvedWorkbookCount = count;
     }
 }

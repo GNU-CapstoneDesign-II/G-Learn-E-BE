@@ -3,7 +3,6 @@ package gnu.capstone.G_Learn_E.domain.solve_log.service;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.problem.entity.ProblemWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.problem.enums.ProblemType;
-import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SolveLogRequest;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
@@ -38,33 +37,82 @@ public class SolveLogService {
 
     private final SolveLogRepository solveLogRepository;
     private final SolvedWorkbookRepository solvedWorkbookRepository;
-    private final ProblemWorkbookMapRepository problemWorkbookMapRepository;
     private final FastApiService fastApiService;
 
     // TODO : 풀이 로그 서비스 구현
 
+    public SolvedWorkbook findSolvedWorkbookByIdWithSolveLogs(Workbook workbook, User user) {
+        return solvedWorkbookRepository.findById(
+                        new SolvedWorkbookId(user.getId(), workbook.getId()))
+                .orElseThrow(() -> new RuntimeException("SolvedWorkbook not found"));
+    }
+
     @Transactional
-    public SolvedWorkbook findSolvedWorkbook(Workbook workbook, User user) {
+    public SolvedWorkbook findOrCreateSolvedWorkbook(Workbook workbook, User user) {
         return solvedWorkbookRepository.findById(new SolvedWorkbookId(user.getId(), workbook.getId())).orElseGet(
-                () -> createSolveLogs(workbook, user) // solvedWorkbookId가 없으면 createSolveLogs 메서드 호출
+                () -> createSolvedWorkbook(workbook, user) // solvedWorkbookId가 없으면 createSolveLogs 메서드 호출
         );
     }
 
+    @Transactional
+    public List<SolveLog> findOrCreateAllSolveLog(SolvedWorkbook solvedWorkbook, List<Problem> problems) {
+        // 1) 기존에 저장된 로그 조회
+        List<SolveLog> existingLogs =
+                solveLogRepository.findBySolvedWorkbookAndProblemIn(solvedWorkbook, problems);
+
+        // 2) 문제 → 로그 매핑
+        Map<Long, SolveLog> logMap = existingLogs.stream()
+                .collect(Collectors.toMap(
+                        log -> log.getProblem().getId(),
+                        Function.identity()
+                ));
+
+        // 3) 결과 리스트 구성
+        List<SolveLog> result = new ArrayList<>();
+        for (Problem p : problems) {
+            SolveLog solveLog = logMap.get(p.getId());
+            if (solveLog == null) {
+                // 4) 없으면 새로 생성
+                log.info("새로운 풀이 로그 생성 : {}", p.getId());
+                solveLog = SolveLog.builder()
+                        .solvedWorkbook(solvedWorkbook)
+                        .problem(p)
+                        .build();
+                solveLog = solveLogRepository.save(solveLog);
+            }
+            result.add(solveLog);
+        }
+
+        return result;
+    }
+
+    public List<SolveLog> findAllSolveLog(SolvedWorkbookId solvedWorkbook) {
+        // 문제 풀이 로그 조회
+        return solveLogRepository.findAllBySolvedWorkbookId(solvedWorkbook);
+    }
     public List<SolveLog> findAllSolveLog(SolvedWorkbook solvedWorkbook) {
+        // 문제 풀이 로그 조회
         return solveLogRepository.findAllBySolvedWorkbookId(solvedWorkbook.getId());
     }
 
-    public Map<Long, SolveLog> findAllSolveLogToMap(SolvedWorkbook solvedWorkbook) {
-        return solveLogRepository.findAllBySolvedWorkbookId(solvedWorkbook.getId())
-                .stream()
-                .collect(Collectors.toMap(SolveLog::getProblemId, Function.identity()));
+    @Transactional
+    public boolean updateSolvedWorkbookCountByUser(User user) {
+        // 특정 유저가 완료한 SolvedWorkbook 개수 조회
+        long l = solvedWorkbookRepository.countByIdUserIdAndStatus(user.getId(), SolvingStatus.COMPLETED);
+        if(user.getSolvedWorkbookCount() != l) {
+            // 유저의 SolvedWorkbook 개수 업데이트
+            user.updateSolvedWorkbookCount(l);
+            return true;
+        }
+        return false;
     }
 
     @Transactional
-    public SolvedWorkbook createSolveLogs(Workbook workbook, User user) {
+    public SolvedWorkbook createSolvedWorkbook(Workbook workbook, User user) {
+        log.info("createSolvedWorkbook");
         SolvedWorkbookId solvedWorkbookId = new SolvedWorkbookId(user.getId(), workbook.getId());
 
-        SolvedWorkbook solvedWorkbook = solvedWorkbookRepository.findById(solvedWorkbookId)
+        return solvedWorkbookRepository.findById(solvedWorkbookId)
                 .orElseGet(() -> solvedWorkbookRepository.save(
                         SolvedWorkbook.builder()
                                 .id(solvedWorkbookId)
@@ -72,16 +120,6 @@ public class SolveLogService {
                                 .workbook(workbook)
                                 .build()
                 ));
-
-        problemWorkbookMapRepository.findAllByWorkbook_IdOrderByProblemNumber(workbook.getId()).forEach(problem -> {
-            SolveLog solveLog = SolveLog.builder()
-                    .solvedWorkbook(solvedWorkbook)
-                    .problem(problem.getProblem())
-                    .build();
-            solveLogRepository.save(solveLog);
-        });
-
-        return solvedWorkbook;
     }
 
     @Transactional
@@ -91,8 +129,9 @@ public class SolveLogService {
     }
 
     @Transactional
-    public void updateSolveLog(SolvedWorkbook solvedWorkbook, SaveSolveLogRequest request){
-        Map<Long, SolveLog> solveLogToMap = findAllSolveLogToMap(solvedWorkbook);
+    public void updateSolveLog(List<SolveLog> solveLogs, SaveSolveLogRequest request){
+        Map<Long, SolveLog> solveLogToMap = solveLogs.stream()
+                .collect(Collectors.toMap(SolveLog::getProblemId, Function.identity()));
 
         List<SolveLog> logsToUpdate = new ArrayList<>();
 
@@ -101,7 +140,10 @@ public class SolveLogService {
             List<String> newAnswer = solveLogRequest.submitAnswer();
 
             SolveLog solveLog = solveLogToMap.get(problemId);
-            if (solveLog == null) continue;
+            if (solveLog == null) {
+                log.warn("문제 풀이 로그 없음 : {}", problemId);
+                throw new RuntimeException("문제 풀이 로그 없음");
+            }
 
             List<String> currentAnswer = solveLog.getSubmitAnswer();
 
@@ -127,16 +169,26 @@ public class SolveLogService {
     }
 
     @Transactional
+    public void deleteAllLogByWorkbook(Long workbookId) {
+        // 문제집에 속한 풀이 로그 삭제
+        List<SolvedWorkbook> solvedWorkbooks = solvedWorkbookRepository.findAllByWorkbookId(workbookId);
+        for (SolvedWorkbook solvedWorkbook : solvedWorkbooks) {
+            deleteAllSolveLog(solvedWorkbook);
+        }
+    }
+
+    @Transactional
     public GradeWorkbookResponse gradeWorkbook(
             User user,
             Workbook workbook,
             SaveSolveLogRequest request
     ) {
-        // 1. SolvedWorkbook 조회 or 신규 생성
-        SolvedWorkbook solvedWorkbook = findSolvedWorkbook(workbook, user);
+        // 1. SolvedWorkbook 조회 (없으면 오류)
+        SolvedWorkbook solvedWorkbook = findSolvedWorkbookByIdWithSolveLogs(workbook, user);
+        List<SolveLog> solveLogs = solvedWorkbook.getSolveLogs();
 
         // 2. 사용자가 보낸 풀이 저장/업데이트
-        updateSolveLog(solvedWorkbook, request);
+        updateSolveLog(solveLogs, request);
 
         // 3. grading: 문제 목록과 정답 맵 생성
         Map<Long, Problem> problemMap = workbook.getProblemWorkbookMaps().stream()
@@ -144,16 +196,15 @@ public class SolveLogService {
                 .collect(Collectors.toMap(Problem::getId, Function.identity()));
 
         // 4. 채점 수행
-        return gradeAllSolveLog(solvedWorkbook, problemMap);
+        return gradeAllSolveLog(solvedWorkbook, solveLogs, problemMap);
     }
 
     @Transactional
-    public GradeWorkbookResponse gradeAllSolveLog(SolvedWorkbook solvedWorkbook, Map<Long, Problem> problemMap) {
+    public GradeWorkbookResponse gradeAllSolveLog(SolvedWorkbook solvedWorkbook, List<SolveLog> solveLogs, Map<Long, Problem> problemMap) {
         // 문제집 풀이 상태 업데이트 (진행 중)
         // 서술형, 빈칸 등의 채점은 GPT 이용으로 인해 시간이 걸릴 수 있으므로 Flush
         forceSetSolvingStatus(solvedWorkbook, SolvingStatus.IN_PROGRESS);
         try {
-            List<SolveLog> solveLogs = findAllSolveLog(solvedWorkbook);
             Map<Long, SolveLog> blankSolveLogMap = new HashMap<>();
             Map<Long, SolveLog> descriptionSolveLogMap = new HashMap<>();
 

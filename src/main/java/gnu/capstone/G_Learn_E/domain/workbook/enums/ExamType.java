@@ -6,4 +6,14 @@ public enum ExamType {
     MIDDLE, // 중간고사
     FINAL, // 기말고사
     OTHER // 기타
+    ;
+
+    public static ExamType fromString(String examType) {
+        for (ExamType type : ExamType.values()) {
+            if (type.name().equalsIgnoreCase(examType)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("Invalid exam type: " + examType);
+    }
 }
