@@ -61,13 +61,12 @@ public class WorkbookController {
 
         Workbook workbook = workbookService.createWorkbook(problemGenerateResponse, user);
 
+        WorkbookResponse response = WorkbookResponse.of(workbook);
+
         // 유저의 문제집 생성 개수 증가
         userService.plusCreateWorkbookCount(user);
         // 문제집 생성 시 경험치 부여
         userService.gainExp(user, UserLevelPolicy.EXP_CREATE_WORKBOOK);
-
-        WorkbookResponse response = WorkbookResponse.of(workbook);
-
         // Workbook 생성 로직 처리 후 결과 반환
         return new ApiResponse<>(HttpStatus.OK, "문제집 생성에 성공하였습니다.", response);
     }
@@ -158,14 +157,28 @@ public class WorkbookController {
         Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
         GradeWorkbookResponse response = solveLogService.gradeWorkbook(user, workbook, request);
 
-        userService.gainExp(
-                user,
-                (int) Math.round(
-                        UserLevelPolicy.EXP_SOLVE_PROBLEM
-                                * ((double) response.correctCount()
-                                / (response.correctCount() + response.wrongCount()))
-                )
-        );
+        boolean isNewSolved = solveLogService.updateSolvedWorkbookCountByUser(user);
+        if(isNewSolved) {
+            userService.gainExp(
+                    user,
+                    (int) Math.round(
+                            UserLevelPolicy.EXP_SOLVE_PROBLEM
+                                    * ((double) response.correctCount()
+                                    / (response.correctCount() + response.wrongCount()))
+                    )
+            );
+        }
+        else {
+            userService.gainExp(
+                    user,
+                    (int) Math.round(
+                            UserLevelPolicy.EXP_RESOLVE_PROBLEM
+                                    * ((double) response.correctCount()
+                                    / (response.correctCount() + response.wrongCount()))
+                    )
+            );
+        }
+
         return new ApiResponse<>(HttpStatus.OK, "문제 풀이 채점 성공", response);
     }
 
