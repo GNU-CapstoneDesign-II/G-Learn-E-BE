@@ -104,7 +104,7 @@ public class UserController {
         return new ApiResponse<>(HttpStatus.OK, "유저 정보 조회 성공", response);
     }
 
-    @Operation(summary = "유저 랭킹 조회", description = "유저 랭킹을 조회합니다.")
+    @Operation(summary = "유저 랭킹 조회", description = "유저 랭킹을 조회합니다. 정렬 기준 : level, solvedWorkbookCount, createWorkbookCount")
     @GetMapping("/ranking/user")
     public ApiResponse<?> getRanking(
             @RequestParam(name = "page", defaultValue = "0")
@@ -121,7 +121,7 @@ public class UserController {
         return new ApiResponse<>(HttpStatus.OK, "유저 랭킹 조회 성공", response);
     }
 
-    @Operation(summary = "학과 랭킹 조회", description = "학과 랭킹을 조회합니다.")
+    @Operation(summary = "학과 랭킹 조회", description = "학과 랭킹을 조회합니다. 정렬 기준 : level, solvedWorkbookCount, createWorkbookCount")
     @GetMapping("/ranking/department")
     public ApiResponse<?> getDepartmentRanking(
             @RequestParam(name = "page", defaultValue = "0")
@@ -135,7 +135,7 @@ public class UserController {
         return new ApiResponse<>(HttpStatus.OK, "학과 랭킹 조회 성공", response);
     }
 
-    @Operation(summary = "학과에서 유저 랭킹 조회", description = "학과에서 유저 랭킹을 조회합니다.")
+    @Operation(summary = "학과에서 유저 랭킹 조회", description = "학과에서 유저 랭킹을 조회합니다. 정렬 기준 : level, solvedWorkbookCount, createWorkbookCount")
     @GetMapping("/ranking/department/{departmentId}")
     public ApiResponse<?> getDepartmentRanking(
             @RequestParam(name = "page", defaultValue = "0")
@@ -151,7 +151,7 @@ public class UserController {
         return new ApiResponse<>(HttpStatus.OK, "유저 랭킹 조회 성공", response);
     }
 
-    @Operation(summary = "단과대 랭킹 조회", description = "단과대 랭킹을 조회합니다.")
+    @Operation(summary = "단과대 랭킹 조회", description = "단과대 랭킹을 조회합니다. 정렬 기준 : level, solvedWorkbookCount, createWorkbookCount")
     @GetMapping("/ranking/college")
     public ApiResponse<?> getCollegeRanking(
             @RequestParam(name = "page", defaultValue = "0")
@@ -165,7 +165,7 @@ public class UserController {
         return new ApiResponse<>(HttpStatus.OK, "단과대 랭킹 조회 성공", response);
     }
 
-    @Operation(summary = "단과대에서 유저 랭킹 조회", description = "단과대에서 유저 랭킹을 조회합니다.")
+    @Operation(summary = "단과대에서 유저 랭킹 조회", description = "단과대에서 유저 랭킹을 조회합니다. 정렬 기준 : level, solvedWorkbookCount, createWorkbookCount")
     @GetMapping("/ranking/college/{collegeId}")
     public ApiResponse<?> getCollegeRanking(
             @RequestParam(name = "page", defaultValue = "0")
