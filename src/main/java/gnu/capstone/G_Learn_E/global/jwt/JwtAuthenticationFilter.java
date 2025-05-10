@@ -49,6 +49,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     .anyMatch(pattern -> pathMatcher.match(pattern, requestURI)); // AntPathMatcher 사용
             boolean isRefreshPath = securityPathProperties.refresh().stream()
                     .anyMatch(pattern -> pathMatcher.match(pattern, requestURI)); // AntPathMatcher 사용
+            boolean isPasswordResetPath = securityPathProperties.passwordReset().stream()
+                    .anyMatch(pattern -> pathMatcher.match(pattern, requestURI)); // AntPathMatcher 사용
 
             // 2. 토큰 존재 및 검증
             if (token != null) {
@@ -61,10 +63,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String subject = subjectAndType.subject(); // subject : PK(access or refresh) or email(email-auth)
                 JwtTokenType tokenType = JwtTokenType.fromString(subjectAndType.type()); // tokenType : access, refresh, email-auth
 
-                if(tokenType.equals(JwtTokenType.EMAIL_AUTH)){
+                if(tokenType.equals(JwtTokenType.EMAIL_AUTH)) {
                     // 회원가입용 토큰인 경우
                     if (!isEmailAuthPath) {
                         throw JwtAuthException.authTokenNotAllowed();
+                    }
+                    request.setAttribute("email", subject);
+                } else if(tokenType.equals(JwtTokenType.PASSWORD_RESET)) {
+                    // 비밀번호 재설정용 토큰인 경우
+                    if (!isPasswordResetPath) {
+                        throw JwtAuthException.invalidToken();
                     }
                     request.setAttribute("email", subject);
                 } else {

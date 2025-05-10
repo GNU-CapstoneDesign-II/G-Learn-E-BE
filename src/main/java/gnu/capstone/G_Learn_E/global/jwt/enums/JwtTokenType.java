@@ -3,7 +3,8 @@ package gnu.capstone.G_Learn_E.global.jwt.enums;
 public enum JwtTokenType {
     ACCESS("access"),
     REFRESH("refresh"),
-    EMAIL_AUTH("email-auth");
+    EMAIL_AUTH("email-auth"),
+    PASSWORD_RESET("password-reset");
 
     private final String type;
 

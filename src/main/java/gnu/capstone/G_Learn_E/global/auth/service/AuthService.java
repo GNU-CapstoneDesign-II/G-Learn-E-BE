@@ -5,6 +5,7 @@ import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
 import gnu.capstone.G_Learn_E.global.auth.exception.AuthInvalidException;
 import gnu.capstone.G_Learn_E.global.auth.exception.AuthNotFoundException;
 import gnu.capstone.G_Learn_E.global.mail.repository.EmailAuthCodeRepository;
+import gnu.capstone.G_Learn_E.global.mail.repository.PasswordResetCodeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,6 +22,8 @@ public class AuthService {
 
     @Qualifier("inMemoryEmailAuthCodeRepository")
     private final EmailAuthCodeRepository emailAuthCodeRepository;
+    @Qualifier("inMemoryPasswordResetCodeRepository")
+    private final PasswordResetCodeRepository passwordResetCodeRepository;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -84,5 +87,49 @@ public class AuthService {
     private String generateEmailAuthCode() {
         // 6자리 숫자로 구성된 인증 코드 생성
         return String.valueOf(random.nextInt((int) Math.pow(10, emailAuthCodeLength)));
+    }
+
+
+    public void updatePassword(User user, String oldPassword, String newPassword) {
+        if(!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            log.info("비밀번호가 일치하지 않습니다. [userId: {}]", user.getId());
+            throw AuthInvalidException.passwordNotMatch();
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    public String issuePasswordResetCode(String email) {
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(AuthNotFoundException::userNotFound);
+        String resetCode = generateEmailAuthCode();
+        passwordResetCodeRepository.saveAuthCode(email, resetCode);
+        log.info("비밀번호 재설정 코드 발급 성공 [email: {}, resetCode: {}]", email, resetCode);
+        return resetCode;
+    }
+
+    public void verifyPasswordResetCode(String email, String resetCode) {
+        if(!passwordResetCodeRepository.isIssuedEmail(email)) {
+            log.info("발급된 비밀번호 재설정 코드가 없습니다. [email: {}]", email);
+            throw new AuthNotFoundException("발급된 비밀번호 재설정 코드가 없습니다.");
+        }
+        String savedResetCode = passwordResetCodeRepository.findAuthCodeByEmail(email);
+        if(!savedResetCode.equals(resetCode)) {
+            log.info("비밀번호 재설정 코드 검증 실패 [email: {}, resetCode: {}]", email, resetCode);
+            throw new AuthInvalidException("비밀번호 재설정 코드 검증 실패");
+        }
+        passwordResetCodeRepository.deleteByEmail(email);
+        log.info("비밀번호 재설정 코드 검증 성공 [email: {}, resetCode: {}]", email, resetCode);
+    }
+
+    public void resetPassword(String name, String email, String newPassword) {
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(AuthNotFoundException::userNotFound);
+        if(!user.getName().equals(name)) {
+            log.info("이름이 일치하지 않습니다. [name: {}, email: {}]", name, email);
+            throw new AuthInvalidException("이름이 일치하지 않습니다.");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }
