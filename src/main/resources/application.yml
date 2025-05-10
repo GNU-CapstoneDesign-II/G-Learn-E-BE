@@ -88,7 +88,7 @@ security:
     refresh:
       - "/api/auth/reissue"        # 여기서만 Refresh Token 허용
     password-reset:
-      - "/api/auth/password/forgot" # 비밀번호 재설정 URL
+      - "/api/auth/password/reset" # 비밀번호 재설정 URL
     any-request: "permit-all"  # 'authenticated', 'permit-all', 'anonymous' 중 하나
 
 
