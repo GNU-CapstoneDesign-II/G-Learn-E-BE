@@ -135,7 +135,7 @@ public class AuthController {
 
 
     @GetMapping("/password-reset-code")
-    @Operation(summary = "비밀번호 찾기 이메일 인증 코드 발급", description = "비밀번호 찾기 이메일 인증 코드를 발급합니다.")
+    @Operation(summary = "비밀번호 초기화 이메일 인증 코드 발급", description = "비밀번호 초기화 이메일 인증 코드를 발급합니다.")
     public ApiResponse<?> getPasswordResetCode(@RequestParam("email") String email) {
         // TODO : 이메일 검증
         emailValidator.validate(email);
@@ -147,7 +147,7 @@ public class AuthController {
     }
 
     @PostMapping("/password-reset-code/verify")
-    @Operation(summary = "비밀번호 찾기 이메일 인증 코드 검증", description = "비밀번호 찾기 이메일 인증 코드를 검증합니다.")
+    @Operation(summary = "비밀번호 초기화 이메일 인증 코드 검증", description = "비밀번호 초기화 이메일 인증 코드를 검증합니다.")
     public ApiResponse<?> verifyPasswordResetCode(@RequestBody EmailAuthCodeVerify request) {
         // TODO : 비밀번호 찾기 이메일 인증 코드 검증
         authService.verifyPasswordResetCode(request.email(), request.authCode());
@@ -174,8 +174,8 @@ public class AuthController {
         return new ApiResponse<>(HttpStatus.OK, "비밀번호 변경 성공", null);
     }
 
-    @PatchMapping("/password/forgot")
-    @Operation(summary = "비밀번호 찾기", description = "비밀번호를 찾습니다.")
+    @PatchMapping("/password/reset")
+    @Operation(summary = "비밀번호 초기화", description = "비밀번호를 초기화합니다.")
     public ApiResponse<?> findPassword(
             HttpServletRequest request,
             @RequestBody PasswordForgotRequest requestDto
