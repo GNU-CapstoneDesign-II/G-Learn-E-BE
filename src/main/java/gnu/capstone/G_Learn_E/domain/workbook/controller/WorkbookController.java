@@ -214,7 +214,7 @@ public class WorkbookController {
             @AuthenticationPrincipal User user,
             @RequestBody WorkbookMergeRequest request
     ){
-        Workbook workbook = workbookService.createWorkbookFromProblems(request.problems(), user);
+        Workbook workbook = workbookService.createWorkbookFromProblems(request.title(), request.problems(), user);
         WorkbookResponse response = WorkbookResponse.of(workbook);
         return new ApiResponse<>(HttpStatus.OK, "문제집 병합 성공", response);
     }

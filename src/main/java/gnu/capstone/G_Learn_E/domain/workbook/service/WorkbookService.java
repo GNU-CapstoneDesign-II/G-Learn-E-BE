@@ -104,12 +104,12 @@ public class WorkbookService {
     }
 
     @Transactional
-    public Workbook createWorkbookFromProblems(List<ProblemRequest> problemRequests, User user) {
+    public Workbook createWorkbookFromProblems(String workbookTitle, List<ProblemRequest> problemRequests, User user) {
         Folder rootFolder = folderRepository.findByUserAndParentIsNull(user)
                 .orElseThrow(() -> new RuntimeException("기본 폴더가 없습니다."));
 
         Workbook workbook = Workbook.builder()
-                .name(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .name(workbookTitle)
                 .professor("교수명")
                 .examType(ExamType.OTHER)
                 .coverImage(1)
