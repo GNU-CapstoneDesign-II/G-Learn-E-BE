@@ -99,6 +99,10 @@ public class User {
         }
     }
 
+    public Integer getExpLimit(){
+        return UserLevelPolicy.getRequiredExp(this.level);
+    }
+
     public void plusCreateWorkbookCount(){
         this.createWorkbookCount++;
     }

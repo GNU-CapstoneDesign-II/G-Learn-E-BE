@@ -69,7 +69,7 @@ public class UserService {
 
     @Transactional
     public User updateUserInfo(User user, String name, String nickname, College college, Department department) {
-        if(userRepository.existsByNickname(nickname)) {
+        if(!user.getNickname().equals(nickname) && userRepository.existsByNickname(nickname)) {
             // 닉네임 중복 체크
             throw UserInvalidException.existsNickname();
         }
