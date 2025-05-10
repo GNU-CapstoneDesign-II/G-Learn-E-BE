@@ -166,7 +166,7 @@ public class AuthController {
             @AuthenticationPrincipal User user,
             @RequestBody PasswordChangeRequest request
     ) {
-        if(!request.newPassword().equals(request.oldPassword())) {
+        if(!request.newPassword().equals(request.newPasswordConfirm())) {
             throw new AuthInvalidException("변경할 비밀번호가 일치하지 않습니다.");
         }
 
