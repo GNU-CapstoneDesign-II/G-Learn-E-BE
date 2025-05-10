@@ -95,4 +95,15 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
+
+    public void resetPassword(String name, String email, String newPassword) {
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(AuthNotFoundException::userNotFound);
+        if(!user.getName().equals(name)) {
+            log.info("이름이 일치하지 않습니다. [name: {}, email: {}]", name, email);
+            throw new AuthInvalidException("이름이 일치하지 않습니다.");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }

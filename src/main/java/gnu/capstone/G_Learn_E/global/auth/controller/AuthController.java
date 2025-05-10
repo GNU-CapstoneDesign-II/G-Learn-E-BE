@@ -5,10 +5,7 @@ import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
-import gnu.capstone.G_Learn_E.global.auth.dto.request.EmailAuthCodeVerify;
-import gnu.capstone.G_Learn_E.global.auth.dto.request.LoginRequest;
-import gnu.capstone.G_Learn_E.global.auth.dto.request.PasswordChangeRequest;
-import gnu.capstone.G_Learn_E.global.auth.dto.request.SignupRequest;
+import gnu.capstone.G_Learn_E.global.auth.dto.request.*;
 import gnu.capstone.G_Learn_E.global.auth.dto.response.AccessTokenResponse;
 import gnu.capstone.G_Learn_E.global.auth.dto.response.EmailAuthToken;
 import gnu.capstone.G_Learn_E.global.auth.dto.response.TokenResponse;
@@ -154,9 +151,25 @@ public class AuthController {
     @PatchMapping("/password/forgot")
     @Operation(summary = "비밀번호 찾기", description = "비밀번호를 찾습니다.")
     public ApiResponse<?> findPassword(
-            @RequestBody PasswordChangeRequest request
+            HttpServletRequest request,
+            @RequestBody PasswordForgotRequest requestDto
     ) {
-        authService.updatePassword(request.email(), request.newPassword());
+        String name = requestDto.name();
+        String email = requestDto.email();
+        String password = requestDto.password();
+        String passwordConfirm = requestDto.passwordConfirm();
+
+        if(!password.equals(passwordConfirm)) {
+            throw new AuthInvalidException("비밀번호가 일치하지 않습니다.");
+        }
+
+        // 토큰 이메일과 입력받은 이메일 검증
+        String tokenEmail = (String) request.getAttribute("email");
+        if(!email.equals(tokenEmail)) {
+            // TODO : 예외 처리
+            throw AuthInvalidException.emailAndTokenNotMatch();
+        }
+        authService.resetPassword(name, email, password);
         return new ApiResponse<>(HttpStatus.OK, "비밀번호 변경 성공", null);
     }
 }

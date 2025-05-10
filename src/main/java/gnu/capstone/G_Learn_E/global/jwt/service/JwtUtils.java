@@ -31,10 +31,13 @@ public class JwtUtils {
     private final long accessTokenExpiration;
     @Getter
     private final long refreshTokenExpiration;
+    @Getter
+    private final long passwordResetTokenExpiration;
 
     public JwtUtils(
             @Value("${jwt.secret}") String secretKey,
             @Value("${jwt.expiration-time.email-auth-token}") long emailAuthTokenExpiration,
+            @Value("${jwt.expiration-time.password-reset-token}") long passwordResetTokenExpiration,
             @Value("${jwt.expiration-time.access-token}") long accessTokenExpiration,
             @Value("${jwt.expiration-time.refresh-token}") long refreshTokenExpiration
     ) {
@@ -42,6 +45,7 @@ public class JwtUtils {
         this.emailAuthTokenExpiration = emailAuthTokenExpiration;
         this.accessTokenExpiration = accessTokenExpiration;
         this.refreshTokenExpiration = refreshTokenExpiration;
+        this.passwordResetTokenExpiration = passwordResetTokenExpiration;
     }
 
     // ----------------- 토큰 생성 -----------------
@@ -55,6 +59,10 @@ public class JwtUtils {
 
     public String generateEmailAuthToken(String email) {
         return generateToken(email, emailAuthTokenExpiration, JwtTokenType.EMAIL_AUTH.getType());
+    }
+
+    public String generatePasswordResetToken(String email) {
+        return generateToken(email, emailAuthTokenExpiration, JwtTokenType.PASSWORD_RESET.getType());
     }
 
     private String generateToken(String subject, long expirationTime, String tokenType) {

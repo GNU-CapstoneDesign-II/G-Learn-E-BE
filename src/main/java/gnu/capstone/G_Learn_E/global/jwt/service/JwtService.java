@@ -43,6 +43,20 @@ public class JwtService {
         return jwtUtils.generateEmailAuthToken(email);
     }
 
+    public String generatePasswordResetToken(String email) {
+        String token = jwtUtils.generatePasswordResetToken(email);
+
+        String oldToken = refreshTokenRepository.findByEmail(email);
+        if (oldToken != null && !oldToken.equals(token)) {
+            long remain = jwtUtils.getRemainingTime(oldToken);
+            // 블랙리스트 등록 (기존 토큰)
+            blacklistRepository.add(oldToken, remain);
+        }
+        // 최신 리셋 토큰 DB 저장
+        refreshTokenRepository.save(email, token);
+        return token;
+    }
+
     public String generateAndStoreRefreshToken(User user) {
         Long userId = user.getId();
         String newToken = jwtUtils.generateRefreshToken(user);
