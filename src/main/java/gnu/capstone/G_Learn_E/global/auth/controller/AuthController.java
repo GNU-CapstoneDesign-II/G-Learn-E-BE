@@ -7,6 +7,7 @@ import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.global.auth.dto.request.EmailAuthCodeVerify;
 import gnu.capstone.G_Learn_E.global.auth.dto.request.LoginRequest;
+import gnu.capstone.G_Learn_E.global.auth.dto.request.PasswordChangeRequest;
 import gnu.capstone.G_Learn_E.global.auth.dto.request.SignupRequest;
 import gnu.capstone.G_Learn_E.global.auth.dto.response.AccessTokenResponse;
 import gnu.capstone.G_Learn_E.global.auth.dto.response.EmailAuthToken;
@@ -135,5 +136,28 @@ public class AuthController {
         return new ApiResponse<>(HttpStatus.NO_CONTENT, "로그아웃 성공", null);
     }
 
+
+    @PatchMapping("/password")
+    @Operation(summary = "비밀번호 변경", description = "비밀번호를 변경합니다.")
+    public ApiResponse<?> changePassword(
+            @AuthenticationPrincipal User user,
+            @RequestBody PasswordChangeRequest request
+    ) {
+        if(!request.newPassword().equals(request.oldPassword())) {
+            throw new AuthInvalidException("변경할 비밀번호가 일치하지 않습니다.");
+        }
+
+        authService.updatePassword(user, request.oldPassword(), request.newPassword());
+        return new ApiResponse<>(HttpStatus.OK, "비밀번호 변경 성공", null);
+    }
+
+    @PatchMapping("/password/forgot")
+    @Operation(summary = "비밀번호 찾기", description = "비밀번호를 찾습니다.")
+    public ApiResponse<?> findPassword(
+            @RequestBody PasswordChangeRequest request
+    ) {
+        authService.updatePassword(request.email(), request.newPassword());
+        return new ApiResponse<>(HttpStatus.OK, "비밀번호 변경 성공", null);
+    }
 }
 

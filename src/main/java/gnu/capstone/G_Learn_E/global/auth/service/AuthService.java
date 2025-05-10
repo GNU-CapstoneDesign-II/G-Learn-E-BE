@@ -85,4 +85,14 @@ public class AuthService {
         // 6자리 숫자로 구성된 인증 코드 생성
         return String.valueOf(random.nextInt((int) Math.pow(10, emailAuthCodeLength)));
     }
+
+
+    public void updatePassword(User user, String oldPassword, String newPassword) {
+        if(!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            log.info("비밀번호가 일치하지 않습니다. [userId: {}]", user.getId());
+            throw AuthInvalidException.passwordNotMatch();
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }
