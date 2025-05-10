@@ -11,6 +11,7 @@ public record SecurityPathProperties(
         List<String> anonymous,
         List<String> emailAuth,
         List<String> refresh,
+        List<String> passwordReset,
         String anyRequest
 ) {
 }

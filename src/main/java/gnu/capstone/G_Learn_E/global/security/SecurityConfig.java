@@ -79,6 +79,7 @@ public class SecurityConfig {
                         .requestMatchers(securityPathProperties.refresh().toArray(new String[0])).authenticated()
                         .requestMatchers(securityPathProperties.anonymous().toArray(new String[0])).anonymous()
                         .requestMatchers(securityPathProperties.emailAuth().toArray(new String[0])).permitAll()
+                        .requestMatchers(securityPathProperties.passwordReset().toArray(new String[0])).permitAll()
                         .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 //                .addFilterBefore(verificationStatusFilter, UsernamePasswordAuthenticationFilter.class)

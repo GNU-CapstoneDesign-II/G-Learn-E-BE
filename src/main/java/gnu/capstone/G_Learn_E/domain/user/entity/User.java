@@ -34,6 +34,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Setter
     @Column(nullable = false)
     private String password;
 
@@ -97,6 +98,10 @@ public class User {
         if(!UserLevelPolicy.canLevelUp(this.level, this.exp) && this.exp > UserLevelPolicy.getRequiredExp(this.level)){
             this.exp = UserLevelPolicy.getRequiredExp(this.level);
         }
+    }
+
+    public Integer getExpLimit(){
+        return UserLevelPolicy.getRequiredExp(this.level);
     }
 
     public void plusCreateWorkbookCount(){

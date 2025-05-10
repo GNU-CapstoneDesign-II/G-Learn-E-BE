@@ -51,6 +51,7 @@ jwt:
     email-auth-token: ${jwt.expiration-time.email-auth-token}
     access-token: ${jwt.expiration-time.access-token}
     refresh-token: ${jwt.expiration-time.refresh-token}
+    password-reset-token: ${jwt.expiration-time.password-reset-token}
 
 
 mail-auth:
@@ -86,7 +87,10 @@ security:
       - "/api/auth/signup"
     refresh:
       - "/api/auth/reissue"        # 여기서만 Refresh Token 허용
+    password-reset:
+      - "/api/auth/password/forgot" # 비밀번호 재설정 URL
     any-request: "permit-all"  # 'authenticated', 'permit-all', 'anonymous' 중 하나
+
 
 fast-api:
   base-url: ${fast-api.base-url}
