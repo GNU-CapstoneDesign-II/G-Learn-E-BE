@@ -3,10 +3,12 @@ package gnu.capstone.G_Learn_E.domain.user.controller;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
+import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
 import gnu.capstone.G_Learn_E.domain.user.dto.request.AffiliationUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.request.GainExpRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.request.NicknameUpdateRequest;
-import gnu.capstone.G_Learn_E.domain.user.dto.response.UserInfoResponse;
+import gnu.capstone.G_Learn_E.domain.user.dto.request.UserInfoUpdateRequest;
+import gnu.capstone.G_Learn_E.domain.user.dto.response.*;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
@@ -18,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/user")
@@ -26,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final SolveLogService solveLogService;
     private final PublicFolderService publicFolderService;
 
     @Operation(summary = "유저 정보 조회", description = "유저 정보를 조회합니다.")
@@ -46,6 +51,20 @@ public class UserController {
         return new ApiResponse<>(HttpStatus.OK, "경험치가 증가했습니다.", response);
     }
 
+    @Operation(summary = "유저 정보 수정", description = "유저 정보를 수정합니다.")
+    @PatchMapping
+    public ApiResponse<UserInfoResponse> updateInfo(
+            @AuthenticationPrincipal User user,
+            @RequestBody UserInfoUpdateRequest request
+    ) {
+        College college = publicFolderService.getCollege(request.collegeId());
+        Department department = publicFolderService.getDepartmentByCollegeId(request.collegeId(), request.departmentId());
+
+        user = userService.updateUserInfo(user, request.name(), request.nickname(), college, department);
+        UserInfoResponse response = UserInfoResponse.from(user);
+        return new ApiResponse<>(HttpStatus.OK, "유저 정보 수정 성공", response);
+    }
+
     @Operation(summary = "유저 닉네임 변경", description = "유저의 닉네임을 변경합니다.")
     @PatchMapping("/nickname")
     public ApiResponse<UserInfoResponse> updateNickname(
@@ -57,6 +76,7 @@ public class UserController {
         return new ApiResponse<>(HttpStatus.OK, "닉네임이 변경되었습니다.", response);
     }
 
+    @Operation(summary = "유저 소속 변경", description = "유저의 소속을 변경합니다.")
     @PatchMapping("/affiliation")
     public ApiResponse<UserInfoResponse> updateAffiliation(
             @AuthenticationPrincipal User user,
@@ -68,5 +88,96 @@ public class UserController {
         user = userService.updateAffiliation(user, college, department);
         UserInfoResponse response = UserInfoResponse.from(user);
         return new ApiResponse<>(HttpStatus.OK, "소속이 변경되었습니다.", response);
+    }
+
+    @Operation(summary = "유저 풀이 통계 조회", description = "유저의 풀이 통계를 조회합니다. 문제 생성 개수, 풀이 개수")
+    @GetMapping("/solving-statistics")
+    public ApiResponse<?> getSolvingStatistics(
+            @AuthenticationPrincipal User user
+    ) {
+        solveLogService.updateSolvedWorkbookCountByUser(user);
+        long solvedWorkbookCount = user.getSolvedWorkbookCount();
+        long createWorkbookCount = user.getCreateWorkbookCount();
+        long userRank = userService.getUserRank(user);
+
+        UserStatisticsResponse response = UserStatisticsResponse.of(userRank, createWorkbookCount, solvedWorkbookCount);
+        return new ApiResponse<>(HttpStatus.OK, "유저 정보 조회 성공", response);
+    }
+
+    @Operation(summary = "유저 랭킹 조회", description = "유저 랭킹을 조회합니다. 정렬 기준 : level, solvedWorkbookCount, createWorkbookCount")
+    @GetMapping("/ranking/user")
+    public ApiResponse<?> getRanking(
+            @RequestParam(name = "page", defaultValue = "0")
+            int page,
+            @RequestParam(name = "size", defaultValue = "10")
+            int size,
+            @RequestParam(name = "sort", defaultValue = "level")
+            String sort
+    ) {
+        List<User> rankList = userService.getUserRankList(page, size, sort);
+
+        UserRankingPageResponse response = UserRankingPageResponse.from(rankList, userService.getUserRank(rankList.getFirst()));
+
+        return new ApiResponse<>(HttpStatus.OK, "유저 랭킹 조회 성공", response);
+    }
+
+    @Operation(summary = "학과 랭킹 조회", description = "학과 랭킹을 조회합니다. 정렬 기준 : level, solvedWorkbookCount, createWorkbookCount")
+    @GetMapping("/ranking/department")
+    public ApiResponse<?> getDepartmentRanking(
+            @RequestParam(name = "page", defaultValue = "0")
+            int page,
+            @RequestParam(name = "size", defaultValue = "10")
+            int size,
+            @RequestParam(name = "sort", defaultValue = "level")
+            String sort
+    ) {
+        DepartmentRankingPageResponse response = userService.getDepartmentRankList(page, size, sort);
+        return new ApiResponse<>(HttpStatus.OK, "학과 랭킹 조회 성공", response);
+    }
+
+    @Operation(summary = "학과에서 유저 랭킹 조회", description = "학과에서 유저 랭킹을 조회합니다. 정렬 기준 : level, solvedWorkbookCount, createWorkbookCount")
+    @GetMapping("/ranking/department/{departmentId}")
+    public ApiResponse<?> getDepartmentRanking(
+            @RequestParam(name = "page", defaultValue = "0")
+            int page,
+            @RequestParam(name = "size", defaultValue = "10")
+            int size,
+            @RequestParam(name = "sort", defaultValue = "level")
+            String sort,
+            @PathVariable("departmentId") Long departmentId
+    ) {
+        List<User> rankList = userService.getUserRankListInDepartment(page, size, sort, departmentId);
+        UserRankingPageResponse response = UserRankingPageResponse.from(rankList, userService.getUserRank(rankList.getFirst()));
+        return new ApiResponse<>(HttpStatus.OK, "유저 랭킹 조회 성공", response);
+    }
+
+    @Operation(summary = "단과대 랭킹 조회", description = "단과대 랭킹을 조회합니다. 정렬 기준 : level, solvedWorkbookCount, createWorkbookCount")
+    @GetMapping("/ranking/college")
+    public ApiResponse<?> getCollegeRanking(
+            @RequestParam(name = "page", defaultValue = "0")
+            int page,
+            @RequestParam(name = "size", defaultValue = "10")
+            int size,
+            @RequestParam(name = "sort", defaultValue = "level")
+            String sort
+    ) {
+        CollegeRankingPageResponse response = userService.getCollegeRankList(page, size, sort);
+        return new ApiResponse<>(HttpStatus.OK, "단과대 랭킹 조회 성공", response);
+    }
+
+    @Operation(summary = "단과대에서 유저 랭킹 조회", description = "단과대에서 유저 랭킹을 조회합니다. 정렬 기준 : level, solvedWorkbookCount, createWorkbookCount")
+    @GetMapping("/ranking/college/{collegeId}")
+    public ApiResponse<?> getCollegeRanking(
+            @RequestParam(name = "page", defaultValue = "0")
+            int page,
+            @RequestParam(name = "size", defaultValue = "10")
+            int size,
+            @RequestParam(name = "sort", defaultValue = "level")
+            String sort,
+            @PathVariable("collegeId") Long collegeId
+    ) {
+        List<User> rankList = userService.getUserRankListInCollege(page, size, sort, collegeId);
+        UserRankingPageResponse response = UserRankingPageResponse.from(rankList, userService.getUserRank(rankList.getFirst()));
+        return new ApiResponse<>(HttpStatus.OK, "유저 랭킹 조회 성공", response);
     }
 }
