@@ -1,6 +1,6 @@
 package gnu.capstone.G_Learn_E.global.jwt.repository;
 
-public interface RefreshTokenRepository {
+public interface TokenRepository {
     void save(Long userId, String refreshToken);
     void save(String email, String refreshToken);
     String findByUserId(Long userId);

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository("inMemoryRefreshTokenRepository")
-public class InMemoryRefreshTokenRepository implements RefreshTokenRepository{
+public class InMemoryRefreshTokenRepository implements TokenRepository {
 
     private final ConcurrentHashMap<Long, String> store = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> storeByEmail = new ConcurrentHashMap<>();

@@ -4,7 +4,7 @@ import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.global.jwt.dto.SubjectAndType;
 import gnu.capstone.G_Learn_E.global.jwt.enums.JwtTokenType;
 import gnu.capstone.G_Learn_E.global.jwt.repository.TokenBlacklistRepository;
-import gnu.capstone.G_Learn_E.global.jwt.repository.RefreshTokenRepository;
+import gnu.capstone.G_Learn_E.global.jwt.repository.TokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
 public class JwtService {
 
     private final JwtUtils jwtUtils;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenRepository tokenRepository;
     private final TokenBlacklistRepository blacklistRepository;
 
     // ----------------- 토큰 추출 -----------------
@@ -46,14 +46,14 @@ public class JwtService {
     public String generatePasswordResetToken(String email) {
         String token = jwtUtils.generatePasswordResetToken(email);
 
-        String oldToken = refreshTokenRepository.findByEmail(email);
+        String oldToken = tokenRepository.findByEmail(email);
         if (oldToken != null && !oldToken.equals(token)) {
             long remain = jwtUtils.getRemainingTime(oldToken);
             // 블랙리스트 등록 (기존 토큰)
             blacklistRepository.add(oldToken, remain);
         }
         // 최신 리셋 토큰 DB 저장
-        refreshTokenRepository.save(email, token);
+        tokenRepository.save(email, token);
         return token;
     }
 
@@ -61,7 +61,7 @@ public class JwtService {
         Long userId = user.getId();
         String newToken = jwtUtils.generateRefreshToken(user);
 
-        String oldToken = refreshTokenRepository.findByUserId(userId);
+        String oldToken = tokenRepository.findByUserId(userId);
         if (oldToken != null && !oldToken.equals(newToken)) {
             long remain = jwtUtils.getRemainingTime(oldToken);
             // 블랙리스트 등록 (기존 토큰)
@@ -69,7 +69,7 @@ public class JwtService {
         }
 
         // 최신 리프레시 토큰 DB 저장
-        refreshTokenRepository.save(userId, newToken);
+        tokenRepository.save(userId, newToken);
 
         return newToken;
     }
@@ -115,7 +115,7 @@ public class JwtService {
         // 4) 저장된 토큰과 일치하는지 확인
         String subject = jwtUtils.getSubject(refreshToken);
         Long userId = Long.parseLong(subject);
-        String stored = refreshTokenRepository.findByUserId(userId);
+        String stored = tokenRepository.findByUserId(userId);
         if (!refreshToken.equals(stored)) {
             throw new RuntimeException("저장된 리프레시 토큰과 불일치합니다.");
         }
@@ -133,12 +133,12 @@ public class JwtService {
         long remain = jwtUtils.getRemainingTime(accessToken);
         blacklistRepository.add(accessToken, remain);
 
-        String refreshToken = refreshTokenRepository.findByUserId(user.getId());
+        String refreshToken = tokenRepository.findByUserId(user.getId());
         if (refreshToken != null) {
             blacklistRepository.add(refreshToken, remain);
         }
 
-        refreshTokenRepository.deleteByUserId(user.getId());
+        tokenRepository.deleteByUserId(user.getId());
         log.info("로그아웃 처리 완료 [userId: {}]", user.getId());
     }
 
@@ -155,5 +155,12 @@ public class JwtService {
     public void setBlacklistToken(String token) {
         long remain = jwtUtils.getRemainingTime(token);
         blacklistRepository.add(token, remain);
+    }
+
+    public boolean validatePasswordResetTokenFormat(String token) {
+        if (!jwtUtils.validateFormat(token)) return false;
+        if (blacklistRepository.isBlacklisted(token)) return false;
+        if (tokenRepository.findByEmail(jwtUtils.getSubject(token)) == null) return false;
+        return !jwtUtils.isExpired(token);
     }
 }

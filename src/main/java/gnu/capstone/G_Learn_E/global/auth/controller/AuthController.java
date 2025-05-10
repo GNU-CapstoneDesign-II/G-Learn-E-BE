@@ -134,6 +134,32 @@ public class AuthController {
     }
 
 
+    @GetMapping("/password-reset-code")
+    @Operation(summary = "비밀번호 찾기 이메일 인증 코드 발급", description = "비밀번호 찾기 이메일 인증 코드를 발급합니다.")
+    public ApiResponse<?> getPasswordResetCode(@RequestParam("email") String email) {
+        // TODO : 이메일 검증
+        emailValidator.validate(email);
+        // TODO : 비밀번호 찾기 이메일 인증 코드 발급
+        String authCode = authService.issuePasswordResetCode(email);
+        emailSender.sendAuthCode(email, authCode);
+
+        return new ApiResponse<>(HttpStatus.NO_CONTENT, "비밀번호 찾기 이메일 인증 코드 발급 성공", null);
+    }
+
+    @PostMapping("/password-reset-code/verify")
+    @Operation(summary = "비밀번호 찾기 이메일 인증 코드 검증", description = "비밀번호 찾기 이메일 인증 코드를 검증합니다.")
+    public ApiResponse<?> verifyPasswordResetCode(@RequestBody EmailAuthCodeVerify request) {
+        // TODO : 비밀번호 찾기 이메일 인증 코드 검증
+        authService.verifyPasswordResetCode(request.email(), request.authCode());
+
+        String emailAuthToken = jwtService.generatePasswordResetToken(request.email());
+        log.info("비밀번호 찾기 이메일 인증 코드 검증 성공 [email: {}]", request.email());
+        log.info("비밀번호 찾기 이메일 인증 토큰 발급 [email: {}, token: {}]", request.email(), emailAuthToken);
+
+        String responseMsg = String.format("비밀번호 찾기 이메일 인증 코드 검증 성공. 유효 시간: %d분", jwtService.getEmailAuthTokenExpiration() / 1000 / 60);
+        return new ApiResponse<>(HttpStatus.OK, responseMsg, new EmailAuthToken(emailAuthToken));
+    }
+
     @PatchMapping("/password")
     @Operation(summary = "비밀번호 변경", description = "비밀번호를 변경합니다.")
     public ApiResponse<?> changePassword(
@@ -154,6 +180,10 @@ public class AuthController {
             HttpServletRequest request,
             @RequestBody PasswordForgotRequest requestDto
     ) {
+        String token = jwtService.extractToken(request);
+        if(!jwtService.validatePasswordResetTokenFormat(token)) {
+            throw new AuthInvalidException("비밀번호 찾기 이메일 인증 코드 검증 실패");
+        }
         String name = requestDto.name();
         String email = requestDto.email();
         String password = requestDto.password();
@@ -170,6 +200,8 @@ public class AuthController {
             throw AuthInvalidException.emailAndTokenNotMatch();
         }
         authService.resetPassword(name, email, password);
+        // 비밀번호 재설정 후 토큰 블랙리스트 등록
+        jwtService.setBlacklistToken(token);
         return new ApiResponse<>(HttpStatus.OK, "비밀번호 변경 성공", null);
     }
 }
