@@ -115,7 +115,7 @@ public class PublicFolderService {
             throw new IllegalArgumentException("Invalid sort: " + sort);
         }
         if(sort.equals("author")) {
-            sort = "author.name";
+            sort = "author.nickname";
         }
         Sort.Direction direction = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         return PageRequest.of(page, size, Sort.by(direction, sort));
