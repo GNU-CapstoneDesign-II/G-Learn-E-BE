@@ -15,4 +15,12 @@ public interface SubjectWorkbookMapRepository extends JpaRepository<SubjectWorkb
     List<SubjectWorkbookMap> findAllBySubject_Id(Long subjectId);
 
     boolean existsByWorkbook_Id(Long workbookId);
+
+
+    @EntityGraph(attributePaths = {
+            "subject",
+            "subject.department",
+            "subject.department.college",
+    })
+    List<SubjectWorkbookMap> findAllByWorkbook_Id(Long workbookId);
 }
