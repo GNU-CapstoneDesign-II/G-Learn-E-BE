@@ -95,7 +95,7 @@ public class PublicFolderController {
                         usersDownloaded.contains(workbook.getId())
                 ))
                 .toList();
-        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", response);
     }
 
     @GetMapping("/workbooks/college/{college_id}")
@@ -115,7 +115,7 @@ public class PublicFolderController {
                         usersDownloaded.contains(workbook.getId())
                 ))
                 .toList();
-        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", response);
     }
 
     @GetMapping("/workbooks/department/{department_id}")
@@ -135,7 +135,7 @@ public class PublicFolderController {
                         usersDownloaded.contains(workbook.getId())
                 ))
                 .toList();
-        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", response);
     }
 
     @GetMapping("/workbooks/subject/{subject_id}")
@@ -155,6 +155,6 @@ public class PublicFolderController {
                         usersDownloaded.contains(workbook.getId())
                 ))
                 .toList();
-        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", response);
     }
 }
