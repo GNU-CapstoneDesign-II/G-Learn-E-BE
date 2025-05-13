@@ -74,7 +74,8 @@ public class PublicFolderController {
     public ApiResponse<List<WorkbookResponse>> getAllWorkbooks(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "25") int size,
-            @RequestParam(value = "sort", defaultValue = "createdAt,desc") String sort
+            @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
+            @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
         return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
     }
@@ -84,7 +85,8 @@ public class PublicFolderController {
             @PathVariable("college_id") Long collegeId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "25") int size,
-            @RequestParam(value = "sort", defaultValue = "createdAt,desc") String sort
+            @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
+            @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
 
         return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
@@ -95,7 +97,8 @@ public class PublicFolderController {
             @PathVariable("department_id") Long departmentId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "25") int size,
-            @RequestParam(value = "sort", defaultValue = "createdAt,desc") String sort
+            @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
+            @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
 
         return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
@@ -106,7 +109,8 @@ public class PublicFolderController {
             @PathVariable("subject_id") Long subjectId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "25") int size,
-            @RequestParam(value = "sort", defaultValue = "createdAt,desc") String sort
+            @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
+            @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
 
         return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
