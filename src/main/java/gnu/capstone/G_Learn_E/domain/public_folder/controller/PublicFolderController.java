@@ -69,4 +69,46 @@ public class PublicFolderController {
                 .toList();
         return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", response);
     }
+
+    @GetMapping("/workbooks")
+    public ApiResponse<List<WorkbookResponse>> getAllWorkbooks(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "25") int size,
+            @RequestParam(value = "sort", defaultValue = "createdAt,desc") String sort
+    ) {
+        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
+    }
+
+    @GetMapping("/college/{college_id}/workbooks")
+    public ApiResponse<List<WorkbookResponse>> getWorkbooksByCollegeId(
+            @PathVariable("college_id") Long collegeId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "25") int size,
+            @RequestParam(value = "sort", defaultValue = "createdAt,desc") String sort
+    ) {
+
+        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
+    }
+
+    @GetMapping("/department/{department_id}/workbooks")
+    public ApiResponse<List<WorkbookResponse>> getWorkbooksByDepartmentId(
+            @PathVariable("department_id") Long departmentId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "25") int size,
+            @RequestParam(value = "sort", defaultValue = "createdAt,desc") String sort
+    ) {
+
+        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
+    }
+
+    @GetMapping("/subject/{subject_id}/workbooks")
+    public ApiResponse<List<WorkbookResponse>> getWorkbooksBySubjectId(
+            @PathVariable("subject_id") Long subjectId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "25") int size,
+            @RequestParam(value = "sort", defaultValue = "createdAt,desc") String sort
+    ) {
+
+        return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
+    }
 }
