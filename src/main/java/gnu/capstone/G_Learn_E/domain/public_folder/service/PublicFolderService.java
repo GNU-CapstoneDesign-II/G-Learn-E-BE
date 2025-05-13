@@ -11,6 +11,9 @@ import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -79,5 +82,40 @@ public class PublicFolderService {
 
     public boolean isPublicWorkbook(Long workbookId) {
         return subjectWorkbookMapRepository.existsByWorkbook_Id(workbookId);
+    }
+
+
+    public List<Workbook> getAllWorkbooks(int page, int size, String sort, String order) {
+        return workbookRepository.findAllWorkbooks(getPageable(page, size, sort, order)).getContent();
+    }
+
+    public List<Workbook> getAllWorkbooksByCollegeId(Long collegeId, int page, int size, String sort, String order) {
+        return workbookRepository.findAllByCollegeId(collegeId, getPageable(page, size, sort, order)).getContent();
+    }
+
+    public List<Workbook> getAllWorkbooksByDepartmentId(Long departmentId, int page, int size, String sort, String order) {
+        return workbookRepository.findAllByDepartmentId(departmentId, getPageable(page, size, sort, order)).getContent();
+    }
+
+    public List<Workbook> getAllWorkbooksBySubjectId(Long subjectId, int page, int size, String sort, String order) {
+        return workbookRepository.findAllBySubjectId(subjectId, getPageable(page, size, sort, order)).getContent();
+    }
+
+
+    private Pageable getPageable(int page, int size, String sort, String order) {
+        if(!order.equalsIgnoreCase("asc") && !order.equalsIgnoreCase("desc")) {
+            throw new IllegalArgumentException("Invalid order: " + order);
+        }
+        if (page < 0 || size <= 0 || size > 100) {
+            throw new IllegalArgumentException("Invalid page or size: " + page + ", " + size);
+        }
+        if(!sort.equals("createdAt") && !sort.equals("name") && !sort.equals("author")) {
+            throw new IllegalArgumentException("Invalid sort: " + sort);
+        }
+        if(sort.equals("author")) {
+            sort = "author.name";
+        }
+        Sort.Direction direction = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        return PageRequest.of(page, size, Sort.by(direction, sort));
     }
 }

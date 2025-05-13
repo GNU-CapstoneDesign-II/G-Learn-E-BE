@@ -11,15 +11,17 @@ public record WorkbookResponse(
         String name,
         Integer coverImage,
         LocalDateTime createdAt,
-        Author author
+        Author author,
+        boolean downloaded
 ) {
-    public static WorkbookResponse from(Workbook workbook) {
+    public static WorkbookResponse from(Workbook workbook, boolean downloaded) {
         return new WorkbookResponse(
                 workbook.getId(),
                 workbook.getName(),
                 workbook.getCoverImage(),
                 workbook.getCreatedAt(),
-                Author.from(workbook.getAuthor())
+                Author.from(workbook.getAuthor()),
+                downloaded
         );
     }
 
