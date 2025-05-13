@@ -6,16 +6,20 @@ import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
+import gnu.capstone.G_Learn_E.domain.workbook.service.DownloadedWorkbookService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @RestController
@@ -25,6 +29,7 @@ import java.util.List;
 public class PublicFolderController {
 
     private final PublicFolderService publicFolderService;
+    private final DownloadedWorkbookService downloadedWorkbookService;
 
 
     @Operation(summary = "단과대 목록 조회", description = "단과대 목록을 조회합니다.")
@@ -64,55 +69,92 @@ public class PublicFolderController {
     @GetMapping("/workbooks/{subject_id}")
     public ApiResponse<List<WorkbookResponse>> getWorkbooks(@PathVariable("subject_id") Long subjectId) {
         List<Workbook> workbooks = publicFolderService.getWorkbooksBySubjectIdWithAuthor(subjectId);
+        Set<Long> usersDownloaded = downloadedWorkbookService.getUsersDownloadedWorkbookIds(subjectId);
         List<WorkbookResponse> response = workbooks.stream()
-                .map(WorkbookResponse::from)
+                .map(workbook -> WorkbookResponse.from(
+                        workbook,
+                        usersDownloaded.contains(workbook.getId())
+                ))
                 .toList();
         return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", response);
     }
 
     @GetMapping("/workbooks")
     public ApiResponse<List<WorkbookResponse>> getAllWorkbooks(
+            @AuthenticationPrincipal User user,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "25") int size,
             @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
             @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
+        List<Workbook> workbooks = publicFolderService.getAllWorkbooks(page, size, sort, order);
+        Set<Long> usersDownloaded = downloadedWorkbookService.getUsersDownloadedWorkbookIds(user.getId());
+        List<WorkbookResponse> response = workbooks.stream()
+                .map(workbook -> WorkbookResponse.from(
+                        workbook,
+                        usersDownloaded.contains(workbook.getId())
+                ))
+                .toList();
         return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
     }
 
-    @GetMapping("/college/{college_id}/workbooks")
+    @GetMapping("/workbooks/college/{college_id}")
     public ApiResponse<List<WorkbookResponse>> getWorkbooksByCollegeId(
+            @AuthenticationPrincipal User user,
             @PathVariable("college_id") Long collegeId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "25") int size,
             @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
             @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
-
+        List<Workbook> workbooks = publicFolderService.getAllWorkbooksByCollegeId(collegeId, page, size, sort, order);
+        Set<Long> usersDownloaded = downloadedWorkbookService.getUsersDownloadedWorkbookIds(user.getId());
+        List<WorkbookResponse> response = workbooks.stream()
+                .map(workbook -> WorkbookResponse.from(
+                        workbook,
+                        usersDownloaded.contains(workbook.getId())
+                ))
+                .toList();
         return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
     }
 
-    @GetMapping("/department/{department_id}/workbooks")
+    @GetMapping("/workbooks/department/{department_id}")
     public ApiResponse<List<WorkbookResponse>> getWorkbooksByDepartmentId(
+            @AuthenticationPrincipal User user,
             @PathVariable("department_id") Long departmentId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "25") int size,
             @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
             @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
-
+        List<Workbook> workbooks = publicFolderService.getAllWorkbooksByDepartmentId(departmentId, page, size, sort, order);
+        Set<Long> usersDownloaded = downloadedWorkbookService.getUsersDownloadedWorkbookIds(user.getId());
+        List<WorkbookResponse> response = workbooks.stream()
+                .map(workbook -> WorkbookResponse.from(
+                        workbook,
+                        usersDownloaded.contains(workbook.getId())
+                ))
+                .toList();
         return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
     }
 
-    @GetMapping("/subject/{subject_id}/workbooks")
+    @GetMapping("/workbooks/subject/{subject_id}")
     public ApiResponse<List<WorkbookResponse>> getWorkbooksBySubjectId(
+            @AuthenticationPrincipal User user,
             @PathVariable("subject_id") Long subjectId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "25") int size,
             @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
             @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
-
+        List<Workbook> workbooks = publicFolderService.getAllWorkbooksBySubjectId(subjectId, page, size, sort, order);
+        Set<Long> usersDownloaded = downloadedWorkbookService.getUsersDownloadedWorkbookIds(user.getId());
+        List<WorkbookResponse> response = workbooks.stream()
+                .map(workbook -> WorkbookResponse.from(
+                        workbook,
+                        usersDownloaded.contains(workbook.getId())
+                ))
+                .toList();
         return new ApiResponse<>(HttpStatus.OK, "문제집 목록 조회 성공", null);
     }
 }
