@@ -1,5 +1,7 @@
 package gnu.capstone.G_Learn_E.global.search.controller;
 
+import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
+import gnu.capstone.G_Learn_E.domain.folder.service.FolderService;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
@@ -36,6 +38,7 @@ public class SearchController {
 
     private final SearchService searchService;
     private final DownloadedWorkbookService downloadedWorkbookService;
+    private final FolderService folderService;
     private final PublicFolderService publicFolderService;
 
     @GetMapping
@@ -64,10 +67,15 @@ public class SearchController {
     ){
         List<Workbook> privateWorkbooks = null, publicWorkbooks = null;
         Set<Long> usersDownloaded = null;
+        Map<Long, Folder> privatePaths = new HashMap<>();
         Map<Long, List<PublicPath>> publicPaths = new HashMap<>();
 
         if(range.equals("all") || range.equals("private")) {
             privateWorkbooks = searchService.searchWorkbook(user, keyword, "private", type, page, size, sort, order);
+            privateWorkbooks.forEach(workbook -> {
+                Folder folder = folderService.findWorkbookFolder(user, workbook.getId());
+                privatePaths.put(workbook.getId(), folder);
+            });
         }
         if(range.equals("all") || range.equals("public")) {
             publicWorkbooks = searchService.searchWorkbook(user, keyword, "public", type, page, size, sort, order);
@@ -80,6 +88,7 @@ public class SearchController {
 
         SearchResponse response = SearchResponse.from(
                 privateWorkbooks,
+                privatePaths,
                 publicWorkbooks,
                 usersDownloaded,
                 publicPaths

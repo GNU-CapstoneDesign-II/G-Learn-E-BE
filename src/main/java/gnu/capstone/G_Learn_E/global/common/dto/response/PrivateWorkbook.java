@@ -10,7 +10,6 @@ public record PrivateWorkbook(
         String name,
         Integer coverImage,
         LocalDateTime createdAt,
-        Author author,
         boolean uploaded
 ) {
 
@@ -22,7 +21,6 @@ public record PrivateWorkbook(
                 workbook.getName(),
                 workbook.getCoverImage(),
                 workbook.getCreatedAt(),
-                Author.from(workbook.getAuthor()),
                 workbook.isUploaded()
         );
     }
