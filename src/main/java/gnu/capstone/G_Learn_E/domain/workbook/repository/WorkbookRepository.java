@@ -39,35 +39,42 @@ public interface WorkbookRepository extends JpaRepository<Workbook, Long> {
 
 
 
-    // — 전체
+    /** 전체 워크북 조회 (Subject 매핑만 타고 들어가도록) */
     @EntityGraph(attributePaths = { "author" })
-    @Query("SELECT w FROM Workbook w")
+    @Query("""
+        SELECT DISTINCT w
+          FROM Workbook w
+          JOIN w.subjectWorkbookMaps m
+    """)
     Page<Workbook> findAllWorkbooks(Pageable pageable);
 
-    // — 단과대 기준
+    /** 단과대별 워크북 조회 */
     @EntityGraph(attributePaths = { "author" })
     @Query("""
-        SELECT DISTINCT m.workbook
-          FROM SubjectWorkbookMap m
+        SELECT DISTINCT w
+          FROM Workbook w
+          JOIN w.subjectWorkbookMaps m
          WHERE m.subject.department.college.id = :collegeId
-        """)
+    """)
     Page<Workbook> findAllByCollegeId(@Param("collegeId") Long collegeId, Pageable pageable);
 
-    // — 학과 기준
+    /** 학과별 워크북 조회 */
     @EntityGraph(attributePaths = { "author" })
     @Query("""
-        SELECT DISTINCT m.workbook
-          FROM SubjectWorkbookMap m
+        SELECT DISTINCT w
+          FROM Workbook w
+          JOIN w.subjectWorkbookMaps m
          WHERE m.subject.department.id = :departmentId
-        """)
+    """)
     Page<Workbook> findAllByDepartmentId(@Param("departmentId") Long departmentId, Pageable pageable);
 
-    // — 과목 기준
+    /** 과목별 워크북 조회 */
     @EntityGraph(attributePaths = { "author" })
     @Query("""
-        SELECT m.workbook
-          FROM SubjectWorkbookMap m
+        SELECT DISTINCT w
+          FROM Workbook w
+          JOIN w.subjectWorkbookMaps m
          WHERE m.subject.id = :subjectId
-        """)
+    """)
     Page<Workbook> findAllBySubjectId(@Param("subjectId") Long subjectId, Pageable pageable);
 }
