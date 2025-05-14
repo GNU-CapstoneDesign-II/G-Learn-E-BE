@@ -48,6 +48,7 @@ public class User {
 
     private long createWorkbookCount;
     private long solvedWorkbookCount;
+    private long uploadedWorkbookCount;
 
     @Setter
     @ManyToOne(fetch = FetchType.EAGER)
@@ -110,5 +111,8 @@ public class User {
 
     public void updateSolvedWorkbookCount(long count){
         this.solvedWorkbookCount = count;
+    }
+    public void updateUploadedWorkbookCount(long count){
+        this.uploadedWorkbookCount = count;
     }
 }
