@@ -16,9 +16,11 @@ import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectWorkbookMap
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
+import gnu.capstone.G_Learn_E.domain.workbook.entity.DownloadedWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.ExamType;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.Semester;
+import gnu.capstone.G_Learn_E.domain.workbook.repository.DownloadedWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
 import gnu.capstone.G_Learn_E.global.common.serialization.Option;
 import jakarta.persistence.EntityNotFoundException;
@@ -48,6 +50,7 @@ public class WorkbookService {
     private final WorkbookRepository workbookRepository;
     private final FolderRepository folderRepository;
     private final FolderWorkbookMapRepository folderWorkbookMapRepository;
+    private final DownloadedWorkbookMapRepository downloadedWorkbookMapRepository;
 
     private static final Normalizer.Form NF = Normalizer.Form.NFC;
 
@@ -295,6 +298,12 @@ public class WorkbookService {
                 .build();
 
         saved.getFolderWorkbookMaps().add(folderWorkbookMap);
+
+        DownloadedWorkbookMap downloadedWorkbookMap = DownloadedWorkbookMap.builder()
+                .user(user)
+                .workbook(origin)
+                .build();
+        downloadedWorkbookMapRepository.save(downloadedWorkbookMap);
 
         // 6️⃣ 저장 — cascade = ALL 덕분에 매핑 엔티티까지 함께 persist
         return saved;

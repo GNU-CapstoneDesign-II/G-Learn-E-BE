@@ -3,14 +3,19 @@ package gnu.capstone.G_Learn_E.domain.public_folder.service;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.SubjectWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.CollegeRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.DepartmentRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectWorkbookMapRepository;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
+import gnu.capstone.G_Learn_E.global.common.dto.response.PublicPath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -79,5 +84,60 @@ public class PublicFolderService {
 
     public boolean isPublicWorkbook(Long workbookId) {
         return subjectWorkbookMapRepository.existsByWorkbook_Id(workbookId);
+    }
+
+
+    public List<Workbook> getAllWorkbooks(int page, int size, String sort, String order) {
+        return workbookRepository.findAllWorkbooks(getPageable(page, size, sort, order)).getContent();
+    }
+
+    public List<Workbook> getAllWorkbooksByCollegeId(Long collegeId, int page, int size, String sort, String order) {
+        return workbookRepository.findAllByCollegeId(collegeId, getPageable(page, size, sort, order)).getContent();
+    }
+
+    public List<Workbook> getAllWorkbooksByDepartmentId(Long departmentId, int page, int size, String sort, String order) {
+        return workbookRepository.findAllByDepartmentId(departmentId, getPageable(page, size, sort, order)).getContent();
+    }
+
+    public List<Workbook> getAllWorkbooksBySubjectId(Long subjectId, int page, int size, String sort, String order) {
+        return workbookRepository.findAllBySubjectId(subjectId, getPageable(page, size, sort, order)).getContent();
+    }
+
+
+    private Pageable getPageable(int page, int size, String sort, String order) {
+        if(!order.equalsIgnoreCase("asc") && !order.equalsIgnoreCase("desc")) {
+            throw new IllegalArgumentException("Invalid order: " + order);
+        }
+        if (page < 0 || size <= 0 || size > 100) {
+            throw new IllegalArgumentException("Invalid page or size: " + page + ", " + size);
+        }
+        if(!sort.equals("createdAt") && !sort.equals("name") && !sort.equals("author")) {
+            throw new IllegalArgumentException("Invalid sort: " + sort);
+        }
+        if(sort.equals("author")) {
+            sort = "author.nickname";
+        }
+        Sort.Direction direction = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        return PageRequest.of(page, size, Sort.by(direction, sort));
+    }
+
+
+    public List<PublicPath> getPublicPath(Workbook workbook) {
+        List<SubjectWorkbookMap> allByWorkbookId = subjectWorkbookMapRepository.findAllByWorkbook_Id(workbook.getId());
+        return allByWorkbookId.stream()
+                .map(SubjectWorkbookMap::getSubject)
+                .map(subject -> {
+                    Department department = subject.getDepartment();
+                    College college = department.getCollege();
+                    return PublicPath.of(
+                            college.getId(),
+                            college.getName(),
+                            department.getId(),
+                            department.getName(),
+                            subject.getId(),
+                            subject.getName()
+                    );
+                })
+                .toList();
     }
 }

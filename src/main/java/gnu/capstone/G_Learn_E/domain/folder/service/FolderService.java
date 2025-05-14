@@ -223,4 +223,14 @@ public class FolderService {
 
         return target;
     }
+
+    public Folder findWorkbookFolder(User user, Long workbookId) {
+        log.info("findWorkbookFolder request: {}", workbookId);
+        Folder folder = folderRepository.findFolderOfUserWorkbook(user.getId(), workbookId)
+                .orElseThrow(() -> new IllegalArgumentException("Folder or Workbook not found"));
+        if(!folder.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("You do not have permission to access this folder");
+        }
+        return folder;
+    }
 }
