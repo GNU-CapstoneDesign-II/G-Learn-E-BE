@@ -98,9 +98,13 @@ public class UserController {
         solveLogService.updateSolvedWorkbookCountByUser(user);
         long solvedWorkbookCount = user.getSolvedWorkbookCount();
         long createWorkbookCount = user.getCreateWorkbookCount();
+        long uploadedWorkbookCount = publicFolderService.uploadedWorkbookCountByUser(user);
+        user.updateSolvedWorkbookCount(solvedWorkbookCount);
         long userRank = userService.getUserRank(user);
 
-        UserStatisticsResponse response = UserStatisticsResponse.of(userRank, createWorkbookCount, solvedWorkbookCount);
+        userService.save(user);
+
+        UserStatisticsResponse response = UserStatisticsResponse.of(userRank, createWorkbookCount, solvedWorkbookCount, uploadedWorkbookCount);
         return new ApiResponse<>(HttpStatus.OK, "유저 정보 조회 성공", response);
     }
 

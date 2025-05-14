@@ -8,6 +8,7 @@ import gnu.capstone.G_Learn_E.domain.public_folder.repository.CollegeRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.DepartmentRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectWorkbookMapRepository;
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
 import gnu.capstone.G_Learn_E.global.common.dto.response.PublicPath;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -86,6 +88,10 @@ public class PublicFolderService {
         return subjectWorkbookMapRepository.existsByWorkbook_Id(workbookId);
     }
 
+    public long uploadedWorkbookCountByUser(User user) {
+        return subjectWorkbookMapRepository.countByWorkbook_Author_Id(user.getId());
+    }
+
 
     public List<Workbook> getAllWorkbooks(int page, int size, String sort, String order) {
         return workbookRepository.findAllWorkbooks(getPageable(page, size, sort, order)).getContent();
@@ -102,7 +108,6 @@ public class PublicFolderService {
     public List<Workbook> getAllWorkbooksBySubjectId(Long subjectId, int page, int size, String sort, String order) {
         return workbookRepository.findAllBySubjectId(subjectId, getPageable(page, size, sort, order)).getContent();
     }
-
 
     private Pageable getPageable(int page, int size, String sort, String order) {
         if(!order.equalsIgnoreCase("asc") && !order.equalsIgnoreCase("desc")) {
