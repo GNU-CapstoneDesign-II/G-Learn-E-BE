@@ -248,6 +248,9 @@ public class WorkbookService {
         );
         log.info("문제 매핑 완료");
 
+        workbookRepository.save(uploadWorkbook);      // persist
+        workbookRepository.flush();
+
         // 5️⃣ Public 영역(Subject)과 매핑
         SubjectWorkbookMap subjectWorkbookMap = SubjectWorkbookMap.builder()
                 .id(new SubjectWorkbookId(subject.getId(), uploadWorkbook.getId()))
@@ -255,10 +258,9 @@ public class WorkbookService {
                 .subject(subject)
                 .build();
         subjectWorkbookMapRepository.save(subjectWorkbookMap);
-        uploadWorkbook.getSubjectWorkbookMaps().add(subjectWorkbookMap);
 
         // 6️⃣ 저장 — cascade = ALL 덕분에 매핑 엔티티까지 함께 persist
-        return workbookRepository.save(uploadWorkbook);
+        return uploadWorkbook;
     }
 
     @Transactional
