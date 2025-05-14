@@ -3,6 +3,7 @@ package gnu.capstone.G_Learn_E.domain.public_folder.service;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
+import gnu.capstone.G_Learn_E.domain.public_folder.entity.SubjectWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.CollegeRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.DepartmentRepository;
 import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectRepository;
@@ -10,6 +11,7 @@ import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectWorkbookMap
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
+import gnu.capstone.G_Learn_E.global.common.dto.response.PublicPath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -118,9 +120,29 @@ public class PublicFolderService {
             throw new IllegalArgumentException("Invalid sort: " + sort);
         }
         if(sort.equals("author")) {
-            sort = "author.name";
+            sort = "author.nickname";
         }
         Sort.Direction direction = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         return PageRequest.of(page, size, Sort.by(direction, sort));
+    }
+
+
+    public List<PublicPath> getPublicPath(Workbook workbook) {
+        List<SubjectWorkbookMap> allByWorkbookId = subjectWorkbookMapRepository.findAllByWorkbook_Id(workbook.getId());
+        return allByWorkbookId.stream()
+                .map(SubjectWorkbookMap::getSubject)
+                .map(subject -> {
+                    Department department = subject.getDepartment();
+                    College college = department.getCollege();
+                    return PublicPath.of(
+                            college.getId(),
+                            college.getName(),
+                            department.getId(),
+                            department.getName(),
+                            subject.getId(),
+                            subject.getName()
+                    );
+                })
+                .toList();
     }
 }

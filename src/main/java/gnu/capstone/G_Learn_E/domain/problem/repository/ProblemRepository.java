@@ -2,6 +2,7 @@ package gnu.capstone.G_Learn_E.domain.problem.repository;
 
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -9,7 +10,7 @@ import java.util.List;
 
 
 @Repository
-public interface ProblemRepository extends JpaRepository<Problem, Long> {
+public interface ProblemRepository extends JpaRepository<Problem, Long>, JpaSpecificationExecutor<Problem> {
 
     /** 어떤 문제집에도 속하지 않는 고아 문제 조회 */
     @Query("""
