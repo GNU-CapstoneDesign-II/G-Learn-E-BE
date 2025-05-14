@@ -51,4 +51,16 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
     boolean existsByUserAndFolderWorkbookMaps_Workbook_Id(User user, Long workbookId);
 
     Optional<Folder> findByIdAndUser(Long targetFolderId, User user);
+
+
+    @Query("""
+        SELECT f
+          FROM FolderWorkbookMap m
+          JOIN m.folder f
+         WHERE m.workbook.id = :workbookId
+           AND f.user.id     = :userId
+    """)
+    Optional<Folder> findFolderOfUserWorkbook(
+            @Param("userId")     Long userId,
+            @Param("workbookId") Long workbookId);
 }
