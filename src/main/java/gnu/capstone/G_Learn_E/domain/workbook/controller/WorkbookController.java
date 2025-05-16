@@ -18,6 +18,7 @@ import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.service.WorkbookService;
+import gnu.capstone.G_Learn_E.domain.workbook.service.WorkbookVoteService;
 import gnu.capstone.G_Learn_E.global.fastapi.service.FastApiService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,6 +46,7 @@ public class WorkbookController {
     private final WorkbookService workbookService;
     private final FolderService folderService;
     private final PublicFolderService publicFolderService;
+    private final WorkbookVoteService workbookVoteService;
     private final SolveLogService solveLogService;
     private final FastApiService fastApiService;
 
@@ -283,5 +285,23 @@ public class WorkbookController {
         Workbook workbook = workbookService.replaceProblemsInWorkbook(workbookId, request.problems(), user);
         WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
         return new ApiResponse<>(HttpStatus.OK, "문제집 문제 수정 성공", response);
+    }
+
+    @PostMapping("/{workbookId}/vote")
+    @Operation(summary = "문제집 좋아요 / 싫어요", description = "문제집에 좋아요 / 싫어요를 누릅니다. (like / dislike)")
+    public ApiResponse<?> voteWorkbook(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId,
+            @RequestBody WorkbookVoteRequest request
+    ) {
+        log.info("문제집 투표 요청 : {}", request);
+        Workbook workbook = workbookService.findWorkbookById(workbookId);
+        if(!publicFolderService.isPublicWorkbook(workbookId)) {
+            throw new RuntimeException("문제집 접근 권한이 없습니다.");
+        }
+        workbookVoteService.toggleVote(workbook, user, request.voteType());
+        workbook = workbookVoteService.updateVoteCount(workbook);
+        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 투표 성공", response);
     }
 }

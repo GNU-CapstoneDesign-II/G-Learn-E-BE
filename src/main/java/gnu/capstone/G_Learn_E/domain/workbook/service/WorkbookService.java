@@ -198,7 +198,6 @@ public class WorkbookService {
     }
 
 
-
     public List<Workbook> getChildrenWorkbooks(Folder folder) {
         if (Hibernate.isInitialized(folder.getFolderWorkbookMaps())) {
             // folder workbook이 초기화 된 경우
