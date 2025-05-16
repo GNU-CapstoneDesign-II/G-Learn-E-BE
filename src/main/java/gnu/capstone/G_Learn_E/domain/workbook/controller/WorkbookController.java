@@ -51,6 +51,23 @@ public class WorkbookController {
     private final FastApiService fastApiService;
 
 
+    @GetMapping("/{workbookId}")
+    @Operation(summary = "문제집 정보 조회", description = "문제집 정보를 조회합니다.")
+    public ApiResponse<?> getWorkbook(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId
+    ) {
+        log.info("문제집 정보 조회 요청 : {}", workbookId);
+        if(!folderService.isWorkbookInUserFolder(user, workbookId) &&
+                !publicFolderService.isPublicWorkbook(workbookId)) {
+            throw new RuntimeException("문제집 접근 권한이 없습니다.");
+        }
+        Workbook workbook = workbookService.findWorkbookById(workbookId);
+        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        return new ApiResponse<>(HttpStatus.OK, "문제집 정보 조회 성공", response);
+    }
+
+
     @Operation(summary = "문제집 생성", description = "문제집을 생성합니다.")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, path = "/generate")
     public ApiResponse<WorkbookResponse> createWorkbook(

@@ -10,7 +10,9 @@ public record WorkbookSimpleResponse(
         Integer coverImage, // 표지 이미지
         Integer courseYear, // 수강 연도
         String semester, // 학기
-        String createdAt // 생성일
+        String createdAt, // 생성일
+        long likeCount, // 좋아요 수
+        long dislikeCount // 싫어요 수
 ) {
     public static WorkbookSimpleResponse of(
             Long id,
@@ -20,9 +22,22 @@ public record WorkbookSimpleResponse(
             Integer coverImage,
             Integer courseYear,
             String semester,
-            String createdAt
+            String createdAt,
+            long likeCount,
+            long dislikeCount
     ) {
-        return new WorkbookSimpleResponse(id, name, professor, examType, coverImage, courseYear, semester, createdAt);
+        return new WorkbookSimpleResponse(
+                id,
+                name,
+                professor,
+                examType,
+                coverImage,
+                courseYear,
+                semester,
+                createdAt,
+                likeCount,
+                dislikeCount
+        );
     }
     public static WorkbookSimpleResponse from(
             Workbook workbook
@@ -35,7 +50,9 @@ public record WorkbookSimpleResponse(
                 workbook.getCoverImage(),
                 workbook.getCourseYear(),
                 workbook.getSemester().name(),
-                workbook.getCreatedAt().toString()
+                workbook.getCreatedAt().toString(),
+                workbook.getLikeCount(),
+                workbook.getDislikeCount()
         );
     }
 }
