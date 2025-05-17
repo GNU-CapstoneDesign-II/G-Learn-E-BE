@@ -50,6 +50,12 @@ public class Workbook {
     @Setter
     private boolean isUploaded;
 
+    @Setter
+    private long likeCount = 0;
+
+    @Setter
+    private long dislikeCount = 0;
+
     @OneToMany(mappedBy = "workbook", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubjectWorkbookMap> subjectWorkbookMaps = new ArrayList<>();
 
@@ -85,6 +91,8 @@ public class Workbook {
         this.semester = semester;
         this.isUploaded = false;
         this.author = author;
+        this.likeCount = 0;
+        this.dislikeCount = 0;
     }
 
     /**
