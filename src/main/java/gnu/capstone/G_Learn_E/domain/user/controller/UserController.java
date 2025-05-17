@@ -208,7 +208,7 @@ public class UserController {
     }
 
 
-    @Operation(summary = "블랙리스트 조회", description = "블랙리스트를 조회합니다.")
+    @Operation(summary = "블랙리스트 조회", description = "블랙리스트를 조회합니다. 타입 종류 : BLOCK, HIDE")
     @GetMapping("/blacklist")
     public ApiResponse<?> getBlacklist(
             @AuthenticationPrincipal User user,
@@ -223,7 +223,7 @@ public class UserController {
         return new ApiResponse<>(HttpStatus.OK, "블랙리스트 조회 성공", response);
     }
 
-    @Operation(summary = "블랙리스트 추가", description = "블랙리스트에 추가합니다.")
+    @Operation(summary = "블랙리스트 추가", description = "블랙리스트에 추가합니다. 타입 종류 : BLOCK, HIDE")
     @PostMapping("/blacklist")
     public ApiResponse<?> addBlacklist(
             @AuthenticationPrincipal User user,
@@ -233,7 +233,7 @@ public class UserController {
         return new ApiResponse<>(HttpStatus.OK, "블랙리스트 추가 성공", null);
     }
 
-    @Operation(summary = "블랙리스트 삭제", description = "블랙리스트에서 삭제합니다.")
+    @Operation(summary = "블랙리스트 삭제", description = "블랙리스트에서 삭제합니다. 타입 종류 : BLOCK, HIDE")
     @DeleteMapping("/blacklist")
     public ApiResponse<?> removeBlacklist(
             @AuthenticationPrincipal User user,
