@@ -70,6 +70,10 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolvedWorkbook> solvedWorkbooks = new ArrayList<>();
 
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserBlacklist> blacklists = new ArrayList<>();
+
     @Builder
     public User(String name, String nickname, String email, String password, College college, Department department) {
         this.name = name;

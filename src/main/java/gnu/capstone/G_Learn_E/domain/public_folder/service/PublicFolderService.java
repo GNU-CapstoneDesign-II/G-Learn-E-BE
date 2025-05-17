@@ -96,8 +96,8 @@ public class PublicFolderService {
     }
 
 
-    public WorkbookPaginationResult getAllWorkbooks(int page, int size, String sort, String order) {
-        Page<Workbook> results = workbookRepository.findAllWorkbooks(getPageable(page, size, sort, order));
+    public WorkbookPaginationResult getAllWorkbooks(int page, int size, String sort, String order, User user) {
+        Page<Workbook> results = workbookRepository.findAllWorkbooks(getPageable(page, size, sort, order), user.getId());
         return WorkbookPaginationResult.from(
                 PageInfo.of(
                         results.getTotalElements(),
@@ -110,8 +110,8 @@ public class PublicFolderService {
         );
     }
 
-    public WorkbookPaginationResult getAllWorkbooksByCollegeId(Long collegeId, int page, int size, String sort, String order) {
-        Page<Workbook> results = workbookRepository.findAllByCollegeId(collegeId, getPageable(page, size, sort, order));
+    public WorkbookPaginationResult getAllWorkbooksByCollegeId(Long collegeId, int page, int size, String sort, String order, User user) {
+        Page<Workbook> results = workbookRepository.findAllByCollegeId(collegeId, getPageable(page, size, sort, order), user.getId());
         return WorkbookPaginationResult.from(
                 PageInfo.of(
                         results.getTotalElements(),
@@ -124,8 +124,8 @@ public class PublicFolderService {
         );
     }
 
-    public WorkbookPaginationResult getAllWorkbooksByDepartmentId(Long departmentId, int page, int size, String sort, String order) {
-        Page<Workbook> results = workbookRepository.findAllByDepartmentId(departmentId, getPageable(page, size, sort, order));
+    public WorkbookPaginationResult getAllWorkbooksByDepartmentId(Long departmentId, int page, int size, String sort, String order, User user) {
+        Page<Workbook> results = workbookRepository.findAllByDepartmentId(departmentId, getPageable(page, size, sort, order), user.getId());
         return WorkbookPaginationResult.from(
                 PageInfo.of(
                         results.getTotalElements(),
@@ -138,8 +138,8 @@ public class PublicFolderService {
         );
     }
 
-    public WorkbookPaginationResult getAllWorkbooksBySubjectId(Long subjectId, int page, int size, String sort, String order) {
-        Page<Workbook> results = workbookRepository.findAllBySubjectId(subjectId, getPageable(page, size, sort, order));
+    public WorkbookPaginationResult getAllWorkbooksBySubjectId(Long subjectId, int page, int size, String sort, String order, User user) {
+        Page<Workbook> results = workbookRepository.findAllBySubjectId(subjectId, getPageable(page, size, sort, order), user.getId());
         return WorkbookPaginationResult.from(
                 PageInfo.of(
                         results.getTotalElements(),

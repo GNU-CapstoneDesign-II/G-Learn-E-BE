@@ -90,7 +90,7 @@ public class PublicFolderController {
             @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
             @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
-        WorkbookPaginationResult results = publicFolderService.getAllWorkbooks(page, size, sort, order);
+        WorkbookPaginationResult results = publicFolderService.getAllWorkbooks(page, size, sort, order, user);
         List<Workbook> workbooks = results.workbookList();
 
         Set<Long> usersDownloaded = downloadedWorkbookService.getUsersDownloadedWorkbookIds(user.getId());
@@ -116,7 +116,7 @@ public class PublicFolderController {
             @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
             @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
-        WorkbookPaginationResult results = publicFolderService.getAllWorkbooksByCollegeId(collegeId, page, size, sort, order);
+        WorkbookPaginationResult results = publicFolderService.getAllWorkbooksByCollegeId(collegeId, page, size, sort, order, user);
         List<Workbook> workbooks = results.workbookList();
         Set<Long> usersDownloaded = downloadedWorkbookService.getUsersDownloadedWorkbookIds(user.getId());
         List<PublicWorkbook> publicWorkbooks = workbooks.stream()
@@ -141,7 +141,7 @@ public class PublicFolderController {
             @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
             @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
-        WorkbookPaginationResult results = publicFolderService.getAllWorkbooksByDepartmentId(departmentId, page, size, sort, order);
+        WorkbookPaginationResult results = publicFolderService.getAllWorkbooksByDepartmentId(departmentId, page, size, sort, order, user);
         List<Workbook> workbooks = results.workbookList();
         Set<Long> usersDownloaded = downloadedWorkbookService.getUsersDownloadedWorkbookIds(user.getId());
         List<PublicWorkbook> publicWorkbooks = workbooks.stream()
@@ -166,7 +166,7 @@ public class PublicFolderController {
             @RequestParam(value = "sort", defaultValue = "createdAt") String sort,
             @RequestParam(value = "order", defaultValue = "desc") String order
     ) {
-        WorkbookPaginationResult results = publicFolderService.getAllWorkbooksBySubjectId(subjectId, page, size, sort, order);
+        WorkbookPaginationResult results = publicFolderService.getAllWorkbooksBySubjectId(subjectId, page, size, sort, order, user);
         List<Workbook> workbooks = results.workbookList();
 
         Set<Long> usersDownloaded = downloadedWorkbookService.getUsersDownloadedWorkbookIds(user.getId());
