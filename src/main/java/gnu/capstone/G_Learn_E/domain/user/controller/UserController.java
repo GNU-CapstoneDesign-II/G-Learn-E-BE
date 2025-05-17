@@ -4,12 +4,11 @@ import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
-import gnu.capstone.G_Learn_E.domain.user.dto.request.AffiliationUpdateRequest;
-import gnu.capstone.G_Learn_E.domain.user.dto.request.GainExpRequest;
-import gnu.capstone.G_Learn_E.domain.user.dto.request.NicknameUpdateRequest;
-import gnu.capstone.G_Learn_E.domain.user.dto.request.UserInfoUpdateRequest;
+import gnu.capstone.G_Learn_E.domain.user.dto.request.*;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.*;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
+import gnu.capstone.G_Learn_E.domain.user.entity.UserBlacklist;
+import gnu.capstone.G_Learn_E.domain.user.service.UserBlacklistService;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +29,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final UserBlacklistService userBlacklistService;
     private final SolveLogService solveLogService;
     private final PublicFolderService publicFolderService;
 
@@ -183,5 +183,41 @@ public class UserController {
         List<User> rankList = userService.getUserRankListInCollege(page, size, sort, collegeId);
         UserRankingPageResponse response = UserRankingPageResponse.from(rankList, userService.getUserRank(rankList.getFirst()));
         return new ApiResponse<>(HttpStatus.OK, "유저 랭킹 조회 성공", response);
+    }
+
+
+    @Operation(summary = "블랙리스트 조회", description = "블랙리스트를 조회합니다.")
+    @GetMapping("/blacklist")
+    public ApiResponse<?> getBlacklist(
+            @AuthenticationPrincipal User user,
+            @RequestParam(name = "blacklistType", defaultValue = "BLOCK")
+            String blacklistType
+    ) {
+        List<UserBlacklist> blackList = userBlacklistService.getBlacklists(user, blacklistType);
+        List<User> blacklistUsers = blackList.stream()
+                .map(UserBlacklist::getTargetUser)
+                .toList();
+        BlacklistResponse response = BlacklistResponse.from(blacklistUsers);
+        return new ApiResponse<>(HttpStatus.OK, "블랙리스트 조회 성공", response);
+    }
+
+    @Operation(summary = "블랙리스트 추가", description = "블랙리스트에 추가합니다.")
+    @PostMapping("/blacklist")
+    public ApiResponse<?> addBlacklist(
+            @AuthenticationPrincipal User user,
+            @RequestBody BlacklistRequest request
+            ) {
+        userBlacklistService.addBlacklist(user, request.targetId(), request.blacklistType());
+        return new ApiResponse<>(HttpStatus.OK, "블랙리스트 추가 성공", null);
+    }
+
+    @Operation(summary = "블랙리스트 삭제", description = "블랙리스트에서 삭제합니다.")
+    @DeleteMapping("/blacklist")
+    public ApiResponse<?> removeBlacklist(
+            @AuthenticationPrincipal User user,
+            @RequestBody BlacklistRequest request
+    ) {
+        userBlacklistService.removeBlacklist(user, request.targetId());
+        return new ApiResponse<>(HttpStatus.OK, "블랙리스트 삭제 성공", null);
     }
 }
