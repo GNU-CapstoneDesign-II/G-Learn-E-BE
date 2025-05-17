@@ -6,13 +6,14 @@ import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.user.dto.CollegeRanking;
 import gnu.capstone.G_Learn_E.domain.user.dto.DepartmentRanking;
-import gnu.capstone.G_Learn_E.domain.user.dto.request.UserInfoUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.CollegeRankingPageResponse;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.DepartmentRankingPageResponse;
+import gnu.capstone.G_Learn_E.global.common.dto.serviceToController.UserPaginationResult;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.exception.UserInvalidException;
 import gnu.capstone.G_Learn_E.domain.user.exception.UserNotFoundException;
 import gnu.capstone.G_Learn_E.domain.user.repository.UserRepository;
+import gnu.capstone.G_Learn_E.global.common.dto.response.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -155,7 +156,7 @@ public class UserService {
     }
 
     // ranking --------------------------------------------------------------------------------------
-    public List<User> getUserRankList(int page, int size, String sort) {
+    public UserPaginationResult getUserRankList(int page, int size, String sort) {
         Sort sortObj;
         if ("level".equalsIgnoreCase(sort)) {
             // 레벨 내림차순, 경험치 내림차순
@@ -179,10 +180,20 @@ public class UserService {
 
         Pageable pageable = PageRequest.of(page, size, sortObj);
         Page<User> userPage = userRepository.findAll(pageable);
-        return userPage.getContent();
+        PageInfo pageInfo = PageInfo.of(
+                userPage.getTotalElements(),
+                userPage.getTotalPages(),
+                page,
+                userPage.hasNext(),
+                userPage.hasPrevious()
+        );
+        return UserPaginationResult.from(
+                pageInfo,
+                userPage.getContent()
+        );
     }
 
-    public List<User> getUserRankListInDepartment(
+    public UserPaginationResult getUserRankListInDepartment(
             int page, int size, String sort, Long departmentId
     ) {
         // 1) Sort 객체 생성
@@ -220,10 +231,22 @@ public class UserService {
                     .findByDepartmentIdOrderByCreateWorkbookCountDesc(departmentId, pageable);
         }
 
-        return userPage.getContent();
+        // 4) 페이지 정보
+        PageInfo pageInfo = PageInfo.of(
+                userPage.getTotalElements(),
+                userPage.getTotalPages(),
+                page,
+                userPage.hasNext(),
+                userPage.hasPrevious()
+        );
+
+        return UserPaginationResult.from(
+                pageInfo,
+                userPage.getContent()
+        );
     }
 
-    public List<User> getUserRankListInCollege(
+    public UserPaginationResult getUserRankListInCollege(
             int page, int size, String sort, Long collegeId
     ) {
         // 1) Sort 객체 생성
@@ -261,7 +284,19 @@ public class UserService {
                     .findByCollegeIdOrderByCreateWorkbookCountDesc(collegeId, pageable);
         }
 
-        return userPage.getContent();
+        // 4) 페이지 정보
+        PageInfo pageInfo = PageInfo.of(
+                userPage.getTotalElements(),
+                userPage.getTotalPages(),
+                page,
+                userPage.hasNext(),
+                userPage.hasPrevious()
+        );
+
+        return UserPaginationResult.from(
+                pageInfo,
+                userPage.getContent()
+        );
     }
 
     public DepartmentRankingPageResponse getDepartmentRankList(
@@ -270,7 +305,7 @@ public class UserService {
             String sort
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        List<DepartmentRanking> rows;
+        Page<DepartmentRanking> rows;
 
         if ("level".equalsIgnoreCase(sort)) {
             rows = userRepository.findDepartmentRankingsByLevel(pageable);
@@ -282,6 +317,8 @@ public class UserService {
             throw new RuntimeException("정렬 기준이 잘못되었습니다.");
         }
 
+        List<DepartmentRanking> content = rows.getContent();
+
         List<DepartmentRankingPageResponse.DepartmentRankingResponse> result = new ArrayList<>();
         long prevRank   = 0;
         int  sameCount  = 0;
@@ -289,8 +326,8 @@ public class UserService {
         Long   prevSolved = null;
         Long   prevCreated= null;
 
-        for (int i = 0; i < rows.size(); i++) {
-            DepartmentRanking r = rows.get(i);
+        for (int i = 0; i < content.size(); i++) {
+            DepartmentRanking r = content.get(i);
             long rank;
             if (i == 0) {
                 rank = 1;
@@ -322,7 +359,15 @@ public class UserService {
             ));
         }
 
-        return DepartmentRankingPageResponse.from(result);
+        PageInfo pageInfo = PageInfo.of(
+                rows.getTotalElements(),
+                rows.getTotalPages(),
+                page,
+                rows.hasNext(),
+                rows.hasPrevious()
+        );
+
+        return DepartmentRankingPageResponse.from(pageInfo, result);
     }
 
 
@@ -332,7 +377,7 @@ public class UserService {
             String sort
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        List<CollegeRanking> rows;
+        Page<CollegeRanking> rows;
 
         if ("level".equalsIgnoreCase(sort)) {
             rows = userRepository.findCollegeRankingsByLevel(pageable);
@@ -344,6 +389,8 @@ public class UserService {
             throw new RuntimeException("정렬 기준이 잘못되었습니다.");
         }
 
+        List<CollegeRanking> content = rows.getContent();
+
         List<CollegeRankingPageResponse.CollegeRankingResponse> result = new ArrayList<>();
         long prevRank   = 0;
         int  sameCount  = 0;
@@ -351,8 +398,8 @@ public class UserService {
         Long   prevSolved = null;
         Long   prevCreated= null;
 
-        for (int i = 0; i < rows.size(); i++) {
-            CollegeRanking r = rows.get(i);
+        for (int i = 0; i < content.size(); i++) {
+            CollegeRanking r = content.get(i);
             long rank;
             if (i == 0) {
                 rank = 1;
@@ -384,6 +431,14 @@ public class UserService {
             ));
         }
 
-        return CollegeRankingPageResponse.from(result);
+        PageInfo pageInfo = PageInfo.of(
+                rows.getTotalElements(),
+                rows.getTotalPages(),
+                page,
+                rows.hasNext(),
+                rows.hasPrevious()
+        );
+
+        return CollegeRankingPageResponse.from(pageInfo, result);
     }
 }

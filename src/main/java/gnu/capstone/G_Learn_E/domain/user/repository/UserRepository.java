@@ -60,7 +60,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         ORDER BY
           AVG(u.level) DESC
         """)
-    List<DepartmentRanking> findDepartmentRankingsByLevel(Pageable pageable);
+    Page<DepartmentRanking> findDepartmentRankingsByLevel(Pageable pageable);
 
     @Query("""
         SELECT new gnu.capstone.G_Learn_E.domain.user.dto.DepartmentRanking(
@@ -77,7 +77,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         ORDER BY
           COUNT(sw) DESC
         """)
-    List<DepartmentRanking> findDepartmentRankingsByTotalSolved(Pageable pageable);
+    Page<DepartmentRanking> findDepartmentRankingsByTotalSolved(Pageable pageable);
 
     @Query("""
         SELECT new gnu.capstone.G_Learn_E.domain.user.dto.DepartmentRanking(
@@ -94,7 +94,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         ORDER BY
         SUM(u.createWorkbookCount) DESC
         """)
-    List<DepartmentRanking> findDepartmentRankingsByTotalCreated(Pageable pageable);
+    Page<DepartmentRanking> findDepartmentRankingsByTotalCreated(Pageable pageable);
 
 
 
@@ -114,7 +114,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         ORDER BY
           AVG(u.level) DESC
         """)
-    List<CollegeRanking> findCollegeRankingsByLevel(Pageable pageable);
+    Page<CollegeRanking> findCollegeRankingsByLevel(Pageable pageable);
 
     @Query("""
         SELECT new gnu.capstone.G_Learn_E.domain.user.dto.CollegeRanking(
@@ -131,7 +131,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         ORDER BY
           COUNT(sw) DESC
         """)
-    List<CollegeRanking> findCollegeRankingsByTotalSolved(Pageable pageable);
+    Page<CollegeRanking> findCollegeRankingsByTotalSolved(Pageable pageable);
 
     @Query("""
         SELECT new gnu.capstone.G_Learn_E.domain.user.dto.CollegeRanking(
@@ -148,7 +148,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         ORDER BY
         SUM(u.createWorkbookCount) DESC
         """)
-    List<CollegeRanking> findCollegeRankingsByTotalCreated(Pageable pageable);
+    Page<CollegeRanking> findCollegeRankingsByTotalCreated(Pageable pageable);
 
     Page<User> findByDepartmentIdOrderByLevelDescExpDesc(Long departmentId, Pageable pageable);
 
