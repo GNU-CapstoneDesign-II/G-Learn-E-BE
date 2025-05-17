@@ -6,10 +6,12 @@ import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
 import gnu.capstone.G_Learn_E.domain.user.dto.request.*;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.*;
+import gnu.capstone.G_Learn_E.global.common.dto.serviceToController.UserPaginationResult;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.entity.UserBlacklist;
 import gnu.capstone.G_Learn_E.domain.user.service.UserBlacklistService;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
+import gnu.capstone.G_Learn_E.global.common.dto.response.PageInfo;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -118,9 +120,15 @@ public class UserController {
             @RequestParam(name = "sort", defaultValue = "level")
             String sort
     ) {
-        List<User> rankList = userService.getUserRankList(page, size, sort);
+        UserPaginationResult userPaginationResult = userService.getUserRankList(page, size, sort);
+        List<User> rankList = userPaginationResult.userList();
+        PageInfo pageInfo = userPaginationResult.pageInfo();
 
-        UserRankingPageResponse response = UserRankingPageResponse.from(rankList, userService.getUserRank(rankList.getFirst()));
+        UserRankingPageResponse response = UserRankingPageResponse.from(
+                pageInfo,
+                rankList,
+                userService.getUserRank(rankList.getFirst())
+        );
 
         return new ApiResponse<>(HttpStatus.OK, "유저 랭킹 조회 성공", response);
     }
@@ -150,8 +158,15 @@ public class UserController {
             String sort,
             @PathVariable("departmentId") Long departmentId
     ) {
-        List<User> rankList = userService.getUserRankListInDepartment(page, size, sort, departmentId);
-        UserRankingPageResponse response = UserRankingPageResponse.from(rankList, userService.getUserRank(rankList.getFirst()));
+        UserPaginationResult userPaginationResultInDepartment = userService.getUserRankListInDepartment(page, size, sort, departmentId);
+        List<User> rankList = userPaginationResultInDepartment.userList();
+        PageInfo pageInfo = userPaginationResultInDepartment.pageInfo();
+
+        UserRankingPageResponse response = UserRankingPageResponse.from(
+                pageInfo,
+                rankList,
+                userService.getUserRank(rankList.getFirst())
+        );
         return new ApiResponse<>(HttpStatus.OK, "유저 랭킹 조회 성공", response);
     }
 
@@ -180,8 +195,15 @@ public class UserController {
             String sort,
             @PathVariable("collegeId") Long collegeId
     ) {
-        List<User> rankList = userService.getUserRankListInCollege(page, size, sort, collegeId);
-        UserRankingPageResponse response = UserRankingPageResponse.from(rankList, userService.getUserRank(rankList.getFirst()));
+        UserPaginationResult userPaginationResultInCollege = userService.getUserRankListInCollege(page, size, sort, collegeId);
+        List<User> rankList = userPaginationResultInCollege.userList();
+        PageInfo pageInfo = userPaginationResultInCollege.pageInfo();
+
+        UserRankingPageResponse response = UserRankingPageResponse.from(
+                pageInfo,
+                rankList,
+                userService.getUserRank(rankList.getFirst())
+        );
         return new ApiResponse<>(HttpStatus.OK, "유저 랭킹 조회 성공", response);
     }
 
