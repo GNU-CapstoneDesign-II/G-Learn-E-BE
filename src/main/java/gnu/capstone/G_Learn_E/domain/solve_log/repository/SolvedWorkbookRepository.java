@@ -39,4 +39,10 @@ public interface SolvedWorkbookRepository
      * @return 완료된 워크북 개수
      */
     long countByIdUserIdAndStatus(Long userId, SolvingStatus status);
+
+    @EntityGraph(attributePaths = "solveLogs")
+    List<SolvedWorkbook> findAllByUser_IdAndStatus(
+            Long userId,
+            SolvingStatus status
+    );
 }
