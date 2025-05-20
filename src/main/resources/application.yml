@@ -62,6 +62,7 @@ mail-auth:
     - gnu.ac.kr
     - gmail.com
 
+keywords-per-problem: 5
 
 security:
   path:

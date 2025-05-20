@@ -8,7 +8,7 @@ public record ExtractKeywordsResponse(
         int responseTokens,
         float estimatedCostKrw
 ) {
-    record ProblemKeyword(
+    public record ProblemKeyword(
             Long id,
             List<String> keywords
     ) {

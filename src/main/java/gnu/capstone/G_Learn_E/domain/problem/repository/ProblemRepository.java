@@ -1,6 +1,8 @@
 package gnu.capstone.G_Learn_E.domain.problem.repository;
 
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +29,7 @@ public interface ProblemRepository extends JpaRepository<Problem, Long>, JpaSpec
     // 랜덤 (임시)
     @Query(value = "SELECT * FROM problem ORDER BY RAND() LIMIT :limit", nativeQuery = true)
     List<Problem> findRandomProblems(@Param("limit") int limit);
+
+
+    Page<Problem> findByProblemKeywordsIsEmpty(Pageable pageable);
 }
