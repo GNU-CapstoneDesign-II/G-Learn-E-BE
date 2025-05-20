@@ -371,9 +371,11 @@ public class SolveLogService {
                             total
                     );
                 })
-                // 3) 오답률 내림차순 정렬
+                // 3) 오답이 있는 문제집만 필터링
+                .filter(res -> res.wrongCount() > 0)
+                // 4) 오답률 내림차순 정렬
                 .sorted(Comparator.comparingDouble(WorkbookWrongRateResponse::wrongRate).reversed())
-                // 4) 상위 topN개
+                // 5) 상위 topN개
                 .limit(topN)
                 .toList();
     }
