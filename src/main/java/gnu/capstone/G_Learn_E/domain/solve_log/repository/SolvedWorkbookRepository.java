@@ -40,7 +40,10 @@ public interface SolvedWorkbookRepository
      */
     long countByIdUserIdAndStatus(Long userId, SolvingStatus status);
 
-    @EntityGraph(attributePaths = "solveLogs")
+    @EntityGraph(attributePaths = {
+            "solveLogs",
+            "workbook",
+    })
     List<SolvedWorkbook> findAllByUser_IdAndStatus(
             Long userId,
             SolvingStatus status
