@@ -2,6 +2,7 @@ package gnu.capstone.G_Learn_E.domain.user.entity;
 
 import gnu.capstone.G_Learn_E.domain.user.enums.ActivityType;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -37,4 +38,12 @@ public class ActivityLog {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Builder
+    public ActivityLog(
+            User         user,
+            ActivityType activityType
+    ) {
+        this.user         = user;
+        this.activityType = activityType;
+    }
 }

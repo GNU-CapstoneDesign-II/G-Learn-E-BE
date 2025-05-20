@@ -1,11 +1,14 @@
 package gnu.capstone.G_Learn_E.domain.user.service;
 
 import gnu.capstone.G_Learn_E.domain.user.dto.response.DailyActivityCountResponse;
+import gnu.capstone.G_Learn_E.domain.user.entity.ActivityLog;
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.enums.ActivityType;
 import gnu.capstone.G_Learn_E.domain.user.repository.ActivityLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,5 +53,17 @@ public class UserActivityLogService {
                     return DailyActivityCountResponse.of(d, countMap.getOrDefault(d, 0L));
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ActivityLog saveActivityLog(
+            ActivityType activityType,
+            User user
+    ) {
+        ActivityLog activityLog = ActivityLog.builder()
+                .user(user)
+                .activityType(activityType)
+                .build();
+        return activityLogRepository.save(activityLog);
     }
 }

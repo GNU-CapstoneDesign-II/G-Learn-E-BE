@@ -1,5 +1,8 @@
 package gnu.capstone.G_Learn_E.domain.user.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum ActivityType {
     LOGIN("로그인"),
     LOGOUT("로그아웃"),
@@ -20,7 +23,4 @@ public enum ActivityType {
         this.description = description;
     }
 
-    public String getDescription() {
-        return description;
-    }
 }

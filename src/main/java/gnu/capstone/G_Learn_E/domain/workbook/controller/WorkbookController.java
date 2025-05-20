@@ -8,6 +8,8 @@ import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
 import gnu.capstone.G_Learn_E.domain.user.entity.UserLevelPolicy;
+import gnu.capstone.G_Learn_E.domain.user.enums.ActivityType;
+import gnu.capstone.G_Learn_E.domain.user.service.UserActivityLogService;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.domain.workbook.converter.WorkbookConverter;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.request.*;
@@ -49,6 +51,7 @@ public class WorkbookController {
     private final WorkbookVoteService workbookVoteService;
     private final SolveLogService solveLogService;
     private final FastApiService fastApiService;
+    private final UserActivityLogService userActivityLogService;
 
 
     @GetMapping("/{workbookId}")
@@ -82,6 +85,8 @@ public class WorkbookController {
 
         WorkbookResponse response = WorkbookResponse.of(workbook);
 
+        // 유저 행동 로그 저장
+        userActivityLogService.saveActivityLog(ActivityType.WORKBOOK_CREATE, user);
         // 유저의 문제집 생성 개수 증가
         userService.plusCreateWorkbookCount(user);
         // 문제집 생성 시 경험치 부여
@@ -198,6 +203,9 @@ public class WorkbookController {
             );
         }
 
+        // 유저 행동 로그 저장
+        userActivityLogService.saveActivityLog(ActivityType.SOLVED_WORKBOOK, user);
+
         return new ApiResponse<>(HttpStatus.OK, "문제 풀이 채점 성공", response);
     }
 
@@ -217,6 +225,8 @@ public class WorkbookController {
                 subject.getName()
         );
         userService.gainExp(user, UserLevelPolicy.EXP_UPLOAD_WORKBOOK);
+        // 유저 행동 로그 저장
+        userActivityLogService.saveActivityLog(ActivityType.WORKBOOK_UPLOAD, user);
         return new ApiResponse<>(HttpStatus.OK, "문제집 업로드 성공", response);
     }
 
@@ -266,6 +276,8 @@ public class WorkbookController {
     ){
         Workbook workbook = workbookService.createWorkbookFromProblems(request.title(), request.problems(), user);
         WorkbookResponse response = WorkbookResponse.of(workbook);
+        // 유저 행동 로그 저장
+        userActivityLogService.saveActivityLog(ActivityType.WORKBOOK_UPDATE, user);
         return new ApiResponse<>(HttpStatus.OK, "문제집 병합 성공", response);
     }
 
@@ -301,6 +313,8 @@ public class WorkbookController {
         solveLogService.deleteAllLogByWorkbook(workbookId);
         Workbook workbook = workbookService.replaceProblemsInWorkbook(workbookId, request.problems(), user);
         WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        // 유저 행동 로그 저장
+        userActivityLogService.saveActivityLog(ActivityType.WORKBOOK_UPDATE, user);
         return new ApiResponse<>(HttpStatus.OK, "문제집 문제 수정 성공", response);
     }
 
