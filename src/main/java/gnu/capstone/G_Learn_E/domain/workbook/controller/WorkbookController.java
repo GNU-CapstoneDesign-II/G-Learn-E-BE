@@ -7,6 +7,7 @@ import gnu.capstone.G_Learn_E.domain.problem.service.ProblemService;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
+import gnu.capstone.G_Learn_E.domain.user.entity.ActivityLog;
 import gnu.capstone.G_Learn_E.domain.user.entity.UserLevelPolicy;
 import gnu.capstone.G_Learn_E.domain.user.enums.ActivityType;
 import gnu.capstone.G_Learn_E.domain.user.service.UserActivityLogService;

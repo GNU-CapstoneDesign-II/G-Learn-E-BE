@@ -47,7 +47,7 @@ public class UserActivityLogService {
                 .collect(Collectors.toMap(ActivityLogRepository.DailyCount::getDay, ActivityLogRepository.DailyCount::getCnt));
 
         // 기간 내 모든 날짜 채우기 (존재하지 않으면 0)
-        return IntStream.range(0, days)
+        return IntStream.range(0, days + 1)
                 .mapToObj(i -> {
                     LocalDate d = startDate.plusDays(i);
                     return DailyActivityCountResponse.of(d, countMap.getOrDefault(d, 0L));
