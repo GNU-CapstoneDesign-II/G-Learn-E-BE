@@ -45,6 +45,9 @@ public class Problem {
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolveLog> solveLogs = new ArrayList<>();
 
+    @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProblemKeyword> problemKeywords = new ArrayList<>();
+
     @Builder
     public Problem(String title,
                    List<Option> options,

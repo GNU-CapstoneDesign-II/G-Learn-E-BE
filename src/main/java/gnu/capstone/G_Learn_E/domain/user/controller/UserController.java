@@ -1,11 +1,16 @@
 package gnu.capstone.G_Learn_E.domain.user.controller;
 
+import gnu.capstone.G_Learn_E.domain.problem.dto.response.KeywordFrequencyResponse;
+import gnu.capstone.G_Learn_E.domain.problem.service.ProblemKeywordService;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.College;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Department;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
+import gnu.capstone.G_Learn_E.domain.solve_log.dto.response.WorkbookWrongRateResponse;
 import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
 import gnu.capstone.G_Learn_E.domain.user.dto.request.*;
 import gnu.capstone.G_Learn_E.domain.user.dto.response.*;
+import gnu.capstone.G_Learn_E.domain.user.enums.ActivityType;
+import gnu.capstone.G_Learn_E.domain.user.service.UserActivityLogService;
 import gnu.capstone.G_Learn_E.global.common.dto.serviceToController.UserPaginationResult;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.user.entity.UserBlacklist;
@@ -22,6 +27,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -32,8 +38,10 @@ public class UserController {
 
     private final UserService userService;
     private final UserBlacklistService userBlacklistService;
+    private final UserActivityLogService userActivityLogService;
     private final SolveLogService solveLogService;
     private final PublicFolderService publicFolderService;
+    private final ProblemKeywordService problemKeywordService;
 
     @Operation(summary = "유저 정보 조회", description = "유저 정보를 조회합니다.")
     @GetMapping
@@ -241,5 +249,37 @@ public class UserController {
     ) {
         userBlacklistService.removeBlacklist(user, request.targetId());
         return new ApiResponse<>(HttpStatus.OK, "블랙리스트 삭제 성공", null);
+    }
+
+    @Operation(summary = "유저 활동 로그 조회", description = "유저의 활동 로그를 조회합니다.")
+    @GetMapping("/activity-log")
+    public ApiResponse<?> getActivityLog(
+            @AuthenticationPrincipal User user,
+            @RequestParam(name="types") List<ActivityType> types,
+            @RequestParam(name = "days", defaultValue = "30") int days
+    ) {
+        List<DailyActivityCountResponse> dailyCounts = userActivityLogService.getDailyCounts(user.getId(), types, days);
+        Map<String, Object> response = Map.of("activityLog", dailyCounts);
+        return new ApiResponse<>(HttpStatus.OK, "유저 활동 로그 조회 성공", response);
+    }
+
+    @GetMapping("/topN-wrong-keywords")
+    public ApiResponse<?> getTopNWrongKeywords(
+            @AuthenticationPrincipal User user,
+            @RequestParam(name = "topN", defaultValue = "10") int topN
+    ) {
+        List<KeywordFrequencyResponse> keywordFrequencies = problemKeywordService.getTopWrongKeywords(user, topN);
+        Map<String, Object> response = Map.of("keywords", keywordFrequencies);
+        return new ApiResponse<>(HttpStatus.OK, "유저 오답 키워드 조회 성공", response);
+    }
+
+    @GetMapping("/topN-wrong-workbooks")
+    public ApiResponse<?> getTopNWrongWorkbooks(
+            @AuthenticationPrincipal User user,
+            @RequestParam(name = "topN", defaultValue = "10") int topN
+    ) {
+        List<WorkbookWrongRateResponse> workbookWrongRates = solveLogService.getTopWrongRateWorkbooks(user, topN);
+        Map<String, Object> response = Map.of("workbooks", workbookWrongRates);
+        return new ApiResponse<>(HttpStatus.OK, "유저 오답 워크북 조회 성공", response);
     }
 }

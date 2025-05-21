@@ -7,7 +7,10 @@ import gnu.capstone.G_Learn_E.domain.problem.service.ProblemService;
 import gnu.capstone.G_Learn_E.domain.public_folder.entity.Subject;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
+import gnu.capstone.G_Learn_E.domain.user.entity.ActivityLog;
 import gnu.capstone.G_Learn_E.domain.user.entity.UserLevelPolicy;
+import gnu.capstone.G_Learn_E.domain.user.enums.ActivityType;
+import gnu.capstone.G_Learn_E.domain.user.service.UserActivityLogService;
 import gnu.capstone.G_Learn_E.domain.user.service.UserService;
 import gnu.capstone.G_Learn_E.domain.workbook.converter.WorkbookConverter;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.request.*;
@@ -49,6 +52,7 @@ public class WorkbookController {
     private final WorkbookVoteService workbookVoteService;
     private final SolveLogService solveLogService;
     private final FastApiService fastApiService;
+    private final UserActivityLogService userActivityLogService;
 
 
     @GetMapping("/{workbookId}")
@@ -62,8 +66,11 @@ public class WorkbookController {
                 !publicFolderService.isPublicWorkbook(workbookId)) {
             throw new RuntimeException("문제집 접근 권한이 없습니다.");
         }
-        Workbook workbook = workbookService.findWorkbookById(workbookId);
-        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
+        List<Problem> problems = workbook.getProblemWorkbookMaps().stream()
+                .map(ProblemWorkbookMap::getProblem)
+                .toList();
+        WorkbookProfileResponse response = WorkbookProfileResponse.from(workbook, problems.size(), workbook.getAuthor());
         return new ApiResponse<>(HttpStatus.OK, "문제집 정보 조회 성공", response);
     }
 
@@ -82,6 +89,8 @@ public class WorkbookController {
 
         WorkbookResponse response = WorkbookResponse.of(workbook);
 
+        // 유저 행동 로그 저장
+        userActivityLogService.saveActivityLog(ActivityType.WORKBOOK_CREATE, user);
         // 유저의 문제집 생성 개수 증가
         userService.plusCreateWorkbookCount(user);
         // 문제집 생성 시 경험치 부여
@@ -118,7 +127,9 @@ public class WorkbookController {
             throw new RuntimeException("문제집 접근 권한이 없습니다.");
         }
         Workbook workbook = workbookService.updateWorkbook(workbookId, request);
-        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        List<Problem> problems = problemService.findAllByWorkbookIds(List.of(workbookId));
+
+        WorkbookProfileResponse response = WorkbookProfileResponse.from(workbook, problems.size(), user);
         return new ApiResponse<>(HttpStatus.OK, "문제집 정보 수정 성공", response);
     }
 
@@ -198,6 +209,9 @@ public class WorkbookController {
             );
         }
 
+        // 유저 행동 로그 저장
+        userActivityLogService.saveActivityLog(ActivityType.SOLVED_WORKBOOK, user);
+
         return new ApiResponse<>(HttpStatus.OK, "문제 풀이 채점 성공", response);
     }
 
@@ -217,6 +231,8 @@ public class WorkbookController {
                 subject.getName()
         );
         userService.gainExp(user, UserLevelPolicy.EXP_UPLOAD_WORKBOOK);
+        // 유저 행동 로그 저장
+        userActivityLogService.saveActivityLog(ActivityType.WORKBOOK_UPLOAD, user);
         return new ApiResponse<>(HttpStatus.OK, "문제집 업로드 성공", response);
     }
 
@@ -266,6 +282,8 @@ public class WorkbookController {
     ){
         Workbook workbook = workbookService.createWorkbookFromProblems(request.title(), request.problems(), user);
         WorkbookResponse response = WorkbookResponse.of(workbook);
+        // 유저 행동 로그 저장
+        userActivityLogService.saveActivityLog(ActivityType.WORKBOOK_UPDATE, user);
         return new ApiResponse<>(HttpStatus.OK, "문제집 병합 성공", response);
     }
 
@@ -301,6 +319,8 @@ public class WorkbookController {
         solveLogService.deleteAllLogByWorkbook(workbookId);
         Workbook workbook = workbookService.replaceProblemsInWorkbook(workbookId, request.problems(), user);
         WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        // 유저 행동 로그 저장
+        userActivityLogService.saveActivityLog(ActivityType.WORKBOOK_UPDATE, user);
         return new ApiResponse<>(HttpStatus.OK, "문제집 문제 수정 성공", response);
     }
 
@@ -312,13 +332,31 @@ public class WorkbookController {
             @RequestBody WorkbookVoteRequest request
     ) {
         log.info("문제집 투표 요청 : {}", request);
-        Workbook workbook = workbookService.findWorkbookById(workbookId);
+        Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
+        User author = workbook.getAuthor();
         if(!publicFolderService.isPublicWorkbook(workbookId)) {
             throw new RuntimeException("문제집 접근 권한이 없습니다.");
         }
+        List<Problem> problems = workbook.getProblemWorkbookMaps().stream()
+                .map(ProblemWorkbookMap::getProblem)
+                .toList();
         workbookVoteService.toggleVote(workbook, user, request.voteType());
         workbook = workbookVoteService.updateVoteCount(workbook);
-        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+
+        WorkbookProfileResponse response = WorkbookProfileResponse.from(workbook, problems.size(), author);
         return new ApiResponse<>(HttpStatus.OK, "문제집 투표 성공", response);
+    }
+
+    @Operation(summary = "문제집 연관 키워드 조회", description = "키워드와 가장 유사한 문제집을 조회합니다.")
+    @GetMapping("/relative-keyword")
+    public ApiResponse<?> getRelativeKeyword(
+            @AuthenticationPrincipal User user,
+            @RequestParam("keyword") String keyword,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        log.info("문제집 연관 키워드 조회 요청 : {}", keyword);
+        List<WorkbookSimpleResponse> response = workbookService.getWorkbooksByRelativeKeyword(user, keyword, page, size);
+        return new ApiResponse<>(HttpStatus.OK, "연관 키워드 문제집 조회 성공", response);
     }
 }

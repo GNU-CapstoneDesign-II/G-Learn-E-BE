@@ -22,8 +22,7 @@ public class WorkbookVoteService {
     private final WorkbookVoteRepository workbookVoteRepository;
 
     @Transactional
-    public void toggleVote(Workbook workbook, User user, String voteTypeStr) {
-        WorkbookVoteType workbookVoteType = (voteTypeStr.equalsIgnoreCase("like")) ? WorkbookVoteType.LIKE : WorkbookVoteType.DISLIKE;
+    public void toggleVote(Workbook workbook, User user, WorkbookVoteType voteType) {
 
         Optional<WorkbookVote> voteOpt = workbookVoteRepository.findByUserIdAndWorkbookId(user.getId(), workbook.getId());
         if(voteOpt.isEmpty()){
@@ -32,18 +31,18 @@ public class WorkbookVoteService {
             WorkbookVote workbookVote = WorkbookVote.builder()
                     .user(user)
                     .workbook(workbook)
-                    .voteType(workbookVoteType)
+                    .voteType(voteType)
                     .build();
             workbookVoteRepository.save(workbookVote);
         } else {
             // 사용자가 이미 투표한 경우, 투표를 토글합니다.
             WorkbookVote existingVote = voteOpt.get();
-            if (existingVote.getVoteType() == workbookVoteType) {
+            if (existingVote.getVoteType() == voteType) {
                 // 같은 투표를 다시 클릭하면 투표를 제거합니다.
                 workbookVoteRepository.delete(existingVote);
             } else {
                 // 다른 투표를 클릭하면 기존 투표를 업데이트합니다.
-                existingVote.setVoteType(workbookVoteType);
+                existingVote.setVoteType(voteType);
                 workbookVoteRepository.save(existingVote);
             }
         }

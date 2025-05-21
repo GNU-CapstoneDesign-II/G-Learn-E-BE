@@ -62,6 +62,7 @@ mail-auth:
     - gnu.ac.kr
     - gmail.com
 
+keywords-per-problem: 5
 
 security:
   path:
@@ -128,3 +129,6 @@ fast-api:
     monthly-logs:
       method: ${fast-api.endpoints.monthly-logs.method}
       path: ${fast-api.endpoints.monthly-logs.path}
+    extract-keywords:
+      method: ${fast-api.endpoints.extract-keywords.method}
+      path: ${fast-api.endpoints.extract-keywords.path}

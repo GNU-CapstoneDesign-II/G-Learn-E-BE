@@ -50,6 +50,9 @@ public class User {
     private long solvedWorkbookCount;
     private long uploadedWorkbookCount;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ActivityLog> activityLogs = new ArrayList<>();
+
     @Setter
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "college_id", nullable = false)
