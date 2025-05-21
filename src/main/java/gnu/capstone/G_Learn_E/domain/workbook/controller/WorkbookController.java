@@ -66,8 +66,11 @@ public class WorkbookController {
                 !publicFolderService.isPublicWorkbook(workbookId)) {
             throw new RuntimeException("문제집 접근 권한이 없습니다.");
         }
-        Workbook workbook = workbookService.findWorkbookById(workbookId);
-        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
+        List<Problem> problems = workbook.getProblemWorkbookMaps().stream()
+                .map(ProblemWorkbookMap::getProblem)
+                .toList();
+        WorkbookProfileResponse response = WorkbookProfileResponse.from(workbook, problems.size(), workbook.getAuthor());
         return new ApiResponse<>(HttpStatus.OK, "문제집 정보 조회 성공", response);
     }
 
@@ -124,7 +127,9 @@ public class WorkbookController {
             throw new RuntimeException("문제집 접근 권한이 없습니다.");
         }
         Workbook workbook = workbookService.updateWorkbook(workbookId, request);
-        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+        List<Problem> problems = problemService.findAllByWorkbookIds(List.of(workbookId));
+
+        WorkbookProfileResponse response = WorkbookProfileResponse.from(workbook, problems.size(), user);
         return new ApiResponse<>(HttpStatus.OK, "문제집 정보 수정 성공", response);
     }
 
@@ -327,13 +332,18 @@ public class WorkbookController {
             @RequestBody WorkbookVoteRequest request
     ) {
         log.info("문제집 투표 요청 : {}", request);
-        Workbook workbook = workbookService.findWorkbookById(workbookId);
+        Workbook workbook = workbookService.findWorkbookByIdWithProblems(workbookId);
+        User author = workbook.getAuthor();
         if(!publicFolderService.isPublicWorkbook(workbookId)) {
             throw new RuntimeException("문제집 접근 권한이 없습니다.");
         }
+        List<Problem> problems = workbook.getProblemWorkbookMaps().stream()
+                .map(ProblemWorkbookMap::getProblem)
+                .toList();
         workbookVoteService.toggleVote(workbook, user, request.voteType());
         workbook = workbookVoteService.updateVoteCount(workbook);
-        WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
+
+        WorkbookProfileResponse response = WorkbookProfileResponse.from(workbook, problems.size(), author);
         return new ApiResponse<>(HttpStatus.OK, "문제집 투표 성공", response);
     }
 

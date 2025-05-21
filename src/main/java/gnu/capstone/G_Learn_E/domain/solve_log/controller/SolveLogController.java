@@ -3,9 +3,11 @@ package gnu.capstone.G_Learn_E.domain.solve_log.controller;
 import gnu.capstone.G_Learn_E.domain.folder.service.FolderService;
 import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
+import gnu.capstone.G_Learn_E.domain.solve_log.dto.response.SolveLogResponse;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbookId;
+import gnu.capstone.G_Learn_E.domain.solve_log.enums.SolvingStatus;
 import gnu.capstone.G_Learn_E.domain.solve_log.service.SolveLogService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
@@ -33,6 +35,51 @@ public class SolveLogController {
     private final FolderService folderService;
     private final PublicFolderService publicFolderService;
 
+
+    @GetMapping("/workbook/{workbookId}")
+    @Operation(summary = "풀이 로그 조회", description = "풀이 로그를 조회합니다.")
+    public ApiResponse<?> getUsersSolveLog(
+            @AuthenticationPrincipal User user,
+            @PathVariable("workbookId") Long workbookId
+    ){
+        if(!folderService.isWorkbookInUserFolder(user, workbookId) &&
+                !publicFolderService.isPublicWorkbook(workbookId)) {
+            throw new RuntimeException("문제집 접근 권한이 없습니다.");
+        }
+
+        Workbook workbook = workbookService.findWorkbookById(workbookId);
+        SolvedWorkbook solvedWorkbook;
+        try {
+            solvedWorkbook = solveLogService.findSolvedWorkbookByIdWithSolveLogs(workbook, user);
+        } catch (RuntimeException e) {
+            // 풀이 로그가 없는 경우
+            SolveLogResponse solveLogResponse = SolveLogResponse.of(
+                    SolvingStatus.NOT_STARTED.getStatus(),
+                    null,
+                    0,
+                    0
+            );
+            return new ApiResponse<>(HttpStatus.OK, "풀이 로그 조회 성공", solveLogResponse);
+        }
+        List<SolveLog> solveLogs = solvedWorkbook.getSolveLogs();
+        int correctCount = 0 , wrongCount = 0;
+        if(solvedWorkbook.getStatus() == SolvingStatus.COMPLETED) {
+            for (SolveLog solveLog : solveLogs) {
+                if (solveLog.getIsCorrect()) {
+                    correctCount++;
+                } else {
+                    wrongCount++;
+                }
+            }
+        }
+        SolveLogResponse solveLogResponse = SolveLogResponse.of(
+                solvedWorkbook.getStatus().getStatus(),
+                solvedWorkbook.getUpdatedAt(),
+                correctCount,
+                wrongCount
+        );
+        return new ApiResponse<>(HttpStatus.OK, "풀이 로그 조회 성공", solveLogResponse);
+    }
 
     @Operation(summary = "풀이 로그 업데이트", description = "풀이 로그를 업데이트합니다.")
     @PatchMapping("/workbook/{workbookId}")

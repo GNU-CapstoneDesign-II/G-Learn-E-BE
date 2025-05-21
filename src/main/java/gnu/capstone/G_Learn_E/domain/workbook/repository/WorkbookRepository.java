@@ -28,7 +28,8 @@ public interface WorkbookRepository extends JpaRepository<Workbook, Long>, JpaSp
 
     @EntityGraph(attributePaths = {
             "problemWorkbookMaps",
-            "problemWorkbookMaps.problem"
+            "problemWorkbookMaps.problem",
+            "author"
     })
     Optional<Workbook> findWithMappingsAndProblemsById(@Param("workbookId") Long workbookId);
 

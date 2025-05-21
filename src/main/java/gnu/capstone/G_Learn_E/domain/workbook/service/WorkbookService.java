@@ -318,14 +318,17 @@ public class WorkbookService {
     }
 
     public Workbook updateWorkbook(Long workbookId, WorkbookUpdateRequest request) {
+        ExamType examType = ExamType.valueOf(request.examType());
+        Semester semester = Semester.valueOf(request.semester());
+
         Workbook workbook = findWorkbookById(workbookId);
         workbook.updateWorkbook(
                 request.name(),
                 request.professor(),
-                ExamType.fromString(request.examType()),
-                request.coverImage(),
+                examType,
+                workbook.getCoverImage(),
                 request.courseYear(),
-                Semester.fromString(request.semester())
+                semester
         );
         return workbookRepository.save(workbook);
     }

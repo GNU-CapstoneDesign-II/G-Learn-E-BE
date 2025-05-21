@@ -8,10 +8,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor
 public class SolvedWorkbook {
@@ -34,6 +39,15 @@ public class SolvedWorkbook {
     @Setter
     @Enumerated(EnumType.STRING)
     private SolvingStatus status; // 풀이 상태 (진행 중, 완료 등)
+
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    // 최종 수정 시각
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @Builder
     public SolvedWorkbook(SolvedWorkbookId id, User user, Workbook workbook) {
