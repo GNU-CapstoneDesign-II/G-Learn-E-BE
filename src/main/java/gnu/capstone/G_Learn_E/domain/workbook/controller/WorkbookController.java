@@ -336,4 +336,17 @@ public class WorkbookController {
         WorkbookSimpleResponse response = WorkbookSimpleResponse.from(workbook);
         return new ApiResponse<>(HttpStatus.OK, "문제집 투표 성공", response);
     }
+
+    @Operation(summary = "문제집 연관 키워드 조회", description = "키워드와 가장 유사한 문제집을 조회합니다.")
+    @GetMapping("/relative-keyword")
+    public ApiResponse<?> getRelativeKeyword(
+            @AuthenticationPrincipal User user,
+            @RequestParam("keyword") String keyword,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        log.info("문제집 연관 키워드 조회 요청 : {}", keyword);
+        List<WorkbookSimpleResponse> response = workbookService.getWorkbooksByRelativeKeyword(user, keyword, page, size);
+        return new ApiResponse<>(HttpStatus.OK, "연관 키워드 문제집 조회 성공", response);
+    }
 }

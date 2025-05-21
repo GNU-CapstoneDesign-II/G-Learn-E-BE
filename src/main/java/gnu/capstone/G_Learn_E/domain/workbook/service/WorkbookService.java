@@ -7,6 +7,7 @@ import gnu.capstone.G_Learn_E.domain.folder.repository.FolderWorkbookMapReposito
 import gnu.capstone.G_Learn_E.domain.problem.converter.ProblemConverter;
 import gnu.capstone.G_Learn_E.domain.problem.dto.request.ProblemRequest;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
+import gnu.capstone.G_Learn_E.domain.problem.entity.ProblemWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.problem.enums.ProblemType;
 import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemRepository;
 import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemWorkbookMapRepository;
@@ -16,6 +17,7 @@ import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectWorkbookMap
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.request.WorkbookUpdateRequest;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
+import gnu.capstone.G_Learn_E.domain.workbook.dto.response.WorkbookSimpleResponse;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.DownloadedWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.enums.ExamType;
@@ -32,10 +34,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -329,6 +328,37 @@ public class WorkbookService {
                 Semester.fromString(request.semester())
         );
         return workbookRepository.save(workbook);
+    }
+
+    public List<WorkbookSimpleResponse> getWorkbooksByRelativeKeyword(
+            User user,
+            String keyword,
+            int page, int size
+    ) {
+        List<Workbook> workbooks = workbookRepository.findAccessibleByKeyword(keyword, user.getId());
+
+        Map<Workbook, Long> countMap = workbooks.stream()
+                .collect(Collectors.toMap(
+                        w -> w,
+                        w -> w.getProblemWorkbookMaps().stream()
+                                .map(ProblemWorkbookMap::getProblem)
+                                .filter(p -> p.getProblemKeywords().stream()
+                                        .anyMatch(pk -> pk.getKeyword().equals(keyword)))
+                                .distinct()
+                                .count()
+                ));
+
+        // 3) 개수 내림차순 정렬 후 DTO 리스트로 변환
+        return countMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .skip((long) page * size)
+                // size 개수만큼 제한
+                .limit(size)
+                .map(e -> {
+                    Workbook w = e.getKey();
+                    return WorkbookSimpleResponse.from(w);
+                })
+                .toList();
     }
 
 

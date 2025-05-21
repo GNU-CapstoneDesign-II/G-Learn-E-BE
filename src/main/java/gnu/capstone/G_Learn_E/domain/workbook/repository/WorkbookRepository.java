@@ -158,4 +158,28 @@ public interface WorkbookRepository extends JpaRepository<Workbook, Long>, JpaSp
             @Param("currentUserId") Long currentUserId,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT DISTINCT w
+          FROM Workbook w
+          JOIN w.problemWorkbookMaps pwm
+          JOIN pwm.problem p
+          JOIN p.problemKeywords pk
+          LEFT JOIN w.folderWorkbookMaps fwm
+          LEFT JOIN w.subjectWorkbookMaps swm
+         WHERE pk.keyword = :keyword
+           AND (
+               fwm.folder.user.id = :userId
+               OR swm IS NOT NULL
+           )
+    """)
+    @EntityGraph(attributePaths = {
+            "problemWorkbookMaps",
+            "problemWorkbookMaps.problem",
+            "problemWorkbookMaps.problem.problemKeywords"
+    })
+    List<Workbook> findAccessibleByKeyword(
+            @Param("keyword") String keyword,
+            @Param("userId")  Long userId
+    );
 }
