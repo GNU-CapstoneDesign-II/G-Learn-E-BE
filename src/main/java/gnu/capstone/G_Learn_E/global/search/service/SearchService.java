@@ -1,5 +1,7 @@
 package gnu.capstone.G_Learn_E.global.search.service;
 
+import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
+import gnu.capstone.G_Learn_E.domain.folder.entity.FolderWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.problem.entity.ProblemWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
@@ -165,10 +167,24 @@ public class SearchService {
             case "public" -> (r, q, cb) ->
                     cb.isNotEmpty(r.get("subjectWorkbookMaps"));              // 공개 폴더에 속함
 
-            case "private" -> (r, q, cb) -> cb.and(
-                    cb.isEmpty(r.get("subjectWorkbookMaps")),                 // 공개 폴더 X
-                    cb.equal(r.get("author").get("id"), userId)               // ← 내 문제집만
-            );
+            case "private" -> (root, query, cb) -> {
+                // 1) Workbook ↔ FolderWorkbookMap 조인
+                Join<Workbook, FolderWorkbookMap> mapJoin =
+                        root.join("folderWorkbookMaps", JoinType.INNER);
+                // 2) FolderWorkbookMap ↔ Folder 조인
+                Join<FolderWorkbookMap, Folder> folderJoin =
+                        mapJoin.join("folder", JoinType.INNER);
+
+                // 중복 워크북 제거를 위해 distinct 설정
+                query.distinct(true);
+
+                // • 공개 폴더에 속하지 않고
+                // • 조인한 폴더의 user.id가 현재 userId인 워크북
+                return cb.and(
+                        cb.isEmpty(root.get("subjectWorkbookMaps")),
+                        cb.equal(folderJoin.get("user").get("id"), userId)
+                );
+            };
 
             default -> null;                                              // all
         };
