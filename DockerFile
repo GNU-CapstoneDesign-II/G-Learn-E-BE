@@ -45,6 +45,9 @@ COPY . .
 RUN chmod +x ./gradlew
 RUN ./gradlew --no-daemon clean bootJar
 
+COPY wait-for-it.sh /app/wait-for-it.sh
+RUN chmod +x /app/wait-for-it.sh
+
 # ===== 2) runtime (경량 JRE) =====
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
