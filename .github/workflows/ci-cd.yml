@@ -5,7 +5,7 @@ on:
 
 jobs:
   build-push:
-    uses: <ORG>/.github/.github/workflows/build-push.yml@main
+    uses: GNU-CapstoneDesign-II/.github/.github/workflows/build-push.yml@main
     with:
       image_name: ${{ vars.DOCKERHUB_USERNAME }}/g-learn-e-be
       context: .
