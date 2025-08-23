@@ -6,8 +6,10 @@ import gnu.capstone.G_Learn_E.domain.public_folder.service.PublicFolderService;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.service.DownloadedWorkbookService;
+import gnu.capstone.G_Learn_E.global.common.dto.response.PageInfo;
 import gnu.capstone.G_Learn_E.global.common.dto.response.PublicPath;
 import gnu.capstone.G_Learn_E.global.search.dto.response.SearchResponse;
+import gnu.capstone.G_Learn_E.global.common.dto.serviceToController.WorkbookPaginationResult;
 import gnu.capstone.G_Learn_E.global.search.service.SearchService;
 import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,28 +67,38 @@ public class SearchController {
             @RequestParam(value = "sort", defaultValue = "relevance") String sort,
             @RequestParam(value = "order", defaultValue = "desc") String order
     ){
+        PageInfo privatePageInfo = null;
+        PageInfo publicPageInfo = null;
         List<Workbook> privateWorkbooks = null, publicWorkbooks = null;
         Set<Long> usersDownloaded = null;
         Map<Long, Folder> privatePaths = new HashMap<>();
         Map<Long, List<PublicPath>> publicPaths = new HashMap<>();
 
         if(range.equals("all") || range.equals("private")) {
-            privateWorkbooks = searchService.searchWorkbook(user, keyword, "private", type, page, size, sort, order);
+            WorkbookPaginationResult results = searchService.searchWorkbook(user, keyword, "private", type, page, size, sort, order);
+            privateWorkbooks = results.workbookList();
             privateWorkbooks.forEach(workbook -> {
                 Folder folder = folderService.findWorkbookFolder(user, workbook.getId());
                 privatePaths.put(workbook.getId(), folder);
             });
+
+            privatePageInfo = results.pageInfo();
         }
         if(range.equals("all") || range.equals("public")) {
-            publicWorkbooks = searchService.searchWorkbook(user, keyword, "public", type, page, size, sort, order);
+            WorkbookPaginationResult results = searchService.searchWorkbook(user, keyword, "public", type, page, size, sort, order);
+            publicWorkbooks = results.workbookList();
             usersDownloaded = downloadedWorkbookService.getUsersDownloadedWorkbookIds(user.getId());
             publicWorkbooks.forEach(workbook -> {
                 List<PublicPath> paths = publicFolderService.getPublicPath(workbook);
                 publicPaths.put(workbook.getId(), paths);
             });
+
+            publicPageInfo = results.pageInfo();
         }
 
         SearchResponse response = SearchResponse.from(
+                privatePageInfo,
+                publicPageInfo,
                 privateWorkbooks,
                 privatePaths,
                 publicWorkbooks,

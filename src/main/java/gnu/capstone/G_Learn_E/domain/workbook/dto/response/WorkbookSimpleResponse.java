@@ -46,10 +46,10 @@ public record WorkbookSimpleResponse(
                 workbook.getId(),
                 workbook.getName(),
                 workbook.getProfessor(),
-                workbook.getExamType().name(),
+                workbook.getExamType().getLabel(),
                 workbook.getCoverImage(),
                 workbook.getCourseYear(),
-                workbook.getSemester().name(),
+                workbook.getSemester().getLabel(),
                 workbook.getCreatedAt().toString(),
                 workbook.getLikeCount(),
                 workbook.getDislikeCount()

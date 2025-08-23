@@ -1,15 +1,19 @@
 package gnu.capstone.G_Learn_E.domain.user.dto.response;
 
+import gnu.capstone.G_Learn_E.global.common.dto.response.PageInfo;
+
 import java.util.List;
 
 public record DepartmentRankingPageResponse(
+        PageInfo pageInfo,
         List<DepartmentRankingResponse> rankings
 ) {
 
     public static DepartmentRankingPageResponse from(
+            PageInfo pageInfo,
             List<DepartmentRankingResponse> rankings
     ) {
-        return new DepartmentRankingPageResponse(rankings);
+        return new DepartmentRankingPageResponse(pageInfo, rankings);
     }
 
 

@@ -3,20 +3,23 @@ package gnu.capstone.G_Learn_E.domain.user.dto.response;
 import gnu.capstone.G_Learn_E.domain.public_folder.dto.response.CollegeResponse;
 import gnu.capstone.G_Learn_E.domain.public_folder.dto.response.DepartmentResponse;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
+import gnu.capstone.G_Learn_E.global.common.dto.response.PageInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public record UserRankingPageResponse(
+        PageInfo pageInfo,
         List<UserRankingResponse> rankings
 ) {
     public static UserRankingPageResponse from(
+            PageInfo pageInfo,
             List<User> rankings,
             long startRank
     ) {
         List<UserRankingResponse> list = new ArrayList<>();
         if (rankings.isEmpty()) {
-            return new UserRankingPageResponse(list);
+            return new UserRankingPageResponse(pageInfo, list);
         }
 
         // 첫 유저
@@ -47,7 +50,7 @@ public record UserRankingPageResponse(
             list.add(UserRankingResponse.from(u, rank));
         }
 
-        return new UserRankingPageResponse(list);
+        return new UserRankingPageResponse(pageInfo, list);
     }
 
     record UserRankingResponse(

@@ -1,5 +1,6 @@
 package gnu.capstone.G_Learn_E.global.fastapi.service;
 
+import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.request.ProblemGenerateRequest;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.request.*;
@@ -37,6 +38,23 @@ public class FastApiService {
 
     private FastApiProperties.Endpoint getEndpoint(String endpointName) {
         return fastApiProperties.endpoints().get(endpointName);
+    }
+
+    public ExtractKeywordsResponse extractKeywordsFromProblems(List<Problem> problems, int topN) {
+        FastApiProperties.Endpoint endpoint = getEndpoint("extract-keywords");
+        String url = fastApiProperties.baseUrl() + endpoint.path();
+
+        ExtractKeywordsRequest request = ExtractKeywordsRequest.from(problems, topN);
+
+        // FastAPI 서버로 POST 요청
+        ResponseEntity<ExtractKeywordsResponse> response = restTemplate.postForEntity(url, request, ExtractKeywordsResponse.class);
+        if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("FastAPI response: {}", response.getBody());
+            return response.getBody();
+        } else {
+            log.error("Failed to call FastAPI: {}", response.getStatusCode());
+            throw new RuntimeException("Failed to call FastAPI");
+        }
     }
 
 

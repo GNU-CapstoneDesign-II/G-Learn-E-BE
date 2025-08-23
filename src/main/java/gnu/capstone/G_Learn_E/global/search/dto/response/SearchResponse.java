@@ -4,21 +4,22 @@ import gnu.capstone.G_Learn_E.domain.folder.dto.response.SimpleFolderResponse;
 import gnu.capstone.G_Learn_E.domain.folder.entity.Folder;
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
-import gnu.capstone.G_Learn_E.global.common.dto.response.Author;
-import gnu.capstone.G_Learn_E.global.common.dto.response.PrivateWorkbook;
-import gnu.capstone.G_Learn_E.global.common.dto.response.PublicPath;
-import gnu.capstone.G_Learn_E.global.common.dto.response.PublicWorkbook;
+import gnu.capstone.G_Learn_E.global.common.dto.response.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public record SearchResponse(
+        PageInfo privatePageInfo,
         List<SearchedPrivateWorkbook> privateWorkbooks,
+        PageInfo publicPageInfo,
         List<SearchedPublicWorkbook> publicWorkbooks
 ) {
 
     public static SearchResponse from(
+            PageInfo privatePageInfo,
+            PageInfo publicPageInfo,
             List<Workbook> privateWorkbooks,
             Map<Long, Folder> privateWorkbookPaths,
             List<Workbook> publicWorkbooks,
@@ -26,12 +27,14 @@ public record SearchResponse(
             Map<Long, List<PublicPath>> publicWorkbookPaths
     ) {
         return new SearchResponse(
+                privatePageInfo,
                 privateWorkbooks == null ? null :
                         privateWorkbooks.stream()
                                 .map(workbook -> SearchedPrivateWorkbook.from(
                                         workbook, privateWorkbookPaths.get(workbook.getId())
                                 ))
                                 .toList(),
+                publicPageInfo,
                 publicWorkbooks == null ? null :
                         publicWorkbooks.stream()
                                 .map(workbook -> SearchedPublicWorkbook.from(

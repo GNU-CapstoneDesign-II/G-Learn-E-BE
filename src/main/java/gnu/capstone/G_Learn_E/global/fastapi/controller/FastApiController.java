@@ -1,5 +1,8 @@
 package gnu.capstone.G_Learn_E.global.fastapi.controller;
 
+import gnu.capstone.G_Learn_E.domain.problem.entity.Problem;
+import gnu.capstone.G_Learn_E.domain.problem.repository.ProblemRepository;
+import gnu.capstone.G_Learn_E.domain.problem.service.ProblemService;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.request.QuestionTypes;
 import gnu.capstone.G_Learn_E.domain.workbook.dto.response.ProblemGenerateResponse;
 import gnu.capstone.G_Learn_E.global.fastapi.dto.request.GradeBlankRequest;
@@ -12,10 +15,7 @@ import gnu.capstone.G_Learn_E.global.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,6 +26,17 @@ import java.util.List;
 public class FastApiController {
 
     private final FastApiService fastApiService;
+    private final ProblemRepository problemRepository;
+
+    @PostMapping("/test/extract-keywords")
+    public ApiResponse<ExtractKeywordsResponse> testExtractKeywords() {
+        List<Problem> problems = problemRepository.findRandomProblems(5);
+        int topN = 3;
+
+        ExtractKeywordsResponse response = fastApiService.extractKeywordsFromProblems(problems, topN);
+        log.info("FastAPI Request success");
+        return new ApiResponse<>(HttpStatus.OK, "키워드 추출에 성공하였습니다.", response);
+    }
 
 
     @GetMapping("/test/make-problem")

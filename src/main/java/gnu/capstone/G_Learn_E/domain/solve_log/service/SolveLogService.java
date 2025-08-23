@@ -5,6 +5,7 @@ import gnu.capstone.G_Learn_E.domain.problem.entity.ProblemWorkbookMap;
 import gnu.capstone.G_Learn_E.domain.problem.enums.ProblemType;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SaveSolveLogRequest;
 import gnu.capstone.G_Learn_E.domain.solve_log.dto.request.SolveLogRequest;
+import gnu.capstone.G_Learn_E.domain.solve_log.dto.response.WorkbookWrongRateResponse;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolveLog;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbook;
 import gnu.capstone.G_Learn_E.domain.solve_log.entity.SolvedWorkbookId;
@@ -342,5 +343,40 @@ public class SolveLogService {
                         )
                         .toList());
         return fastApiService.gradeDescriptive(request).result();
+    }
+
+    public List<WorkbookWrongRateResponse> getTopWrongRateWorkbooks(
+            User user,
+            int topN
+    ) {
+        // 1) 완료된 SolvedWorkbook 전부 가져오기
+        List<SolvedWorkbook> completed = solvedWorkbookRepository
+                .findAllByUser_IdAndStatus(user.getId(), SolvingStatus.COMPLETED);
+
+        // 2) 각 Workbook별로 오답률 계산, DTO로 매핑
+        return completed.stream()
+                .map(sw -> {
+                    var logs = sw.getSolveLogs();
+                    long total   = logs.size();
+                    long wrong   = logs.stream()
+                            .filter(sl -> Boolean.FALSE.equals(sl.getIsCorrect()))
+                            .count();
+                    double rate  = total == 0 ? 0.0 : (double) wrong / total;
+                    var wb       = sw.getWorkbook();
+                    return WorkbookWrongRateResponse.of(
+                            wb.getId(),
+                            wb.getName(),
+                            rate,
+                            wrong,
+                            total
+                    );
+                })
+                // 3) 오답이 있는 문제집만 필터링
+                .filter(res -> res.wrongCount() > 0)
+                // 4) 오답률 내림차순 정렬
+                .sorted(Comparator.comparingDouble(WorkbookWrongRateResponse::wrongRate).reversed())
+                // 5) 상위 topN개
+                .limit(topN)
+                .toList();
     }
 }

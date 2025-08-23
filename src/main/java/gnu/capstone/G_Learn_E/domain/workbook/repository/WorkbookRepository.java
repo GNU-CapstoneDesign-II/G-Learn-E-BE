@@ -1,5 +1,6 @@
 package gnu.capstone.G_Learn_E.domain.workbook.repository;
 
+import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +28,8 @@ public interface WorkbookRepository extends JpaRepository<Workbook, Long>, JpaSp
 
     @EntityGraph(attributePaths = {
             "problemWorkbookMaps",
-            "problemWorkbookMaps.problem"
+            "problemWorkbookMaps.problem",
+            "author"
     })
     Optional<Workbook> findWithMappingsAndProblemsById(@Param("workbookId") Long workbookId);
 
@@ -47,8 +49,13 @@ public interface WorkbookRepository extends JpaRepository<Workbook, Long>, JpaSp
         SELECT DISTINCT w
           FROM Workbook w
           JOIN w.subjectWorkbookMaps m
+         WHERE w.author.id NOT IN (
+             SELECT ub.targetUser.id
+               FROM UserBlacklist ub
+              WHERE ub.user.id = :userId
+         )
     """)
-    Page<Workbook> findAllWorkbooks(Pageable pageable);
+    Page<Workbook> findAllWorkbooks(Pageable pageable, @Param("userId") Long userId);
 
     /** 단과대별 워크북 조회 */
     @EntityGraph(attributePaths = { "author" })
@@ -57,8 +64,13 @@ public interface WorkbookRepository extends JpaRepository<Workbook, Long>, JpaSp
           FROM Workbook w
           JOIN w.subjectWorkbookMaps m
          WHERE m.subject.department.college.id = :collegeId
+         AND w.author.id NOT IN (
+             SELECT ub.targetUser.id
+               FROM UserBlacklist ub
+              WHERE ub.user.id = :userId
+         )
     """)
-    Page<Workbook> findAllByCollegeId(@Param("collegeId") Long collegeId, Pageable pageable);
+    Page<Workbook> findAllByCollegeId(@Param("collegeId") Long collegeId, Pageable pageable, @Param("userId") Long userId);
 
     /** 학과별 워크북 조회 */
     @EntityGraph(attributePaths = { "author" })
@@ -67,8 +79,13 @@ public interface WorkbookRepository extends JpaRepository<Workbook, Long>, JpaSp
           FROM Workbook w
           JOIN w.subjectWorkbookMaps m
          WHERE m.subject.department.id = :departmentId
+         AND w.author.id NOT IN (
+             SELECT ub.targetUser.id
+               FROM UserBlacklist ub
+              WHERE ub.user.id = :userId
+         )
     """)
-    Page<Workbook> findAllByDepartmentId(@Param("departmentId") Long departmentId, Pageable pageable);
+    Page<Workbook> findAllByDepartmentId(@Param("departmentId") Long departmentId, Pageable pageable, @Param("userId") Long userId);
 
     /** 과목별 워크북 조회 */
     @EntityGraph(attributePaths = { "author" })
@@ -77,8 +94,13 @@ public interface WorkbookRepository extends JpaRepository<Workbook, Long>, JpaSp
           FROM Workbook w
           JOIN w.subjectWorkbookMaps m
          WHERE m.subject.id = :subjectId
+         AND w.author.id NOT IN (
+             SELECT ub.targetUser.id
+               FROM UserBlacklist ub
+              WHERE ub.user.id = :userId
+         )
     """)
-    Page<Workbook> findAllBySubjectId(@Param("subjectId") Long subjectId, Pageable pageable);
+    Page<Workbook> findAllBySubjectId(@Param("subjectId") Long subjectId, Pageable pageable, @Param("userId") Long userId);
 
 
     @EntityGraph(attributePaths = { "author" })
@@ -136,5 +158,29 @@ public interface WorkbookRepository extends JpaRepository<Workbook, Long>, JpaSp
             @Param("range") String range,
             @Param("currentUserId") Long currentUserId,
             Pageable pageable
+    );
+
+    @Query("""
+        SELECT DISTINCT w
+          FROM Workbook w
+          JOIN w.problemWorkbookMaps pwm
+          JOIN pwm.problem p
+          JOIN p.problemKeywords pk
+          LEFT JOIN w.folderWorkbookMaps fwm
+          LEFT JOIN w.subjectWorkbookMaps swm
+         WHERE pk.keyword = :keyword
+           AND (
+               fwm.folder.user.id = :userId
+               OR swm IS NOT NULL
+           )
+    """)
+    @EntityGraph(attributePaths = {
+            "problemWorkbookMaps",
+            "problemWorkbookMaps.problem",
+            "problemWorkbookMaps.problem.problemKeywords"
+    })
+    List<Workbook> findAccessibleByKeyword(
+            @Param("keyword") String keyword,
+            @Param("userId")  Long userId
     );
 }

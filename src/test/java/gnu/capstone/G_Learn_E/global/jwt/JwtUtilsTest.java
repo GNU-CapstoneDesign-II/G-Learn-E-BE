@@ -15,12 +15,13 @@ public class JwtUtilsTest {
     private JwtUtils jwtUtils;
     private final String secretKey = Base64.getEncoder().encodeToString("my-very-secret-key-my-very-secret-key".getBytes());
     private final long accessTokenExpiration = 1000 * 60 * 60; // 1시간
+    private final long passwordResetTokenExpiration = 1000 * 60 * 10; // 10분
     private final long refreshTokenExpiration = 1000 * 60 * 60 * 24 * 7; // 7일
     private final long emailAuthTokenExpiration = 1000 * 60 * 5; // 5분
 
     @BeforeEach
     void setUp() {
-        jwtUtils = new JwtUtils(secretKey, emailAuthTokenExpiration, accessTokenExpiration, refreshTokenExpiration);
+        jwtUtils = new JwtUtils(secretKey, emailAuthTokenExpiration, passwordResetTokenExpiration, accessTokenExpiration, refreshTokenExpiration);
     }
 
     @Test
@@ -40,7 +41,7 @@ public class JwtUtilsTest {
     void validateToken_만료된토큰도_true() throws InterruptedException {
         // given
         User user = User.builder().email("expired@example.com").nickname("expiredUser").build();
-        JwtUtils shortLivedJwt = new JwtUtils(secretKey, emailAuthTokenExpiration, 1, refreshTokenExpiration);
+        JwtUtils shortLivedJwt = new JwtUtils(secretKey, emailAuthTokenExpiration, 1, 1, refreshTokenExpiration);
         String token = shortLivedJwt.generateAccessToken(user);
         Thread.sleep(5); // 토큰 만료까지 대기
 
@@ -80,7 +81,7 @@ public class JwtUtilsTest {
     void isExpired_만료된토큰이면_true() throws InterruptedException {
         // given
         User user = User.builder().email("expired2@example.com").nickname("expiredUser2").build();
-        JwtUtils shortLivedJwt = new JwtUtils(secretKey, emailAuthTokenExpiration, 1, refreshTokenExpiration);
+        JwtUtils shortLivedJwt = new JwtUtils(secretKey, emailAuthTokenExpiration, 1, 1, refreshTokenExpiration);
         String token = shortLivedJwt.generateAccessToken(user);
         Thread.sleep(5); // 만료 대기
 

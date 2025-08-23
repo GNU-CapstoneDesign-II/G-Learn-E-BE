@@ -50,6 +50,9 @@ public class User {
     private long solvedWorkbookCount;
     private long uploadedWorkbookCount;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ActivityLog> activityLogs = new ArrayList<>();
+
     @Setter
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "college_id", nullable = false)
@@ -69,6 +72,10 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolvedWorkbook> solvedWorkbooks = new ArrayList<>();
+
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserBlacklist> blacklists = new ArrayList<>();
 
     @Builder
     public User(String name, String nickname, String email, String password, College college, Department department) {

@@ -11,9 +11,12 @@ import gnu.capstone.G_Learn_E.domain.public_folder.repository.SubjectWorkbookMap
 import gnu.capstone.G_Learn_E.domain.user.entity.User;
 import gnu.capstone.G_Learn_E.domain.workbook.entity.Workbook;
 import gnu.capstone.G_Learn_E.domain.workbook.repository.WorkbookRepository;
+import gnu.capstone.G_Learn_E.global.common.dto.response.PageInfo;
 import gnu.capstone.G_Learn_E.global.common.dto.response.PublicPath;
+import gnu.capstone.G_Learn_E.global.common.dto.serviceToController.WorkbookPaginationResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -93,20 +96,60 @@ public class PublicFolderService {
     }
 
 
-    public List<Workbook> getAllWorkbooks(int page, int size, String sort, String order) {
-        return workbookRepository.findAllWorkbooks(getPageable(page, size, sort, order)).getContent();
+    public WorkbookPaginationResult getAllWorkbooks(int page, int size, String sort, String order, User user) {
+        Page<Workbook> results = workbookRepository.findAllWorkbooks(getPageable(page, size, sort, order), user.getId());
+        return WorkbookPaginationResult.from(
+                PageInfo.of(
+                        results.getTotalElements(),
+                        results.getTotalPages(),
+                        page,
+                        results.hasNext(),
+                        results.hasPrevious()
+                ),
+                results.getContent()
+        );
     }
 
-    public List<Workbook> getAllWorkbooksByCollegeId(Long collegeId, int page, int size, String sort, String order) {
-        return workbookRepository.findAllByCollegeId(collegeId, getPageable(page, size, sort, order)).getContent();
+    public WorkbookPaginationResult getAllWorkbooksByCollegeId(Long collegeId, int page, int size, String sort, String order, User user) {
+        Page<Workbook> results = workbookRepository.findAllByCollegeId(collegeId, getPageable(page, size, sort, order), user.getId());
+        return WorkbookPaginationResult.from(
+                PageInfo.of(
+                        results.getTotalElements(),
+                        results.getTotalPages(),
+                        page,
+                        results.hasNext(),
+                        results.hasPrevious()
+                ),
+                results.getContent()
+        );
     }
 
-    public List<Workbook> getAllWorkbooksByDepartmentId(Long departmentId, int page, int size, String sort, String order) {
-        return workbookRepository.findAllByDepartmentId(departmentId, getPageable(page, size, sort, order)).getContent();
+    public WorkbookPaginationResult getAllWorkbooksByDepartmentId(Long departmentId, int page, int size, String sort, String order, User user) {
+        Page<Workbook> results = workbookRepository.findAllByDepartmentId(departmentId, getPageable(page, size, sort, order), user.getId());
+        return WorkbookPaginationResult.from(
+                PageInfo.of(
+                        results.getTotalElements(),
+                        results.getTotalPages(),
+                        page,
+                        results.hasNext(),
+                        results.hasPrevious()
+                ),
+                results.getContent()
+        );
     }
 
-    public List<Workbook> getAllWorkbooksBySubjectId(Long subjectId, int page, int size, String sort, String order) {
-        return workbookRepository.findAllBySubjectId(subjectId, getPageable(page, size, sort, order)).getContent();
+    public WorkbookPaginationResult getAllWorkbooksBySubjectId(Long subjectId, int page, int size, String sort, String order, User user) {
+        Page<Workbook> results = workbookRepository.findAllBySubjectId(subjectId, getPageable(page, size, sort, order), user.getId());
+        return WorkbookPaginationResult.from(
+                PageInfo.of(
+                        results.getTotalElements(),
+                        results.getTotalPages(),
+                        page,
+                        results.hasNext(),
+                        results.hasPrevious()
+                ),
+                results.getContent()
+        );
     }
 
     private Pageable getPageable(int page, int size, String sort, String order) {
