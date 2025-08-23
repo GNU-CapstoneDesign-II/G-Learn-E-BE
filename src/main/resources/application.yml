@@ -3,10 +3,6 @@ spring:
     name:
       G-Learn-E
 
-  profiles:
-    active:
-      prod
-
   datasource:
     url: ${spring.datasource.url}
     username: ${spring.datasource.username}
