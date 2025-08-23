@@ -30,15 +30,14 @@
 
 
 # ===== 1) build (캐시 최적화) =====
-FROM gradle:8.10.2-jdk21 AS builder
+FROM gradle:8.13-jdk21 AS builder
 WORKDIR /workspace
 
 # 1-1) 의존성 캐시 레이어
 COPY gradlew ./
 COPY gradle ./gradle
 COPY settings.gradle* build.gradle* ./
-RUN chmod +x gradlew \
- && ./gradlew --no-daemon dependencies || true
+RUN chmod +x gradlew  && ./gradlew --no-daemon dependencies || true
 
 # 1-2) 실제 소스 복사 후 빌드
 COPY . .
@@ -50,13 +49,6 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 ENV TZ=Asia/Seoul
 
-# (필요 시) bash 설치 — wait-for-it이 bash 스크립트라면 필요
-RUN apk add --no-cache bash
-
-# ✅ 런타임 이미지에 wait-for-it.sh 복사(+권한/개행)
-COPY wait-for-it.sh /app/wait-for-it.sh
-RUN sed -i 's/\r$//' /app/wait-for-it.sh && chmod +x /app/wait-for-it.sh
-
 # 산출물 복사 (app.jar 이름 고정 안 했으면 *.jar)
 COPY --from=builder /workspace/build/libs/*.jar /app/app.jar
 
@@ -66,5 +58,5 @@ USER spring
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh","-c","/app/wait-for-it.sh fastapi_backend:8000 -- java $JAVA_OPTS -jar /app/app.jar"]
+ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /app/app.jar"]
 
