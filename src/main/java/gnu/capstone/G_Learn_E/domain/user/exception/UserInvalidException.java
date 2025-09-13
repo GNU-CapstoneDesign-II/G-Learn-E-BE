@@ -18,4 +18,8 @@ public class UserInvalidException extends InvalidGroupException {
     public static UserInvalidException existsNickname() {
         return new UserInvalidException("이미 존재하는 닉네임입니다.");
     }
+
+    public static UserInvalidException invalidCollege(){
+        return new UserInvalidException("유효하지 않은 단과대입니다.");
+    }
 }
