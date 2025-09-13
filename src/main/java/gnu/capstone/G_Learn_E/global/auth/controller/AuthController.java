@@ -136,11 +136,14 @@ public class AuthController {
 
     @GetMapping("/password-reset-code")
     @Operation(summary = "비밀번호 초기화 이메일 인증 코드 발급", description = "비밀번호 초기화 이메일 인증 코드를 발급합니다.")
-    public ApiResponse<?> getPasswordResetCode(@RequestParam("email") String email) {
+    public ApiResponse<?> getPasswordResetCode(
+        @RequestParam("email") String email,
+        @RequestParam("name") String name
+    ) {
         // TODO : 이메일 검증
         emailValidator.validate(email);
         // TODO : 비밀번호 찾기 이메일 인증 코드 발급
-        String authCode = authService.issuePasswordResetCode(email);
+        String authCode = authService.issuePasswordResetCode(email, name);
         emailSender.sendAuthCode(email, authCode);
 
         return new ApiResponse<>(HttpStatus.NO_CONTENT, "비밀번호 찾기 이메일 인증 코드 발급 성공", null);

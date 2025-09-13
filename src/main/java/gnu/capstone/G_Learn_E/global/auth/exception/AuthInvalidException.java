@@ -15,6 +15,9 @@ public class AuthInvalidException extends InvalidGroupException {
     public static AuthInvalidException passwordNotMatch() {
         return new AuthInvalidException("비밀번호가 일치하지 않습니다.");
     }
+    public static AuthInvalidException invalidEmailAndNameMatch() {
+        return new AuthInvalidException("이메일과 이름이 일치하지 않습니다.");
+    }
 
 
 

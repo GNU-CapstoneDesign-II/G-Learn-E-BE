@@ -99,9 +99,12 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public String issuePasswordResetCode(String email) {
+    public String issuePasswordResetCode(String email,String name) {
         User user = userRepository.findUserByEmail(email)
                 .orElseThrow(AuthNotFoundException::userNotFound);
+        if(!user.getName().equals(name)) {
+            throw AuthInvalidException.invalidEmailAndNameMatch();
+        }
         String resetCode = generateEmailAuthCode();
         passwordResetCodeRepository.saveAuthCode(email, resetCode);
         log.info("비밀번호 재설정 코드 발급 성공 [email: {}, resetCode: {}]", email, resetCode);
